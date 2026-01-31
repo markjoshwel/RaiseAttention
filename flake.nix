@@ -203,11 +203,92 @@
               fi
             fi
             
+             cp -r ${./.} $HOME/project
+             cd $HOME/project
+             ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_integration_real.py -v --tb=short
+             touch $out
+           '';
+         });
+
+      apps = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          python = pkgs.python312;
+
+          baseSet = pkgs.callPackage pyproject-nix.build.packages { inherit python; };
+          workspaceOverlay = workspace.mkPyprojectOverlay { sourcePreference = "wheel"; };
+
+          pythonSet = baseSet.overrideScope (lib.composeManyExtensions [
+            pyproject-build-systems.overlays.default
+            workspaceOverlay
+          ]);
+
+          venv = pythonSet.mkVirtualEnv "raiseattention-app-env" workspace.deps.all;
+
+           unit-tests-script = pkgs.writeShellScriptBin "unit-tests" ''
+             export HOME=$(mktemp -d)
+             cp -r ${./.} $HOME/project
+             cd $HOME/project
+             ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py -v --tb=short
+           '';
+
+           lint-script = pkgs.writeShellScriptBin "lint" ''
+             export HOME=$(mktemp -d)
+             cp -r ${./.} $HOME/project
+             cd $HOME/project
+             echo "running ruff check..."
+             ${venv}/bin/python -m ruff check src tests
+             echo "running ruff format check..."
+             ${venv}/bin/python -m ruff format --check src tests
+             echo "running mypy..."
+             ${venv}/bin/python -m mypy src/libvenvfinder
+             echo "lint complete"
+           '';
+
+           integration-tests-script = pkgs.writeShellScriptBin "integration-tests" ''
+            export HOME=$(mktemp -d)
+
+            # on NixOS, patch Rye's bundled binaries before running tests
+            if [ -f /etc/NIXOS ]; then
+              patchRyeBin() {
+                if [ -f "$1" ]; then
+                  if ! ${pkgs.patchelf}/bin/patchelf --print-interpreter "$1" 2>/dev/null | grep -q "nix/store"; then
+                    ${pkgs.patchelf}/bin/patchelf --set-interpreter "${pkgs.glibc}/lib/ld-linux-x86-64.so.2" "$1" || true
+                  fi
+                fi
+              }
+
+              if [ -d "$HOME/.rye/uv" ]; then
+                find "$HOME/.rye/uv" -name "uv" -type f 2>/dev/null | while read -r uv; do
+                  patchRyeBin "$uv"
+                done
+              fi
+
+              if [ -d "$HOME/.rye/py" ]; then
+                find "$HOME/.rye/py" -name "python3" -type f 2>/dev/null | while read -r py; do
+                  patchRyeBin "$py"
+                done
+              fi
+            fi
+
             cp -r ${./.} $HOME/project
             cd $HOME/project
             ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_integration_real.py -v --tb=short
-            touch $out
           '';
+
+        in {
+          unit-tests = {
+            type = "app";
+            program = "${unit-tests-script}/bin/unit-tests";
+          };
+          integration-tests = {
+            type = "app";
+            program = "${integration-tests-script}/bin/integration-tests";
+          };
+          lint = {
+            type = "app";
+            program = "${lint-script}/bin/lint";
+          };
         });
     };
 }

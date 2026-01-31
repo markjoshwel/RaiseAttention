@@ -1,148 +1,107 @@
-name: CI
+name: qc
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:
 
 jobs:
-  # Unit tests - run quickly on GitHub runners
-  unit-tests:
+  # check flake evaluates correctly
+  check-flake:
+    name: 'check nix flake (nix flake check)'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix flake check
+
+  # unit tests via nix - linux
+  unit-tests-nix:
+    name: 'run unit tests (nix run .#unit-tests)'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix run .#unit-tests
+
+  # integration tests via nix - linux
+  # these actually invoke poetry, pipenv, pdm, uv, rye, hatch
+  integration-tests-nix:
+    name: 'run integration tests (nix run .#integration-tests)'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix run .#integration-tests
+
+  # integration tests via nix - macos
+  # verifies the nix flake works on darwin too
+  integration-tests-nix-macos:
+    name: 'run integration tests on macos (nix run .#integration-tests)'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix run .#integration-tests
+
+  # lint and type check via nix
+  lint-nix:
+    name: 'run linters (nix run .#lint)'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix run .#lint
+
+  # build packages via nix
+  build-nix:
+    name: 'build packages (nix build)'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix build .#libvenvfinder
+      - run: nix build .#raiseattention
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: result/
+          retention-days: 7
+
+  # compatibility matrix
+  # verifies tests pass across platforms and python versions
+  compat:
+    name: 'compat: python ${{ matrix.python-version }} on ${{ matrix.os }}'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13']
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          version: 'latest'
-
-      - name: Sync dependencies
-        run: uv sync --dev --extra dev
-
-      - name: Run libvenvfinder unit tests
-        run: uv run pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py -v --tb=short
-
-  # Linting and type checking
-  lint:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          version: 'latest'
-
-      - name: Sync dependencies
-        run: uv sync --dev --extra dev
-
-      - name: Run ruff linter
-        run: uv run ruff check src tests
-
-      - name: Run ruff formatter check
-        run: uv run ruff format --check src tests
-
-      - name: Run mypy type checker
-        run: uv run mypy src/libvenvfinder
-
-  # Coverage reporting
-  coverage:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          version: 'latest'
-
-      - name: Sync dependencies
-        run: uv sync --dev --extra dev
-
-      - name: Run tests with coverage
-        run: uv run pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py --cov=libvenvfinder --cov-report=xml --cov-report=term
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: false
-          verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  # Integration tests on NixOS server (optional, requires SSH setup)
-  integration-tests-nixos:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[run-integration]')
-
-    steps:
-      - name: Run integration tests on NixOS server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.NIXOS_HOST }}
-          username: ${{ secrets.NIXOS_USER }}
-          key: ${{ secrets.NIXOS_SSH_KEY }}
-          script: |
-            cd ${{ secrets.NIXOS_PROJECT_PATH }}
-            git fetch origin
-            git reset --hard origin/main
-            nix develop .#integration --command uv run pytest src/libvenvfinder/tests/test_integration_real.py -v --tb=short
-
-  # Build packages (verify they can be built)
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          version: 'latest'
-
-      - name: Sync dependencies
-        run: uv sync --dev --extra dev
-
-      - name: Build libvenvfinder
-        run: uv build --package libvenvfinder
-
-      - name: Build raiseattention
-        run: uv build --package raiseattention
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-          retention-days: 7
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --dev --extra dev
+      - run: uv run pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py -v
