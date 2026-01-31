@@ -167,6 +167,8 @@
           venv = pythonSet.mkVirtualEnv "raiseattention-check-env" workspace.deps.all;
           
         in {
+          # unit tests only - integration tests require external tools that don't
+          # work well in the sandboxed nix build environment (different behavior)
           unit-tests = pkgs.runCommand "unit-tests" { nativeBuildInputs = [ venv ]; } ''
             export HOME=$(mktemp -d)
             cp -r ${./.} $HOME/project
@@ -174,41 +176,7 @@
             ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py -v --tb=short
             touch $out
           '';
-          
-          integration-tests = pkgs.runCommand "integration-tests" { 
-            nativeBuildInputs = [ venv pkgs.poetry pkgs.pipenv pkgs.pdm pkgs.rye pkgs.hatch pkgs.pyenv pkgs.patchelf pkgs.glibc ]; 
-          } ''
-            export HOME=$(mktemp -d)
-            
-            # on NixOS, patch Rye's bundled binaries before running tests
-            if [ -f /etc/NIXOS ]; then
-              patchRyeBin() {
-                if [ -f "$1" ]; then
-                  if ! patchelf --print-interpreter "$1" 2>/dev/null | grep -q "nix/store"; then
-                    patchelf --set-interpreter "${pkgs.glibc}/lib/ld-linux-x86-64.so.2" "$1" || true
-                  fi
-                fi
-              }
-              
-              if [ -d "$HOME/.rye/uv" ]; then
-                find "$HOME/.rye/uv" -name "uv" -type f 2>/dev/null | while read -r uv; do
-                  patchRyeBin "$uv"
-                done
-              fi
-              
-              if [ -d "$HOME/.rye/py" ]; then
-                find "$HOME/.rye/py" -name "python3" -type f 2>/dev/null | while read -r py; do
-                  patchRyeBin "$py"
-                done
-              fi
-            fi
-            
-             cp -r ${./.} $HOME/project
-             cd $HOME/project
-             ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_integration_real.py -v --tb=short
-             touch $out
-           '';
-         });
+          });
 
       apps = forAllSystems (system:
         let
