@@ -27,10 +27,22 @@ def detect_pyenv(project_path: Path) -> VenvInfo | None:
     if not version_file.exists():
         return None
 
-    # If there's a local .venv directory, another tool is managing it
-    # defer to that tool instead of claiming it as pyenv
+    # If there's a local .venv directory or other tool markers, another tool
+    # is managing the project - defer to that tool instead of claiming as pyenv
     if project_path.joinpath(".venv").exists():
         return None
+
+    # Check for other tool markers that indicate this isn't a pure pyenv project
+    other_tool_markers = [
+        "rye.lock",  # Rye project
+        "poetry.lock",  # Poetry project
+        "pdm.lock",  # PDM project
+        "uv.lock",  # UV project
+        "Pipfile.lock",  # Pipenv project
+    ]
+    for marker in other_tool_markers:
+        if project_path.joinpath(marker).exists():
+            return None
 
     try:
         python_version = version_file.read_text().strip()
