@@ -256,17 +256,50 @@ uv run pytest tests/ --cov=libvenvfinder --cov-report=term-missing
 **test structure:**
 - `test_core.py` - api tests for `find_venv()` and `find_all_venvs()`
 - `test_cli.py` - command-line interface tests  
+- `test_integration_real.py` - real integration tests with actual tools
 - `conftest.py` - shared fixtures and test configuration
 
 **current coverage: ~77%**
 - well-covered: core api, cli, venv/uv/rye detectors
 - needs work: hatch (32%), pdm (52%), pyenv (47%) - mostly toml parsing paths
-- subprocess error handling not fully tested (will be covered by nix integration tests)
+- subprocess error handling covered by nix integration tests
 
 **testing notes:**
 - tests clear `VIRTUAL_ENV` env var automatically (see `conftest.py`)
 - mock projects created with fixtures (poetry_project, uv_project, etc.)
 - platform-specific code (windows/unix) tested via mocking
+
+### nix integration tests
+
+real integration tests are provided via nix that actually invoke poetry, pipenv,
+pdm, uv, rye, and hatch to create projects and verify detection works.
+
+**requirements:** nix with flakes enabled, linux (tested on nixos)
+
+**run via nix develop:**
+```bash
+# enter integration shell with all tools
+nix develop .#integration
+
+# run real integration tests (creates actual projects)
+uv run pytest src/libvenvfinder/tests/test_integration_real.py -v
+```
+
+**run via nix flake check:**
+```bash
+# run unit tests
+nix flake check .#unit-tests
+
+# run integration tests
+nix flake check .#integration-tests
+```
+
+**nixos rye workaround:**
+rye bundles dynamically-linked binaries that expect fhs paths. on nixos, the
+integration shell automatically patches these binaries using `patchelf` to use
+nixos's dynamic linker. this happens automatically when entering the shell.
+
+see: `flake.nix` integration shell `shellhook` for implementation details.
 
 ## dependencies
 
@@ -350,6 +383,26 @@ uv run raiseattention cache status
 uv run venvfinder .
 uv run venvfinder . --all
 uv run venvfinder . --tool poetry --json
+```
+
+### nix development
+
+```bash
+# enter development shell
+nix develop
+
+# enter integration shell (includes all venv tools)
+nix develop .#integration
+
+# run unit tests via nix
+nix flake check .#unit-tests
+
+# run integration tests via nix
+nix flake check .#integration-tests
+
+# build packages
+nix build .#libvenvfinder
+nix build .#raiseattention
 ```
 
 ## git workflow
