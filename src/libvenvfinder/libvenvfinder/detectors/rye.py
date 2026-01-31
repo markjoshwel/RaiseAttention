@@ -49,6 +49,10 @@ def detect_rye(project_path: Path) -> VenvInfo | None:
             pyenv_root = os.environ.get("PYENV_ROOT", "~/.pyenv")
             pyenv_root_path = Path(pyenv_root).expanduser()
             pyenv_venv = pyenv_root_path.joinpath("versions", python_version)
+            print(f"DEBUG RYE: Looking for pyenv venv at: {pyenv_venv}")
+            print(f"DEBUG RYE: PYENV_ROOT={os.environ.get('PYENV_ROOT', 'NOT SET')}")
+            print(f"DEBUG RYE: HOME={os.environ.get('HOME', 'NOT SET')}")
+            print(f"DEBUG RYE: Path exists: {pyenv_venv.exists()}")
             if pyenv_venv.exists():
                 venv_path = pyenv_venv
                 python_exe = get_python_executable(venv_path)
