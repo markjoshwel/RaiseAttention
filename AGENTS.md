@@ -259,10 +259,19 @@ uv run pytest tests/ --cov=libvenvfinder --cov-report=term-missing
 - `test_integration_real.py` - real integration tests with actual tools
 - `conftest.py` - shared fixtures and test configuration
 
-**current coverage: ~77%**
-- well-covered: core api, cli, venv/uv/rye detectors
-- needs work: hatch (32%), pdm (52%), pyenv (47%) - mostly toml parsing paths
+**current coverage: ~95%**
+- well-covered: core api, cli, all detectors
+- pdm: 100% (edge cases: missing config, invalid toml, path resolution)
+- pyenv: 100% (edge cases: version parsing, pyenv_root handling, tilde expansion)
+- hatch: 96% (edge cases: toml parsing, custom paths, oserror handling)
 - subprocess error handling covered by nix integration tests
+
+**test files:**
+- `test_core.py` - api tests for `find_venv()` and `find_all_venvs()`
+- `test_cli.py` - command-line interface tests
+- `test_integration_real.py` - real integration tests with actual tools
+- `test_detectors_edge_cases.py` - edge case tests for hatch/pdm/pyenv detectors
+- `conftest.py` - shared fixtures and test configuration
 
 **testing notes:**
 - tests clear `VIRTUAL_ENV` env var automatically (see `conftest.py`)
