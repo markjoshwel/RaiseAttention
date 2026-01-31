@@ -1,0 +1,103 @@
+raiseattention project status and next steps
+===========================================
+
+date: 2026-01-31
+
+context
+-------
+we've been working on the raiseattention project, a static exception flow analyser 
+for python. the project has been restructured into a uv workspace with two packages:
+- raiseattention (main exception analyser)
+- libvenvfinder (standalone venv detection library)
+
+what's done
+-----------
+
+1. libvenvfinder (95% test coverage)
+   - extracted as standalone library
+   - 22 unit tests (test_core.py, test_cli.py)
+   - 42 edge case tests (test_detectors_edge_cases.py)
+   - 6 real integration tests (test_integration_real.py)
+     * poetry, pipenv, pdm, uv, rye, hatch
+     * all pass on nixos with patchelf workaround for rye
+   - coverage improvements:
+     * pdm: 100% (was 52%)
+     * pyenv: 100% (was 47%)
+     * hatch: 96% (was 32%)
+
+2. nix flake
+   - pure uv2nix build using pyproject.nix
+   - pyproject-build-systems for build dependencies
+   - two dev shells: default and integration (with all venv tools)
+   - automatic patchelf patching for rye on nixos
+   - apps: #unit-tests, #integration-tests, #lint
+   - checks: unit-tests, integration-tests
+
+3. ci/cd pipeline
+   - github actions workflow (qc.yml)
+   - nix-based jobs for reproducibility:
+     * check-flake
+     * unit-tests-nix
+     * integration-tests-nix (linux)
+     * integration-tests-nix-macos
+     * lint-nix
+     * build-nix
+   - compatibility matrix: python 3.10-3.13 on ubuntu/windows/macos
+   - uses cachix/install-nix-action + magic-nix-cache
+
+4. documentation
+   - updated AGENTS.md with:
+     * nix development instructions
+     * nixos rye workaround details
+     * improved coverage statistics
+   - proper git commit history (clean 10 commits)
+
+what's up / on hold
+-------------------
+
+raiseattention package tests are broken due to import errors:
+  ImportError: cannot import name 'ToolType' from 'libvenvfinder'
+
+- raiseattention.env_detector tries to import from libvenvfinder
+- the workspace structure should work but doesn't
+- uv sync works but imports fail at runtime
+- this blocks all raiseattention tests from running
+
+what's next
+-----------
+
+priority 1: fix raiseattention imports
+--------------------------------------
+the main package tests need to be fixed. the workspace structure 
+(libvenvfinder as workspace member) should allow imports but currently fails.
+
+tasks:
+- debug why 'from libvenvfinder import ToolType' fails in raiseattention
+- check pyproject.toml workspace configuration
+- verify libvenvfinder exports in __init__.py
+- fix the import paths or workspace setup
+- once fixed, run all raiseattention tests
+- update AGENTS.md with final architecture
+
+priority 2: release preparation (after imports fixed)
+-----------------------------------------------------
+once everything works:
+- bump version to 0.1.0 or 1.0.0
+- create git tag
+- publish libvenvfinder to pypi
+- create github release with notes
+- optional: publish raiseattention to pypi
+
+priority 3: features (if desired)
+----------------------------------
+- additional detectors (conda, virtualenvwrapper, etc.)
+- caching for venv detection results
+- configuration file support for libvenvfinder
+- more robust error handling
+
+notes
+-----
+- nixos server (poisson@pettan) has working environment at /mnt/md0/raiseattention
+- all libvenvfinder tests pass on the server
+- rye works on nixos thanks to patchelf workaround in flake.nix shellhook
+- ci will trigger on next push to main
