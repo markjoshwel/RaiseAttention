@@ -1,0 +1,148 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # Unit tests - run quickly on GitHub runners
+  unit-tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: 'latest'
+
+      - name: Sync dependencies
+        run: uv sync --dev --extra dev
+
+      - name: Run libvenvfinder unit tests
+        run: uv run pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py -v --tb=short
+
+  # Linting and type checking
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: 'latest'
+
+      - name: Sync dependencies
+        run: uv sync --dev --extra dev
+
+      - name: Run ruff linter
+        run: uv run ruff check src tests
+
+      - name: Run ruff formatter check
+        run: uv run ruff format --check src tests
+
+      - name: Run mypy type checker
+        run: uv run mypy src/libvenvfinder
+
+  # Coverage reporting
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: 'latest'
+
+      - name: Sync dependencies
+        run: uv sync --dev --extra dev
+
+      - name: Run tests with coverage
+        run: uv run pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py --cov=libvenvfinder --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  # Integration tests on NixOS server (optional, requires SSH setup)
+  integration-tests-nixos:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[run-integration]')
+
+    steps:
+      - name: Run integration tests on NixOS server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.NIXOS_HOST }}
+          username: ${{ secrets.NIXOS_USER }}
+          key: ${{ secrets.NIXOS_SSH_KEY }}
+          script: |
+            cd ${{ secrets.NIXOS_PROJECT_PATH }}
+            git fetch origin
+            git reset --hard origin/main
+            nix develop .#integration --command uv run pytest src/libvenvfinder/tests/test_integration_real.py -v --tb=short
+
+  # Build packages (verify they can be built)
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: 'latest'
+
+      - name: Sync dependencies
+        run: uv sync --dev --extra dev
+
+      - name: Build libvenvfinder
+        run: uv build --package libvenvfinder
+
+      - name: Build raiseattention
+        run: uv build --package raiseattention
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
