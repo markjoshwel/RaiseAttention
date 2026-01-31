@@ -51,3 +51,13 @@ htmlcov/
 # misc
 .DS_Store
 *.log
+
+# nix
+result
+result-*
+.direnv/
+
+# playground and debug files
+playground/
+test_debug*.py
+test_env_config.py

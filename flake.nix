@@ -1,0 +1,213 @@
+{
+  description = "raiseattention - static exception flow analyser for python";
+
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs = {
+        pyproject-nix.follows = "pyproject-nix";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs = {
+        pyproject-nix.follows = "pyproject-nix";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+  };
+
+  outputs = { self, nixpkgs, pyproject-nix, pyproject-build-systems, uv2nix }:
+    let
+      inherit (nixpkgs) lib;
+      systems = lib.systems.flakeExposed;
+      forAllSystems = lib.genAttrs systems;
+      
+      # Load workspace from uv.lock
+      workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
+
+    in {
+      packages = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          python = pkgs.python312;
+          
+          # Base package set from pyproject.nix
+          baseSet = pkgs.callPackage pyproject-nix.build.packages { inherit python; };
+          
+          # Workspace overlay from uv.lock
+          workspaceOverlay = workspace.mkPyprojectOverlay { sourcePreference = "wheel"; };
+          
+          # Combine overlays: build-systems first, then workspace
+          # Order matters! Build systems must be available for workspace packages
+          pythonSet = baseSet.overrideScope (lib.composeManyExtensions [
+            pyproject-build-systems.overlays.default
+            workspaceOverlay
+          ]);
+          
+        in {
+          libvenvfinder = pythonSet.libvenvfinder;
+          raiseattention = pythonSet.raiseattention;
+          default = pythonSet.raiseattention;
+        });
+
+      devShells = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          python = pkgs.python312;
+          
+          baseSet = pkgs.callPackage pyproject-nix.build.packages { inherit python; };
+          workspaceOverlay = workspace.mkPyprojectOverlay { sourcePreference = "wheel"; };
+          
+          pythonSet = baseSet.overrideScope (lib.composeManyExtensions [
+            pyproject-build-systems.overlays.default
+            workspaceOverlay
+          ]);
+          
+          venv = pythonSet.mkVirtualEnv "raiseattention-dev-env" workspace.deps.all;
+          
+        in {
+          default = pkgs.mkShell {
+            name = "raiseattention-dev";
+            packages = [ venv pkgs.uv pkgs.ruff pkgs.mypy pkgs.basedpyright ];
+            env = {
+              UV_PYTHON_DOWNLOADS = "never";
+              UV_PYTHON = "${venv}/bin/python";
+            };
+            shellHook = ''
+              echo "raiseattention dev shell (pure uv2nix)"
+              echo "python: $(python --version)"
+              echo "run: uv run pytest src/libvenvfinder/tests/ -v"
+            '';
+          };
+
+          integration = pkgs.mkShell {
+            name = "raiseattention-integration";
+            packages = [ 
+              venv pkgs.uv pkgs.ruff pkgs.mypy pkgs.basedpyright
+              pkgs.poetry pkgs.pipenv pkgs.pdm pkgs.rye pkgs.hatch pkgs.pyenv
+              pkgs.patchelf pkgs.glibc
+            ];
+            env = {
+              UV_PYTHON_DOWNLOADS = "never";
+              UV_PYTHON = "${venv}/bin/python";
+              POETRY_BINARY = "${pkgs.poetry}/bin/poetry";
+              PIPENV_BINARY = "${pkgs.pipenv}/bin/pipenv";
+              PDM_BINARY = "${pkgs.pdm}/bin/pdm";
+              UV_BINARY = "${pkgs.uv}/bin/uv";
+              RYE_BINARY = "${pkgs.rye}/bin/rye";
+              HATCH_BINARY = "${pkgs.hatch}/bin/hatch";
+              PYENV_BINARY = "${pkgs.pyenv}/bin/pyenv";
+            };
+            shellHook = ''
+              echo "raiseattention integration shell"
+              echo ""
+              echo "run unit tests:"
+              echo "  uv run pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py -v"
+              echo ""
+              echo "run real integration tests (creates actual projects):"
+              echo "  uv run pytest src/libvenvfinder/tests/test_integration_real.py -v"
+              echo ""
+              
+              # on NixOS, patch Rye's bundled binaries to work with NixOS's dynamic linker
+              # Rye downloads dynamically-linked binaries that expect FHS paths like /lib64/ld-linux-x86-64.so.2
+              if [ -f /etc/NIXOS ]; then
+                echo "NixOS detected - patching Rye binaries..."
+                
+                # Function to patch a single binary
+                patchRyeBin() {
+                  if [ -f "$1" ]; then
+                    # check if already patched (contains nix/store in interpreter path)
+                    if ! patchelf --print-interpreter "$1" 2>/dev/null | grep -q "nix/store"; then
+                      echo "  patching: $1"
+                      patchelf --set-interpreter "${pkgs.glibc}/lib/ld-linux-x86-64.so.2" "$1" || true
+                    fi
+                  fi
+                }
+                
+                # patch Rye's bundled uv binaries using find
+                if [ -d "$HOME/.rye/uv" ]; then
+                  find "$HOME/.rye/uv" -name "uv" -type f 2>/dev/null | while read -r uv; do
+                    patchRyeBin "$uv"
+                  done
+                fi
+                
+                # patch Rye's bundled Python interpreters
+                if [ -d "$HOME/.rye/py" ]; then
+                  find "$HOME/.rye/py" -name "python3" -type f 2>/dev/null | while read -r py; do
+                    patchRyeBin "$py"
+                  done
+                fi
+                
+                echo "Rye binaries patched (if any were found)"
+              fi
+            '';
+          };
+        });
+
+      checks = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          python = pkgs.python312;
+          
+          baseSet = pkgs.callPackage pyproject-nix.build.packages { inherit python; };
+          workspaceOverlay = workspace.mkPyprojectOverlay { sourcePreference = "wheel"; };
+          
+          pythonSet = baseSet.overrideScope (lib.composeManyExtensions [
+            pyproject-build-systems.overlays.default
+            workspaceOverlay
+          ]);
+          
+          venv = pythonSet.mkVirtualEnv "raiseattention-check-env" workspace.deps.all;
+          
+        in {
+          unit-tests = pkgs.runCommand "unit-tests" { nativeBuildInputs = [ venv ]; } ''
+            export HOME=$(mktemp -d)
+            cp -r ${./.} $HOME/project
+            cd $HOME/project
+            ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py -v --tb=short
+            touch $out
+          '';
+          
+          integration-tests = pkgs.runCommand "integration-tests" { 
+            nativeBuildInputs = [ venv pkgs.poetry pkgs.pipenv pkgs.pdm pkgs.rye pkgs.hatch pkgs.pyenv pkgs.patchelf pkgs.glibc ]; 
+          } ''
+            export HOME=$(mktemp -d)
+            
+            # on NixOS, patch Rye's bundled binaries before running tests
+            if [ -f /etc/NIXOS ]; then
+              patchRyeBin() {
+                if [ -f "$1" ]; then
+                  if ! patchelf --print-interpreter "$1" 2>/dev/null | grep -q "nix/store"; then
+                    patchelf --set-interpreter "${pkgs.glibc}/lib/ld-linux-x86-64.so.2" "$1" || true
+                  fi
+                fi
+              }
+              
+              if [ -d "$HOME/.rye/uv" ]; then
+                find "$HOME/.rye/uv" -name "uv" -type f 2>/dev/null | while read -r uv; do
+                  patchRyeBin "$uv"
+                done
+              fi
+              
+              if [ -d "$HOME/.rye/py" ]; then
+                find "$HOME/.rye/py" -name "python3" -type f 2>/dev/null | while read -r py; do
+                  patchRyeBin "$py"
+                done
+              fi
+            fi
+            
+            cp -r ${./.} $HOME/project
+            cd $HOME/project
+            ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_integration_real.py -v --tb=short
+            touch $out
+          '';
+        });
+    };
+}
