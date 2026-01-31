@@ -51,13 +51,12 @@ def detect_pdm(project_path: Path) -> VenvInfo | None:
     in_project_venv = project_path.joinpath(".venv")
     if in_project_venv.exists():
         venv_python_exe = get_python_executable(in_project_venv)
-        if venv_python_exe is not None:
-            return VenvInfo(
-                tool=ToolType.PDM,
-                venv_path=in_project_venv,
-                python_executable=venv_python_exe,
-                python_version=None,
-                is_valid=True,
-            )
+        return VenvInfo(
+            tool=ToolType.PDM,
+            venv_path=in_project_venv,
+            python_executable=venv_python_exe,
+            python_version=None,
+            is_valid=venv_python_exe is not None,
+        )
 
     return None
