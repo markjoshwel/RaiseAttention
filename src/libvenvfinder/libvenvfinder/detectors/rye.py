@@ -28,11 +28,34 @@ def detect_rye(project_path: Path) -> VenvInfo | None:
     if not (has_rye_lock or has_python_version):
         return None
 
+    # Try local .venv first
     venv_path = project_path.joinpath(".venv")
-    if not venv_path.exists():
-        return None
+    if venv_path.exists():
+        python_exe = get_python_executable(venv_path)
+    else:
+        # Rye may use pyenv-managed Python if no local .venv
+        # Check for pyenv python with matching version
+        python_version = None
+        version_file = project_path.joinpath(".python-version")
+        if version_file.exists():
+            try:
+                python_version = version_file.read_text().strip()
+            except OSError:
+                pass
 
-    python_exe = get_python_executable(venv_path)
+        if python_version:
+            import os
+
+            pyenv_root = os.environ.get("PYENV_ROOT", "~/.pyenv")
+            pyenv_root_path = Path(pyenv_root).expanduser()
+            pyenv_venv = pyenv_root_path.joinpath("versions", python_version)
+            if pyenv_venv.exists():
+                venv_path = pyenv_venv
+                python_exe = get_python_executable(venv_path)
+            else:
+                return None
+        else:
+            return None
 
     # Try to get python version from .python-version file
     python_version = None
