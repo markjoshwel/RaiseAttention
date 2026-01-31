@@ -186,6 +186,9 @@ def func():
         test_file.write_text("""
 def undocumented():
     raise ValueError("error")
+
+def caller():
+    undocumented()  # call to trigger exception flow analysis
 """)
 
         config = Config()
@@ -195,6 +198,7 @@ def undocumented():
         result = analyzer.analyse_file(test_file)
 
         # should have diagnostic about undocumented exception
+        # strict mode flags functions with unhandled exceptions that are not documented
         assert any("undocumented" in d.message for d in result.diagnostics)
 
     def test_cache_usage(self, tmp_path: Path) -> None:

@@ -138,12 +138,14 @@ class TestHandleCheck:
         test_file.write_text("""
 def risky():
     raise ValueError("error")
+
+def caller():
+    risky()  # unhandled call
 """)
 
         parser = create_parser()
         args = parser.parse_args(["check", str(test_file)])
         config = Config()
-        config.analysis.strict_mode = True
 
         result = handle_check(args, config)
 

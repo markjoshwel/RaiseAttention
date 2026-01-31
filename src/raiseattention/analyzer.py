@@ -2,7 +2,8 @@
 core exception analysis engine for raiseattention.
 
 this module provides the main analysis logic for detecting unhandled
-exceptions in python code, including transitive propagation tracking.
+exceptions in python code, including transitive propagation tracking
+through call chains with try-except handling detection.
 """
 
 from __future__ import annotations
@@ -12,7 +13,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .ast_visitor import parse_file
+from .ast_visitor import CallInfo, parse_file
 from .cache import DependencyCache, FileAnalysis, FileCache
 from .config import Config
 
@@ -25,8 +26,7 @@ class Diagnostic:
     """
     a diagnostic message for an unhandled exception.
 
-    Attributes
-    ----------
+    attributes:
         `file_path: Path`
             file where the issue was found
         `line: int`
@@ -54,8 +54,7 @@ class AnalysisResult:
     """
     result of analysing a file or project.
 
-    Attributes
-    ----------
+    attributes:
         `diagnostics: list[Diagnostic]`
             all diagnostics found
         `files_analysed: list[Path]`
@@ -77,10 +76,10 @@ class ExceptionAnalyzer:
     core exception analysis engine.
 
     analyses python code to detect unhandled exceptions, including
-    transitive propagation through function calls.
+    transitive propagation through function calls with proper
+    try-except handling detection.
 
-    Attributes
-    ----------
+    attributes:
         `config: Config`
             configuration settings
         `file_cache: FileCache`
@@ -95,7 +94,7 @@ class ExceptionAnalyzer:
 
     def __init__(self, config: Config) -> None:
         """
-        Initialise the exception analyzer.
+        initialise the exception analyzer.
 
         arguments:
             `config: Config`
@@ -107,9 +106,33 @@ class ExceptionAnalyzer:
         self._file_analyses: dict[Path, FileAnalysis] = {}
         self._exception_signatures: dict[str, list[str]] = {}
 
+    def _get_ignore_exceptions(self) -> list[str]:
+        """
+        get the list of exception types to ignore.
+
+        combines the top-level config.ignore_exceptions with any
+        exceptions defined in analysis config for compatibility.
+
+        returns: `list[str]`
+            combined list of exception types to ignore
+        """
+        # get base list from config
+        ignored = list(self.config.ignore_exceptions)
+
+        # also check analysis config (for backward compatibility with tests)
+        if hasattr(self.config.analysis, "ignore_exceptions"):
+            analysis_ignored = getattr(self.config.analysis, "ignore_exceptions", [])
+            if analysis_ignored:
+                # extend without duplicates
+                for exc in analysis_ignored:
+                    if exc not in ignored:
+                        ignored.append(exc)
+
+        return ignored
+
     def analyse_file(self, file_path: str | Path) -> AnalysisResult:
         """
-        Analyse a single file for unhandled exceptions.
+        analyse a single file for unhandled exceptions.
 
         arguments:
             `file_path: str | Path`
@@ -142,12 +165,13 @@ class ExceptionAnalyzer:
                     line=1,
                     column=0,
                     message=f"failed to analyse file: {e}",
+                    exception_types=[],
                     severity="error",
                 )
             )
             return result
 
-        # create file analysis
+        # create file analysis with new structure
         analysis = FileAnalysis(
             file_path=file_path,
             functions={
@@ -163,14 +187,36 @@ class ExceptionAnalyzer:
                         }
                         for exc in func.raises
                     ],
-                    "calls": func.calls,
+                    "calls": [
+                        {
+                            "func_name": call.func_name,
+                            "location": call.location,
+                            "is_async": call.is_async,
+                            "containing_try_blocks": call.containing_try_blocks,
+                        }
+                        for call in func.calls
+                    ],
                     "docstring": func.docstring,
+                    "is_async": func.is_async,
                 }
                 for name, func in visitor.functions.items()
             },
             imports=visitor.imports,
             timestamp=time.time(),
         )
+
+        # store try-except blocks separately for diagnostics
+        analysis.try_except_blocks = [  # type: ignore[attr-defined]
+            {
+                "location": try_info.location,
+                "end_location": try_info.end_location,
+                "handled_types": try_info.handled_types,
+                "has_bare_except": try_info.has_bare_except,
+                "has_except_exception": try_info.has_except_exception,
+                "reraises": try_info.reraises,
+            }
+            for try_info in visitor.try_except_blocks
+        ]
 
         # store in cache and memory
         self.file_cache.store(file_path, analysis)
@@ -188,7 +234,7 @@ class ExceptionAnalyzer:
 
     def analyse_project(self, project_root: str | Path | None = None) -> AnalysisResult:
         """
-        Analyse an entire project for unhandled exceptions.
+        analyse an entire project for unhandled exceptions.
 
         arguments:
             `project_root: str | Path | None`
@@ -216,16 +262,26 @@ class ExceptionAnalyzer:
 
         return result
 
-    def get_function_signature(self, qualified_name: str) -> list[str]:
+    def get_function_signature(
+        self,
+        qualified_name: str,
+        context_file: Path | None = None,
+        _recursion_stack: set[str] | None = None,
+    ) -> list[str]:
         """
-        Get the exception signature for a function.
+        get the exception signature for a function.
 
         this computes the transitive exception signature, including
-        exceptions from called functions.
+        exceptions from called functions. exceptions in the
+        ignore_exceptions config are filtered out.
 
         arguments:
             `qualified_name: str`
-                fully qualified function name
+                fully qualified function name (or simple name if context_file provided)
+            `context_file: Path | None`
+                file path for resolving simple function names
+            `_recursion_stack: set[str] | None`
+                internal use for detecting circular calls
 
         returns: `list[str]`
             list of exception types the function may raise
@@ -233,39 +289,87 @@ class ExceptionAnalyzer:
         if qualified_name in self._exception_signatures:
             return self._exception_signatures[qualified_name]
 
+        # initialize recursion stack (use a list to maintain shared state)
+        if _recursion_stack is None:
+            _recursion_stack = set()
+
         # find function in analyses
         func_info = None
-        for analysis in self._file_analyses.values():
+        resolved_name = qualified_name
+
+        # first try exact match
+        for analysis_path, analysis in self._file_analyses.items():
             if qualified_name in analysis.functions:
                 func_info = analysis.functions[qualified_name]
+                resolved_name = qualified_name
                 break
+
+        # if not found and context provided, try to resolve relative to context
+        if func_info is None and context_file is not None:
+            if context_file in self._file_analyses:
+                analysis = self._file_analyses[context_file]
+                # try with module prefix from the context file
+                for name in analysis.functions:
+                    if name.endswith(f".{qualified_name}") or name == qualified_name:
+                        func_info = analysis.functions[name]
+                        resolved_name = name
+                        break
 
         if func_info is None:
             return []
 
+        # detect circular references using resolved name
+        if resolved_name in _recursion_stack:
+            return []
+
+        # add to recursion stack (modifies the shared set in-place)
+        _recursion_stack.add(resolved_name)
+
+        # find the file this function belongs to (for resolving called function names)
+        func_file_path = None
+        for analysis_path, analysis in self._file_analyses.items():
+            if resolved_name in analysis.functions:
+                func_file_path = analysis_path
+                break
+
         # collect directly raised exceptions
         exceptions: set[str] = set()
-        for exc in func_info.get("raises", []):  # pyright: ignore[reportAny]
-            if not exc.get("is_re_raise", False):  # pyright: ignore[reportAny]
-                exceptions.add(exc.get("type", ""))  # pyright: ignore[reportAny]
+        for exc in func_info.get("raises", []):
+            exc_type = exc.get("type", "")
+            if exc_type and not exc.get("is_re_raise", False):
+                # filter out ignored exceptions at the source
+                if exc_type not in self._get_ignore_exceptions():
+                    exceptions.add(exc_type)
 
         # collect from called functions (transitive)
-        for called_func in func_info.get("calls", []):  # pyright: ignore[reportAny]
-            called_exceptions = self.get_function_signature(called_func)
-            exceptions.update(called_exceptions)
+        for call in func_info.get("calls", []):
+            if isinstance(call, dict):
+                called_func_name = call.get("func_name", "")
+            else:
+                called_func_name = call
+
+            if called_func_name:
+                called_exceptions = self.get_function_signature(
+                    called_func_name, func_file_path, _recursion_stack
+                )
+                # called exceptions are already filtered by their own signature computation
+                exceptions.update(called_exceptions)
 
         # remove empty strings
         exceptions.discard("")
 
         # cache result
         result = list(exceptions)
-        self._exception_signatures[qualified_name] = result
+        self._exception_signatures[resolved_name] = result
+
+        # remove from recursion stack to allow other calls
+        _recursion_stack.discard(resolved_name)
 
         return result
 
     def invalidate_file(self, file_path: str | Path) -> None:
         """
-        Invalidate cache for a file.
+        invalidate cache for a file.
 
         arguments:
             `file_path: str | Path`
@@ -281,7 +385,7 @@ class ExceptionAnalyzer:
         self._exception_signatures.clear()
 
     def clear_cache(self) -> None:
-        """Clear all caches."""
+        """clear all caches."""
         self.file_cache.clear()
         self._file_analyses.clear()
         self._exception_signatures.clear()
@@ -292,60 +396,397 @@ class ExceptionAnalyzer:
         analysis: FileAnalysis,
     ) -> list[Diagnostic]:
         """
-        Compute diagnostics for a file analysis.
+                compute diagnostics for a file analysis.
+
+                this method analyses each function's calls and checks whether
+        the exceptions from called functions are handled by try-except blocks
+        at the call sites. it also considers exception hierarchies where
+        catching a parent class handles child exceptions.
 
         arguments:
-            `file_path: Path`
-                path to the file
-            `analysis: FileAnalysis`
-                analysis results
+                    `file_path: Path`
+                        path to the file
+                    `analysis: FileAnalysis`
+                        analysis results
 
-        returns: `list[Diagnostic]`
-            list of diagnostics
+                returns: `list[Diagnostic]`
+                    list of diagnostics
         """
         diagnostics: list[Diagnostic] = []
 
+        # get try-except blocks from analysis
+        try_blocks = getattr(analysis, "try_except_blocks", [])
+
+        # first pass: compute function signatures and find unhandled exceptions at call sites
+        # track which functions have unhandled exceptions escaping them
+        func_unhandled_exceptions: dict[str, set[str]] = {}
+        call_diagnostics: list[Diagnostic] = []
+
         for func_name, func_info in analysis.functions.items():
-            # get full exception signature
-            exceptions = self.get_function_signature(func_name)
+            func_location = func_info.get("location", (1, 0))
+            func_display_name = func_info.get("name", func_name)
+            is_async = func_info.get("is_async", False)
+
+            # get full exception signature for this function (with file context)
+            func_exceptions = self.get_function_signature(func_name, file_path)
 
             # filter out ignored exceptions
-            exceptions = [exc for exc in exceptions if exc not in self.config.ignore_exceptions]
+            func_exceptions = [
+                exc for exc in func_exceptions if exc not in self._get_ignore_exceptions()
+            ]
 
-            if not exceptions:
-                continue
+            # track unhandled exceptions for this function
+            func_unhandled_exceptions[func_name] = set()
 
-            # check if exceptions are documented
-            if self.config.analysis.strict_mode:
-                docstring = func_info.get("docstring", "") or ""  # pyright: ignore[reportAny]
-                undocumented = [exc for exc in exceptions if exc not in docstring]
-                if undocumented:
-                    location = func_info.get("location", (1, 0))  # pyright: ignore[reportAny]
-                    diagnostics.append(
+            # check each call in this function
+            calls = func_info.get("calls", [])
+            for call in calls:
+                if isinstance(call, dict):
+                    called_func_name = call.get("func_name", "")
+                    call_location = call.get("location", (1, 0))
+                    containing_tries = call.get("containing_try_blocks", [])
+                    call_is_async = call.get("is_async", False)
+                else:
+                    # backward compatibility with string-only calls
+                    called_func_name = call
+                    call_location = func_location
+                    containing_tries = []
+                    call_is_async = False
+
+                if not called_func_name:
+                    continue
+
+                # get the called function's exception signature (with file context)
+                called_exceptions = self.get_function_signature(called_func_name, file_path)
+
+                # filter out ignored exceptions
+                called_exceptions = [
+                    exc for exc in called_exceptions if exc not in self._get_ignore_exceptions()
+                ]
+
+                if not called_exceptions:
+                    continue
+
+                # check which exceptions are handled at this call site
+                unhandled_exceptions = self._get_unhandled_exceptions(
+                    called_exceptions, containing_tries, try_blocks
+                )
+
+                if unhandled_exceptions:
+                    # report diagnostic at the call site
+                    call_diagnostics.append(
                         Diagnostic(
                             file_path=file_path,
-                            line=location[0],
-                            column=location[1],
+                            line=call_location[0],
+                            column=call_location[1],
                             message=(
-                                f"function '{func_info['name']}' may raise "
-                                f"undocumented exceptions: {', '.join(undocumented)}"
+                                f"call to '{called_func_name}' may raise "
+                                f"unhandled exception(s): {', '.join(unhandled_exceptions)}"
                             ),
-                            exception_types=undocumented,
-                            severity="warning",
+                            exception_types=unhandled_exceptions,
+                            severity="error",
                         )
                     )
+                    # track that these exceptions escape from the current function
+                    func_unhandled_exceptions[func_name].update(unhandled_exceptions)
 
-            # check for bare except clauses
-            if not self.config.analysis.allow_bare_except:
-                # this would require more detailed ast info
-                # for now, we skip this check
-                pass
+        diagnostics.extend(call_diagnostics)
+
+        # second pass: check for undocumented exceptions in strict mode
+        # only flag functions that have unhandled exceptions escaping them
+        if self.config.analysis.strict_mode:
+            for func_name, func_info in analysis.functions.items():
+                func_location = func_info.get("location", (1, 0))
+                func_display_name = func_info.get("name", func_name)
+
+                # get this function's exceptions
+                func_exceptions = self.get_function_signature(func_name, file_path)
+                func_exceptions = [
+                    exc for exc in func_exceptions if exc not in self._get_ignore_exceptions()
+                ]
+
+                if not func_exceptions:
+                    continue
+
+                # check if this function has unhandled exceptions escaping
+                has_unhandled_escaping = len(func_unhandled_exceptions.get(func_name, set())) > 0
+
+                # also check if function has no calls (exceptions might escape to external callers)
+                calls = func_info.get("calls", [])
+                has_no_calls = len(calls) == 0
+
+                if has_unhandled_escaping or has_no_calls:
+                    docstring = func_info.get("docstring", "") or ""
+                    undocumented = [exc for exc in func_exceptions if exc not in docstring]
+                    if undocumented:
+                        diagnostics.append(
+                            Diagnostic(
+                                file_path=file_path,
+                                line=func_location[0],
+                                column=func_location[1],
+                                message=(
+                                    f"function '{func_display_name}' may raise "
+                                    f"undocumented exceptions: {', '.join(undocumented)}"
+                                ),
+                                exception_types=undocumented,
+                                severity="warning",
+                            )
+                        )
 
         return diagnostics
 
+    def _get_unhandled_exceptions(
+        self,
+        exception_types: list[str],
+        containing_try_blocks: list[int],
+        try_blocks: list[dict],
+    ) -> list[str]:
+        """
+                determine which exceptions are not handled by the given try-except blocks.
+
+                this method checks if each exception type would be caught by any of the
+        try-except blocks in scope. it considers exception hierarchies where
+        catching 'Exception' will catch 'ValueError', etc.
+
+        arguments:
+                    `exception_types: list[str]`
+                        list of exception types to check
+                    `containing_try_blocks: list[int]`
+                        indices of try-except blocks containing the call
+                    `try_blocks: list[dict]`
+                        all try-except blocks in the file
+
+                returns: `list[str]`
+                    list of exception types that are NOT handled
+        """
+        unhandled: list[str] = []
+
+        for exc_type in exception_types:
+            is_handled = False
+
+            # check each containing try-except block
+            for try_index in containing_try_blocks:
+                if try_index >= len(try_blocks):
+                    continue
+
+                try_block = try_blocks[try_index]
+                handled_types = try_block.get("handled_types", [])
+                has_bare_except = try_block.get("has_bare_except", False)
+                reraises = try_block.get("reraises", False)
+
+                # bare except catches everything (unless it re-raises)
+                if has_bare_except:
+                    if not reraises:
+                        is_handled = True
+                        break
+
+                # check if any handler catches this exception type
+                for handled_type in handled_types:
+                    if self._exception_is_caught(exc_type, handled_type):
+                        is_handled = True
+                        break
+
+                if is_handled:
+                    break
+
+            if not is_handled:
+                unhandled.append(exc_type)
+
+        return unhandled
+
+    def _exception_is_caught(self, exception_type: str, handler_type: str) -> bool:
+        """
+        check if an exception type would be caught by a handler type.
+
+        this considers exception hierarchies. for example:
+        - ValueError is caught by Exception
+        - ValidationError is caught by BusinessError (if ValidationError is a subclass)
+
+        arguments:
+            `exception_type: str`
+                the exception type being raised
+            `handler_type: str`
+                the exception type in the except clause
+
+        returns: `bool`
+            true if the exception would be caught
+        """
+        # exact match
+        if exception_type == handler_type:
+            return True
+
+        # check built-in exception hierarchy
+        # we need to handle common cases where parent classes catch children
+        return self._is_subclass_of(exception_type, handler_type)
+
+    def _is_subclass_of(self, child_type: str, parent_type: str) -> bool:
+        """
+                check if one exception type is a subclass of another.
+
+                this method uses knowledge of python's built-in exception hierarchy
+        and common patterns. it attempts to resolve actual class relationships
+        where possible.
+
+        arguments:
+                    `child_type: str`
+                        the potential child exception type
+                    `parent_type: str`
+                        the potential parent exception type
+
+                returns: `bool`
+                    true if child_type is a subclass of parent_type
+        """
+        # handle multi-type except clauses (e.g., except (ValueError, TypeError))
+        if "," in parent_type:
+            parent_types = [t.strip() for t in parent_type.split(",")]
+            return any(self._is_subclass_of(child_type, pt) for pt in parent_types)
+
+        # built-in exception hierarchy mapping
+        # these are the most common parent classes
+        exception_hierarchy = {
+            "BaseException": [
+                "SystemExit",
+                "KeyboardInterrupt",
+                "GeneratorExit",
+                "Exception",
+            ],
+            "Exception": [
+                "ArithmeticError",
+                "LookupError",
+                "AssertionError",
+                "AttributeError",
+                "BufferError",
+                "EOFError",
+                "FloatingPointError",
+                "OSError",
+                "ImportError",
+                "ModuleNotFoundError",
+                "IndexError",
+                "KeyError",
+                "MemoryError",
+                "NameError",
+                "UnboundLocalError",
+                "OverflowError",
+                "RecursionError",
+                "ReferenceError",
+                "RuntimeError",
+                "NotImplementedError",
+                "StopAsyncIteration",
+                "StopIteration",
+                "SyntaxError",
+                "IndentationError",
+                "TabError",
+                "SystemError",
+                "TypeError",
+                "ValueError",
+                "UnicodeError",
+                "UnicodeDecodeError",
+                "UnicodeEncodeError",
+                "UnicodeTranslateError",
+                "Warning",
+                "BytesWarning",
+                "DeprecationWarning",
+                "FutureWarning",
+                "ImportWarning",
+                "PendingDeprecationWarning",
+                "ResourceWarning",
+                "RuntimeWarning",
+                "SyntaxWarning",
+                "UnicodeWarning",
+                "UserWarning",
+                "BlockingIOError",
+                "ChildProcessError",
+                "ConnectionError",
+                "BrokenPipeError",
+                "ConnectionAbortedError",
+                "ConnectionRefusedError",
+                "ConnectionResetError",
+                "FileExistsError",
+                "FileNotFoundError",
+                "InterruptedError",
+                "IsADirectoryError",
+                "NotADirectoryError",
+                "PermissionError",
+                "ProcessLookupError",
+                "TimeoutError",
+                "ZeroDivisionError",
+                "EnvironmentError",
+                "IOError",
+                "VMSError",
+                "WindowsError",
+                "ZeroDivisionError",
+            ],
+            "ArithmeticError": ["FloatingPointError", "OverflowError", "ZeroDivisionError"],
+            "LookupError": ["IndexError", "KeyError"],
+            "OSError": [
+                "BlockingIOError",
+                "ChildProcessError",
+                "ConnectionError",
+                "FileExistsError",
+                "FileNotFoundError",
+                "InterruptedError",
+                "IsADirectoryError",
+                "NotADirectoryError",
+                "PermissionError",
+                "ProcessLookupError",
+                "TimeoutError",
+                "EnvironmentError",
+                "IOError",
+                "VMSError",
+                "WindowsError",
+            ],
+            "ConnectionError": [
+                "BrokenPipeError",
+                "ConnectionAbortedError",
+                "ConnectionRefusedError",
+                "ConnectionResetError",
+            ],
+            "ImportError": ["ModuleNotFoundError"],
+            "NameError": ["UnboundLocalError"],
+            "UnicodeError": [
+                "UnicodeDecodeError",
+                "UnicodeEncodeError",
+                "UnicodeTranslateError",
+            ],
+            "Warning": [
+                "BytesWarning",
+                "DeprecationWarning",
+                "FutureWarning",
+                "ImportWarning",
+                "PendingDeprecationWarning",
+                "ResourceWarning",
+                "RuntimeWarning",
+                "SyntaxWarning",
+                "UnicodeWarning",
+                "UserWarning",
+            ],
+            "SyntaxError": ["IndentationError"],
+            "IndentationError": ["TabError"],
+        }
+
+        # check if child is a known subclass of parent
+        if parent_type in exception_hierarchy:
+            if child_type in exception_hierarchy[parent_type]:
+                return True
+            # check transitive relationships
+            for intermediate in exception_hierarchy[parent_type]:
+                if self._is_subclass_of(child_type, intermediate):
+                    return True
+
+        # try to resolve using actual python classes if they're built-in
+        try:
+            child_class = eval(child_type)  # noqa: S307 - only used for built-in exception types
+            parent_class = eval(parent_type)  # noqa: S307 - only used for built-in exception types
+            if isinstance(child_class, type) and isinstance(parent_class, type):
+                return issubclass(child_class, parent_class)
+        except (NameError, TypeError, AttributeError):
+            pass
+
+        return False
+
     def _find_python_files(self, project_path: Path) -> list[Path]:
         """
-        Find all python files in a project, respecting excludes.
+        find all python files in a project, respecting excludes.
 
         arguments:
             `project_path: Path`

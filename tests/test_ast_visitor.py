@@ -140,9 +140,11 @@ def caller():
         visitor = parse_source(source)
 
         func = visitor.functions["<string>.caller"]
-        assert "helper" in func.calls
-        assert "obj.method" in func.calls
-        assert "module.function" in func.calls
+        # calls are now CallInfo objects with func_name attribute
+        call_names = [call.func_name for call in func.calls]
+        assert "helper" in call_names
+        assert "obj.method" in call_names
+        assert "module.function" in call_names
 
     def test_class_method_detection(self) -> None:
         """Test that class methods are detected with qualified names."""
