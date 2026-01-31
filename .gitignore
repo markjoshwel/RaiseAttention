@@ -1,0 +1,53 @@
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ides
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# raiseattention cache
+.raiseattention/
+
+# misc
+.DS_Store
+*.log
