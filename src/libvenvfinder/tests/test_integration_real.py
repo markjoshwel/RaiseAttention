@@ -265,21 +265,8 @@ class TestRealRyeIntegration:
                 timeout=120,
             )
 
-            # Debug: check what files exist
-            print(f"=== Debug: Files in {tmp_path} ===")
-            for f in tmp_path.iterdir():
-                print(f"  {f.name}")
-            print(f"  rye.lock exists: {tmp_path.joinpath('rye.lock').exists()}")
-            print(f"  .python-version exists: {tmp_path.joinpath('.python-version').exists()}")
-            print(f"  .venv exists: {tmp_path.joinpath('.venv').exists()}")
-            if tmp_path.joinpath(".python-version").exists():
-                print(
-                    f"  .python-version content: {tmp_path.joinpath('.python-version').read_text().strip()}"
-                )
-
             # detect venv
             venv_info = find_venv(tmp_path)
-            print(f"=== Debug: venv_info = {venv_info} ===")
             assert venv_info is not None
             assert venv_info.tool == ToolType.RYE
 
