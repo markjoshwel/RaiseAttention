@@ -10,8 +10,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from .analyzer import ExceptionAnalyzer
 from .cache import FileCache
@@ -21,7 +21,7 @@ from .lsp_server import run_server_stdio
 
 def create_parser() -> argparse.ArgumentParser:
     """
-    create the argument parser for the cli.
+    Create the argument parser for the cli.
 
     returns: `argparse.ArgumentParser`
         configured argument parser
@@ -100,7 +100,7 @@ examples:
 
 def handle_check(args: argparse.Namespace, config: Config) -> int:
     """
-    handle the check command.
+    Handle the check command.
 
     arguments:
         `args: argparse.Namespace`
@@ -121,10 +121,7 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
             print(f"error: path not found: {path}", file=sys.stderr)
             return 2
 
-        if path.is_file():
-            result = analyzer.analyse_file(path)
-        else:
-            result = analyzer.analyse_project(path)
+        result = analyzer.analyse_file(path) if path.is_file() else analyzer.analyse_project(path)
 
         all_results.append(result)
 
@@ -177,7 +174,7 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
                 )
 
         if args.verbose:
-            print(f"\nsummary:")
+            print("\nsummary:")
             print(f"  files analysed: {len(set(files_analysed))}")
             print(f"  functions found: {total_functions}")
             print(f"  exceptions tracked: {total_exceptions}")
@@ -209,7 +206,7 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
 
 def handle_lsp(args: argparse.Namespace, config: Config) -> int:
     """
-    handle the lsp command.
+    Handle the lsp command.
 
     arguments:
         `args: argparse.Namespace`
@@ -232,7 +229,7 @@ def handle_lsp(args: argparse.Namespace, config: Config) -> int:
 
 def handle_cache(args: argparse.Namespace, config: Config) -> int:
     """
-    handle cache subcommands.
+    Handle cache subcommands.
 
     arguments:
         `args: argparse.Namespace`
@@ -271,7 +268,7 @@ def handle_cache(args: argparse.Namespace, config: Config) -> int:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """
-    main entry point for the cli.
+    Run the cli main entry point.
 
     arguments:
         `argv: Sequence[str] | None`

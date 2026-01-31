@@ -459,6 +459,7 @@ dev = [
 dev = [
     { name = "basedpyright" },
     { name = "mypy" },
+    { name = "pytest" },
     { name = "ruff" },
 ]
 
@@ -479,6 +480,7 @@ provides-extras = ["dev"]
 dev = [
     { name = "basedpyright", specifier = ">=1.37.2" },
     { name = "mypy", specifier = ">=1.19.1" },
+    { name = "pytest", specifier = ">=9.0.2" },
     { name = "ruff", specifier = ">=0.14.14" },
 ]
 

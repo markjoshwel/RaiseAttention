@@ -1,14 +1,9 @@
-"""
-tests for the cache module.
-"""
+"""tests for the cache module."""
 
 from __future__ import annotations
 
-import pickle
 import time
 from pathlib import Path
-
-import pytest
 
 from raiseattention.cache import (
     CacheEntry,
@@ -22,7 +17,7 @@ class TestCacheEntry:
     """tests for the CacheEntry dataclass."""
 
     def test_creation(self) -> None:
-        """test cache entry creation."""
+        """Test cache entry creation."""
         data = FileAnalysis(
             file_path=Path("/test.py"),
             functions={},
@@ -47,16 +42,16 @@ class TestFileCache:
     """tests for the FileCache class."""
 
     def test_init_creates_directory(self, tmp_path: Path) -> None:
-        """test that cache directory is created on init."""
+        """Test that cache directory is created on init."""
         cache_dir = tmp_path / "cache"
         config = CacheConfig(enabled=True)
 
-        cache = FileCache(config, cache_dir)
+        FileCache(config, cache_dir)
 
         assert cache_dir.exists()
 
     def test_store_and_get(self, tmp_path: Path) -> None:
-        """test storing and retrieving cache entries."""
+        """Test storing and retrieving cache entries."""
         cache_dir = tmp_path / "cache"
         config = CacheConfig(enabled=True)
         cache = FileCache(config, cache_dir)
@@ -82,7 +77,7 @@ class TestFileCache:
         assert retrieved.functions["test_func"]["name"] == "test_func"
 
     def test_get_returns_none_when_disabled(self, tmp_path: Path) -> None:
-        """test that get returns None when cache is disabled."""
+        """Test that get returns None when cache is disabled."""
         cache_dir = tmp_path / "cache"
         config = CacheConfig(enabled=False)
         cache = FileCache(config, cache_dir)
@@ -95,7 +90,7 @@ class TestFileCache:
         assert result is None
 
     def test_invalidation_on_file_change(self, tmp_path: Path) -> None:
-        """test that cache is invalidated when file changes."""
+        """Test that cache is invalidated when file changes."""
         cache_dir = tmp_path / "cache"
         config = CacheConfig(enabled=True, ttl_hours=24)
         cache = FileCache(config, cache_dir)
@@ -121,7 +116,7 @@ class TestFileCache:
         assert retrieved is None
 
     def test_invalidate_removes_entry(self, tmp_path: Path) -> None:
-        """test explicit invalidation of cache entries."""
+        """Test explicit invalidation of cache entries."""
         cache_dir = tmp_path / "cache"
         config = CacheConfig(enabled=True)
         cache = FileCache(config, cache_dir)
@@ -145,7 +140,7 @@ class TestFileCache:
         assert retrieved is None
 
     def test_clear_removes_all(self, tmp_path: Path) -> None:
-        """test clearing all cache entries."""
+        """Test clearing all cache entries."""
         cache_dir = tmp_path / "cache"
         config = CacheConfig(enabled=True)
         cache = FileCache(config, cache_dir)
@@ -171,7 +166,7 @@ class TestFileCache:
             assert cache.get(test_file) is None
 
     def test_prune_removes_stale(self, tmp_path: Path) -> None:
-        """test pruning stale cache entries."""
+        """Test pruning stale cache entries."""
         cache_dir = tmp_path / "cache"
         config = CacheConfig(enabled=True)
         cache = FileCache(config, cache_dir)
@@ -205,7 +200,7 @@ class TestFileCache:
         assert pruned >= 1
 
     def test_get_stats(self, tmp_path: Path) -> None:
-        """test getting cache statistics."""
+        """Test getting cache statistics."""
         cache_dir = tmp_path / "cache"
         config = CacheConfig(enabled=True)
         cache = FileCache(config, cache_dir)
@@ -232,7 +227,7 @@ class TestCacheTTL:
     """tests for cache time-to-live functionality."""
 
     def test_ttl_expiration(self, tmp_path: Path) -> None:
-        """test that entries expire after ttl."""
+        """Test that entries expire after ttl."""
         cache_dir = tmp_path / "cache"
         # set very short ttl for testing
         config = CacheConfig(enabled=True, ttl_hours=0)

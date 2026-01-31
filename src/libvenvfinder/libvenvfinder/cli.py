@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Sequence
 
 from .core import find_all_venvs, find_venv
-from .models import ToolType
+from .models import ToolType, VenvInfo
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -68,7 +68,7 @@ examples:
     return parser
 
 
-def format_output(info, json_output: bool = False) -> str:
+def format_output(info: VenvInfo | None, json_output: bool = False) -> str:
     """
     format venvinfo for output.
 
@@ -81,6 +81,9 @@ def format_output(info, json_output: bool = False) -> str:
     returns: `str`
         formatted output string
     """
+    if info is None:
+        return "no virtual environment found" if not json_output else json.dumps({"found": False})
+
     if json_output:
         return json.dumps(
             {

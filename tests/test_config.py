@@ -1,13 +1,9 @@
-"""
-tests for the configuration module.
-"""
+"""tests for the configuration module."""
 
 from __future__ import annotations
 
 import os
 from pathlib import Path
-
-import pytest
 
 from raiseattention.config import (
     AnalysisConfig,
@@ -21,7 +17,7 @@ class TestCacheConfig:
     """tests for the CacheConfig dataclass."""
 
     def test_defaults(self) -> None:
-        """test default cache configuration values."""
+        """Test default cache configuration values."""
         config = CacheConfig()
 
         assert config.enabled is True
@@ -30,7 +26,7 @@ class TestCacheConfig:
         assert config.ttl_hours == 24
 
     def test_custom_values(self) -> None:
-        """test custom cache configuration values."""
+        """Test custom cache configuration values."""
         config = CacheConfig(
             enabled=False,
             max_file_entries=5000,
@@ -48,7 +44,7 @@ class TestLspConfig:
     """tests for the LspConfig dataclass."""
 
     def test_defaults(self) -> None:
-        """test default lsp configuration values."""
+        """Test default lsp configuration values."""
         config = LspConfig()
 
         assert config.debounce_ms == 500
@@ -59,7 +55,7 @@ class TestAnalysisConfig:
     """tests for the AnalysisConfig dataclass."""
 
     def test_defaults(self) -> None:
-        """test default analysis configuration values."""
+        """Test default analysis configuration values."""
         config = AnalysisConfig()
 
         assert config.strict_mode is False
@@ -71,7 +67,7 @@ class TestConfig:
     """tests for the main Config class."""
 
     def test_defaults(self) -> None:
-        """test default configuration values."""
+        """Test default configuration values."""
         config = Config()
 
         assert config.python_path == "auto"
@@ -79,7 +75,7 @@ class TestConfig:
         assert isinstance(config.project_root, Path)
 
     def test_from_pyproject_toml(self, tmp_path: Path) -> None:
-        """test loading configuration from pyproject.toml."""
+        """Test loading configuration from pyproject.toml."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
 [tool.raiseattention]
@@ -108,13 +104,13 @@ debounce_ms = 1000
         assert config.lsp.debounce_ms == 1000
 
     def test_from_pyproject_toml_not_found(self, tmp_path: Path) -> None:
-        """test loading from non-existent pyproject.toml."""
+        """Test loading from non-existent pyproject.toml."""
         config = Config.from_pyproject_toml(tmp_path)
 
         assert config is None
 
     def test_from_raiseattention_toml(self, tmp_path: Path) -> None:
-        """test loading configuration from .raiseattention.toml."""
+        """Test loading configuration from .raiseattention.toml."""
         config_file = tmp_path / ".raiseattention.toml"
         config_file.write_text("""
 python_path = "/custom/python"
@@ -130,7 +126,7 @@ ignore_exceptions = ["KeyboardInterrupt"]
         assert config.ignore_exceptions == ["KeyboardInterrupt"]
 
     def test_from_environment(self) -> None:
-        """test loading configuration from environment variables."""
+        """Test loading configuration from environment variables."""
         env_vars = {
             "RAISEATTENTION_PYTHON_PATH": "/env/python",
             "RAISEATTENTION_VENV_PATH": "/env/venv",
@@ -158,7 +154,7 @@ ignore_exceptions = ["KeyboardInterrupt"]
                     os.environ[k] = v
 
     def test_load_full(self, tmp_path: Path) -> None:
-        """test loading configuration from all sources."""
+        """Test loading configuration from all sources."""
         # create pyproject.toml
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text("""
@@ -180,7 +176,7 @@ venv_path = "/raiseattention/venv"
         assert config.venv_path == "/raiseattention/venv"
 
     def test_merge_configs(self) -> None:
-        """test merging two configurations."""
+        """Test merging two configurations."""
         config1 = Config(
             python_path="/path1",
             venv_path="/venv1",
@@ -200,7 +196,7 @@ venv_path = "/raiseattention/venv"
         assert merged.exclude == ["**/b/**"]
 
     def test_project_root_conversion(self) -> None:
-        """test that project_root is converted to Path."""
+        """Test that project_root is converted to Path."""
         config = Config(project_root="/some/path")
 
         assert isinstance(config.project_root, Path)

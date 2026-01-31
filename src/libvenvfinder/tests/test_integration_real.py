@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from libvenvfinder import find_venv, find_all_venvs, ToolType
+from libvenvfinder import find_venv, ToolType
 
 
 def get_tool_path(tool_name: str) -> str | None:
@@ -54,7 +54,7 @@ class TestRealPoetryIntegration:
 
         try:
             # init poetry project non-interactively
-            result = subprocess.run(
+            subprocess.run(
                 [poetry_bin, "init", "--name", "test-project", "--no-interaction"],
                 capture_output=True,
                 text=True,
@@ -62,7 +62,7 @@ class TestRealPoetryIntegration:
             )
 
             # create lock file (required for detection)
-            result = subprocess.run(
+            subprocess.run(
                 [poetry_bin, "lock"],
                 capture_output=True,
                 text=True,
@@ -70,7 +70,7 @@ class TestRealPoetryIntegration:
             )
 
             # create venv
-            result = subprocess.run(
+            subprocess.run(
                 [poetry_bin, "env", "use", "python3"],
                 capture_output=True,
                 text=True,
@@ -118,7 +118,7 @@ python_version = "3.12"
             # install (creates venv)
             env = os.environ.copy()
             env["PIPENV_YES"] = "1"  # auto-confirm
-            result = subprocess.run(
+            subprocess.run(
                 [pipenv_bin, "install"],
                 capture_output=True,
                 text=True,
@@ -150,7 +150,7 @@ class TestRealPdmIntegration:
 
         try:
             # init pdm project
-            result = subprocess.run(
+            subprocess.run(
                 [pdm_bin, "init", "--non-interactive", "--python", "python3"],
                 capture_output=True,
                 text=True,
@@ -159,7 +159,7 @@ class TestRealPdmIntegration:
             )
 
             # create venv
-            result = subprocess.run(
+            subprocess.run(
                 [pdm_bin, "venv", "create"],
                 capture_output=True,
                 text=True,
@@ -168,7 +168,7 @@ class TestRealPdmIntegration:
             )
 
             # create lock file (required for detection)
-            result = subprocess.run(
+            subprocess.run(
                 [pdm_bin, "lock"],
                 capture_output=True,
                 text=True,
@@ -199,7 +199,7 @@ class TestRealUvIntegration:
 
         try:
             # init uv project
-            result = subprocess.run(
+            subprocess.run(
                 [uv_bin, "init", "--name", "test-project", "--python", "3.12"],
                 capture_output=True,
                 text=True,
@@ -208,7 +208,7 @@ class TestRealUvIntegration:
             )
 
             # sync (creates venv)
-            result = subprocess.run(
+            subprocess.run(
                 [uv_bin, "sync"],
                 capture_output=True,
                 text=True,
@@ -239,7 +239,7 @@ class TestRealRyeIntegration:
 
         try:
             # init rye project
-            result = subprocess.run(
+            subprocess.run(
                 [rye_bin, "init", "--name", "test-project"],
                 capture_output=True,
                 text=True,
@@ -248,7 +248,7 @@ class TestRealRyeIntegration:
             )
 
             # create lock file (ensures correct tool detection)
-            result = subprocess.run(
+            subprocess.run(
                 [rye_bin, "lock"],
                 capture_output=True,
                 text=True,
@@ -257,7 +257,7 @@ class TestRealRyeIntegration:
             )
 
             # sync to create venv
-            result = subprocess.run(
+            subprocess.run(
                 [rye_bin, "sync"],
                 capture_output=True,
                 text=True,
@@ -288,7 +288,7 @@ class TestRealHatchIntegration:
 
         try:
             # create new project
-            result = subprocess.run(
+            subprocess.run(
                 [hatch_bin, "new", "test-project", str(project_dir)],
                 capture_output=True,
                 text=True,
@@ -300,7 +300,7 @@ class TestRealHatchIntegration:
                 os.chdir(project_dir)
 
                 # create venv
-                result = subprocess.run(
+                subprocess.run(
                     [hatch_bin, "env", "create"],
                     capture_output=True,
                     text=True,

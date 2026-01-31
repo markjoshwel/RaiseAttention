@@ -1,12 +1,9 @@
-"""
-tests for the cli module.
-"""
+"""tests for the cli module."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest import mock
 
 import pytest
 
@@ -23,14 +20,14 @@ class TestCreateParser:
     """tests for the create_parser function."""
 
     def test_parser_creation(self) -> None:
-        """test that parser is created successfully."""
+        """Test that parser is created successfully."""
         parser = create_parser()
 
         assert parser is not None
         assert parser.prog == "raiseattention"
 
     def test_check_subcommand(self) -> None:
-        """test check subcommand parsing."""
+        """Test check subcommand parsing."""
         parser = create_parser()
         args = parser.parse_args(["check", "."])
 
@@ -38,7 +35,7 @@ class TestCreateParser:
         assert args.paths == ["."]
 
     def test_check_with_options(self) -> None:
-        """test check subcommand with options."""
+        """Test check subcommand with options."""
         parser = create_parser()
         args = parser.parse_args(
             [
@@ -57,14 +54,14 @@ class TestCreateParser:
         assert args.verbose is True
 
     def test_lsp_subcommand(self) -> None:
-        """test lsp subcommand parsing."""
+        """Test lsp subcommand parsing."""
         parser = create_parser()
         args = parser.parse_args(["lsp"])
 
         assert args.command == "lsp"
 
     def test_cache_subcommand(self) -> None:
-        """test cache subcommand parsing."""
+        """Test cache subcommand parsing."""
         parser = create_parser()
 
         args = parser.parse_args(["cache", "status"])
@@ -82,7 +79,7 @@ class TestHandleCheck:
     """tests for the handle_check function."""
 
     def test_check_nonexistent_path(self, capsys) -> None:
-        """test check with non-existent path."""
+        """Test check with non-existent path."""
         parser = create_parser()
         args = parser.parse_args(["check", "/nonexistent/path"])
         config = Config()
@@ -94,7 +91,7 @@ class TestHandleCheck:
         assert "path not found" in captured.err
 
     def test_check_valid_file(self, tmp_path: Path, capsys) -> None:
-        """test check with valid file."""
+        """Test check with valid file."""
         test_file = tmp_path / "test.py"
         test_file.write_text("def func(): pass")
 
@@ -107,7 +104,7 @@ class TestHandleCheck:
         assert result == 0  # no issues found
 
     def test_check_json_output(self, tmp_path: Path) -> None:
-        """test check with json output format."""
+        """Test check with json output format."""
         test_file = tmp_path / "test.py"
         test_file.write_text("def func(): pass")
 
@@ -136,7 +133,7 @@ class TestHandleCheck:
         assert "summary" in data
 
     def test_check_with_issues(self, tmp_path: Path, capsys) -> None:
-        """test check when issues are found."""
+        """Test check when issues are found."""
         test_file = tmp_path / "test.py"
         test_file.write_text("""
 def risky():
@@ -157,7 +154,7 @@ class TestHandleCache:
     """tests for the handle_cache function."""
 
     def test_cache_status(self, tmp_path: Path, capsys) -> None:
-        """test cache status command."""
+        """Test cache status command."""
         parser = create_parser()
         args = parser.parse_args(["cache", "status"])
         args.cache_command = "status"
@@ -170,7 +167,7 @@ class TestHandleCache:
         assert "cache status" in captured.out
 
     def test_cache_clear(self, tmp_path: Path, capsys) -> None:
-        """test cache clear command."""
+        """Test cache clear command."""
         parser = create_parser()
         args = parser.parse_args(["cache", "clear"])
         args.cache_command = "clear"
@@ -183,7 +180,7 @@ class TestHandleCache:
         assert "cleared successfully" in captured.out
 
     def test_cache_prune(self, tmp_path: Path, capsys) -> None:
-        """test cache prune command."""
+        """Test cache prune command."""
         parser = create_parser()
         args = parser.parse_args(["cache", "prune"])
         args.cache_command = "prune"
@@ -196,7 +193,7 @@ class TestHandleCache:
         assert "pruned" in captured.out
 
     def test_cache_no_command(self, capsys) -> None:
-        """test cache with no subcommand."""
+        """Test cache with no subcommand."""
         parser = create_parser()
         args = parser.parse_args(["cache"])
         args.cache_command = None
@@ -213,7 +210,7 @@ class TestMain:
     """tests for the main function."""
 
     def test_main_no_args(self, capsys) -> None:
-        """test main with no arguments."""
+        """Test main with no arguments."""
         result = main([])
 
         assert result == 2
@@ -221,7 +218,7 @@ class TestMain:
         assert "usage:" in captured.out.lower()
 
     def test_main_check_command(self, tmp_path: Path) -> None:
-        """test main with check command."""
+        """Test main with check command."""
         test_file = tmp_path / "test.py"
         test_file.write_text("def func(): pass")
 
@@ -230,7 +227,7 @@ class TestMain:
         assert result == 0
 
     def test_main_help(self, capsys) -> None:
-        """test main with help flag."""
+        """Test main with help flag."""
         with pytest.raises(SystemExit) as exc_info:
             main(["--help"])
 

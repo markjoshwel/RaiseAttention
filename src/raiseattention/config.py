@@ -8,12 +8,13 @@ pyproject.toml, .raiseattention.toml, and environment variables.
 from __future__ import annotations
 
 import os
+from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
+    pass
 
 
 @dataclass
@@ -21,7 +22,8 @@ class CacheConfig:
     """
     caching configuration settings.
 
-    attributes:
+    Attributes
+    ----------
         `enabled: bool`
             whether caching is enabled
         `max_file_entries: int`
@@ -43,7 +45,8 @@ class LspConfig:
     """
     lsp server configuration settings.
 
-    attributes:
+    Attributes
+    ----------
         `debounce_ms: int`
             debounce interval in milliseconds
         `max_diagnostics_per_file: int`
@@ -59,7 +62,8 @@ class AnalysisConfig:
     """
     analysis configuration settings.
 
-    attributes:
+    Attributes
+    ----------
         `strict_mode: bool`
             require all exceptions to be declared in docstrings
         `allow_bare_except: bool`
@@ -81,7 +85,8 @@ class Config:
     this class holds all configuration settings and provides methods
     for loading from various sources.
 
-    attributes:
+    Attributes
+    ----------
         `project_root: Path`
             root directory of the project
         `python_path: str`
@@ -113,14 +118,14 @@ class Config:
     analysis: AnalysisConfig = field(default_factory=AnalysisConfig)
 
     def __post_init__(self) -> None:
-        """ensure project_root is a path object."""
+        """Ensure project_root is a path object."""
         if isinstance(self.project_root, str):
             self.project_root = Path(self.project_root)
 
     @classmethod
     def from_pyproject_toml(cls, project_root: str | Path) -> Config | None:
         """
-        load configuration from pyproject.toml.
+        Load configuration from pyproject.toml.
 
         arguments:
             `project_root: str | Path`
@@ -149,7 +154,7 @@ class Config:
     @classmethod
     def from_raiseattention_toml(cls, project_root: str | Path) -> Config | None:
         """
-        load configuration from .raiseattention.toml.
+        Load configuration from .raiseattention.toml.
 
         arguments:
             `project_root: str | Path`
@@ -177,7 +182,7 @@ class Config:
     @classmethod
     def from_environment(cls) -> Config:
         """
-        load configuration from environment variables.
+        Load configuration from environment variables.
 
         returns: `Config`
             configuration with values from environment
@@ -194,17 +199,15 @@ class Config:
             config.analysis.strict_mode = strict_mode.lower() in ("true", "1", "yes")
 
         if debounce := os.environ.get("RAISEATTENTION_DEBOUNCE_MS"):
-            try:
+            with suppress(ValueError):
                 config.lsp.debounce_ms = int(debounce)
-            except ValueError:
-                pass
 
         return config
 
     @classmethod
     def load(cls, project_root: str | Path = ".") -> Config:
         """
-        load configuration from all available sources.
+        Load configuration from all available sources.
 
         sources are loaded in order of priority (later overrides earlier):
         1. default values
@@ -250,7 +253,7 @@ class Config:
 
     def merge(self, other: Config) -> Config:
         """
-        merge another configuration into this one.
+        Merge another configuration into this one.
 
         values from 'other' take precedence over this config.
 
@@ -298,7 +301,7 @@ class Config:
     @classmethod
     def _from_dict(cls, data: dict[str, Any], project_root: Path) -> Config:
         """
-        create configuration from a dictionary.
+        Create configuration from a dictionary.
 
         arguments:
             `data: dict[str, Any]`

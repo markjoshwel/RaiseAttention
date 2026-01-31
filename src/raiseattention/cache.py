@@ -10,7 +10,9 @@ from __future__ import annotations
 import hashlib
 import os
 import pickle
+import sys
 import time
+from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, final
@@ -18,7 +20,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, final
 from .config import CacheConfig
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
+    pass
 
 T = TypeVar("T")
 
@@ -28,7 +30,8 @@ class CacheEntry(Generic[T]):
     """
     a single cache entry with metadata.
 
-    attributes:
+    Attributes
+    ----------
         `data: T`
             cached data
         `mtime: float`
@@ -53,7 +56,8 @@ class FileAnalysis:
     """
     analysis result for a single file.
 
-    attributes:
+    Attributes
+    ----------
         `file_path: Path`
             path to the analysed file
         `functions: dict`
@@ -78,7 +82,8 @@ class FileCache:
     caches parsed ast and exception signatures for each file
     with mtime, size, and content hash invalidation.
 
-    attributes:
+    Attributes
+    ----------
         `config: CacheConfig`
             cache configuration
         `cache_dir: Path`
@@ -93,7 +98,7 @@ class FileCache:
 
     def __init__(self, config: CacheConfig, cache_dir: Path | None = None) -> None:
         """
-        initialise file cache.
+        Initialise file cache.
 
         arguments:
             `config: CacheConfig`
@@ -111,7 +116,7 @@ class FileCache:
 
     def get(self, file_path: str | Path) -> FileAnalysis | None:
         """
-        retrieve cached analysis if file hasn't changed.
+        Retrieve cached analysis if file hasn't changed.
 
         arguments:
             `file_path: str | Path`
@@ -155,7 +160,7 @@ class FileCache:
 
     def store(self, file_path: str | Path, analysis: FileAnalysis) -> None:
         """
-        cache analysis result with metadata.
+        Cache analysis result with metadata.
 
         arguments:
             `file_path: str | Path`
@@ -197,7 +202,7 @@ class FileCache:
 
     def invalidate(self, file_path: str | Path) -> None:
         """
-        invalidate cache entry for a file.
+        Invalidate cache entry for a file.
 
         arguments:
             `file_path: str | Path`
@@ -213,25 +218,21 @@ class FileCache:
         # remove from disk
         cache_file = self._get_cache_file(cache_key)
         if cache_file.exists():
-            try:
+            with suppress(OSError):
                 cache_file.unlink()
-            except OSError:
-                pass
 
     def clear(self) -> None:
-        """clear all cache entries."""
+        """Clear all cache entries."""
         self._memory_cache.clear()
 
         if self.cache_dir.exists():
             for cache_file in self.cache_dir.glob("*.cache"):
-                try:
+                with suppress(OSError):
                     cache_file.unlink()
-                except OSError:
-                    pass
 
     def prune(self) -> int:
         """
-        remove stale cache entries for deleted files.
+        Remove stale cache entries for deleted files.
 
         returns: `int`
             number of entries pruned
@@ -270,7 +271,7 @@ class FileCache:
 
     def get_stats(self) -> dict[str, int]:
         """
-        get cache statistics.
+        Get cache statistics.
 
         returns: `dict[str, int]`
             dictionary with cache statistics
@@ -287,7 +288,7 @@ class FileCache:
 
     def _is_valid(self, entry: CacheEntry[FileAnalysis], file_path: Path) -> bool:
         """
-        check if a cache entry is still valid.
+        Check if a cache entry is still valid.
 
         arguments:
             `entry: CacheEntry[FileAnalysis]`
@@ -313,14 +314,11 @@ class FileCache:
 
         # check content hash (definitive)
         current_hash = self._hash_file(file_path)
-        if entry.content_hash != current_hash:
-            return False
-
-        return True
+        return entry.content_hash == current_hash
 
     def _hash_file(self, file_path: Path) -> str:
         """
-        compute sha-256 hash of file content.
+        Compute sha-256 hash of file content.
 
         arguments:
             `file_path: Path`
@@ -337,7 +335,7 @@ class FileCache:
 
     def _get_cache_file(self, cache_key: str) -> Path:
         """
-        get cache file path for a cache key.
+        Get cache file path for a cache key.
 
         arguments:
             `cache_key: str`
@@ -351,7 +349,7 @@ class FileCache:
         return self.cache_dir / f"{key_hash}.cache"
 
     def _evict_if_needed(self) -> None:
-        """evict old entries if memory cache exceeds limit."""
+        """Evict old entries if memory cache exceeds limit."""
         if len(self._memory_cache) <= self.config.max_file_entries:
             return
 
@@ -363,7 +361,7 @@ class FileCache:
             del self._memory_cache[sorted_entries[i][0]]
 
     def _load_persistent_cache(self) -> None:
-        """load cache entries from disk into memory (lazy loading)."""
+        """Load cache entries from disk into memory (lazy loading)."""
         # we don't load all entries into memory immediately
         # instead, we load them on-demand in get()
         pass
@@ -377,7 +375,8 @@ class DependencyCache:
     caches exception signatures of dependencies by package name and version.
     stored globally and shared across projects.
 
-    attributes:
+    Attributes
+    ----------
         `config: CacheConfig`
             cache configuration
         `cache_dir: Path`
@@ -389,7 +388,7 @@ class DependencyCache:
 
     def __init__(self, config: CacheConfig) -> None:
         """
-        initialise dependency cache.
+        Initialise dependency cache.
 
         arguments:
             `config: CacheConfig`
@@ -410,7 +409,7 @@ class DependencyCache:
 
     def get(self, package: str, version: str) -> dict[str, Any] | None:
         """
-        get cached exception signatures for a package version.
+        Get cached exception signatures for a package version.
 
         arguments:
             `package: str`
@@ -439,7 +438,7 @@ class DependencyCache:
 
     def store(self, package: str, version: str, exceptions: dict[str, Any]) -> None:
         """
-        cache exception signatures for a package version.
+        Cache exception signatures for a package version.
 
         arguments:
             `package: str`
@@ -463,7 +462,7 @@ class DependencyCache:
 
     def _get_cache_file(self, cache_key: str) -> Path:
         """
-        get cache file path for a cache key.
+        Get cache file path for a cache key.
 
         arguments:
             `cache_key: str`
@@ -474,6 +473,3 @@ class DependencyCache:
         """
         key_hash = hashlib.sha256(cache_key.encode()).hexdigest()[:16]
         return self.cache_dir / f"{key_hash}.dep"
-
-
-import sys

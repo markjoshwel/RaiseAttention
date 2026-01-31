@@ -7,17 +7,17 @@ exceptions in python code, including transitive propagation tracking.
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from .ast_visitor import parse_file
 from .cache import DependencyCache, FileAnalysis, FileCache
 from .config import Config
 
 if TYPE_CHECKING:
-    from .ast_visitor import ExceptionInfo, ExceptionVisitor, FunctionInfo
-    from .config import AnalysisConfig
+    pass
 
 
 @dataclass
@@ -25,7 +25,8 @@ class Diagnostic:
     """
     a diagnostic message for an unhandled exception.
 
-    attributes:
+    Attributes
+    ----------
         `file_path: Path`
             file where the issue was found
         `line: int`
@@ -53,7 +54,8 @@ class AnalysisResult:
     """
     result of analysing a file or project.
 
-    attributes:
+    Attributes
+    ----------
         `diagnostics: list[Diagnostic]`
             all diagnostics found
         `files_analysed: list[Path]`
@@ -77,7 +79,8 @@ class ExceptionAnalyzer:
     analyses python code to detect unhandled exceptions, including
     transitive propagation through function calls.
 
-    attributes:
+    Attributes
+    ----------
         `config: Config`
             configuration settings
         `file_cache: FileCache`
@@ -92,7 +95,7 @@ class ExceptionAnalyzer:
 
     def __init__(self, config: Config) -> None:
         """
-        initialise the exception analyzer.
+        Initialise the exception analyzer.
 
         arguments:
             `config: Config`
@@ -106,7 +109,7 @@ class ExceptionAnalyzer:
 
     def analyse_file(self, file_path: str | Path) -> AnalysisResult:
         """
-        analyse a single file for unhandled exceptions.
+        Analyse a single file for unhandled exceptions.
 
         arguments:
             `file_path: str | Path`
@@ -185,7 +188,7 @@ class ExceptionAnalyzer:
 
     def analyse_project(self, project_root: str | Path | None = None) -> AnalysisResult:
         """
-        analyse an entire project for unhandled exceptions.
+        Analyse an entire project for unhandled exceptions.
 
         arguments:
             `project_root: str | Path | None`
@@ -215,7 +218,7 @@ class ExceptionAnalyzer:
 
     def get_function_signature(self, qualified_name: str) -> list[str]:
         """
-        get the exception signature for a function.
+        Get the exception signature for a function.
 
         this computes the transitive exception signature, including
         exceptions from called functions.
@@ -262,7 +265,7 @@ class ExceptionAnalyzer:
 
     def invalidate_file(self, file_path: str | Path) -> None:
         """
-        invalidate cache for a file.
+        Invalidate cache for a file.
 
         arguments:
             `file_path: str | Path`
@@ -278,7 +281,7 @@ class ExceptionAnalyzer:
         self._exception_signatures.clear()
 
     def clear_cache(self) -> None:
-        """clear all caches."""
+        """Clear all caches."""
         self.file_cache.clear()
         self._file_analyses.clear()
         self._exception_signatures.clear()
@@ -289,7 +292,7 @@ class ExceptionAnalyzer:
         analysis: FileAnalysis,
     ) -> list[Diagnostic]:
         """
-        compute diagnostics for a file analysis.
+        Compute diagnostics for a file analysis.
 
         arguments:
             `file_path: Path`
@@ -342,7 +345,7 @@ class ExceptionAnalyzer:
 
     def _find_python_files(self, project_path: Path) -> list[Path]:
         """
-        find all python files in a project, respecting excludes.
+        Find all python files in a project, respecting excludes.
 
         arguments:
             `project_path: Path`
@@ -373,7 +376,3 @@ class ExceptionAnalyzer:
                 python_files.append(py_file)
 
         return sorted(python_files)
-
-
-# need to import time for timestamps
-import time

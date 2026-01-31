@@ -203,5 +203,6 @@ precision = 2
 dev = [
     "basedpyright>=1.37.2",
     "mypy>=1.19.1",
+    "pytest>=9.0.2",
     "ruff>=0.14.14",
 ]

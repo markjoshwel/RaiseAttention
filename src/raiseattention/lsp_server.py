@@ -18,7 +18,7 @@ from .analyzer import Diagnostic, ExceptionAnalyzer
 from .config import Config
 
 if TYPE_CHECKING:
-    from typing import Any
+    pass
 
 
 @final
@@ -31,7 +31,8 @@ class RaiseAttentionLanguageServer(LanguageServer):
     - hover information showing exception signatures
     - code actions to add exception handlers
 
-    attributes:
+    Attributes
+    ----------
         `analyzer: ExceptionAnalyzer`
             exception analysis engine
         `config: Config`
@@ -49,7 +50,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
 
     def __init__(self, config: Config | None = None) -> None:
         """
-        initialise the lsp server.
+        Initialise the lsp server.
 
         arguments:
             `config: Config | None`
@@ -66,16 +67,16 @@ class RaiseAttentionLanguageServer(LanguageServer):
         self._register_handlers()
 
     def _register_handlers(self) -> None:
-        """register lsp method handlers."""
+        """Register lsp method handlers."""
 
         @self.feature(types.TEXT_DOCUMENT_DID_OPEN)
         def on_open(params: types.DidOpenTextDocumentParams) -> None:
-            """handle document open."""
+            """Handle document open."""
             self._analyse_document(params.text_document.uri)
 
         @self.feature(types.TEXT_DOCUMENT_DID_CHANGE)
         def on_change(params: types.DidChangeTextDocumentParams) -> None:
-            """handle document change with debouncing."""
+            """Handle document change with debouncing."""
             uri = params.text_document.uri
 
             # store changes
@@ -91,24 +92,24 @@ class RaiseAttentionLanguageServer(LanguageServer):
 
         @self.feature(types.TEXT_DOCUMENT_DID_SAVE)
         def on_save(params: types.DidSaveTextDocumentParams) -> None:
-            """handle document save."""
+            """Handle document save."""
             self._analyse_document(params.text_document.uri)
 
         @self.feature(types.TEXT_DOCUMENT_DID_CLOSE)
         def on_close(params: types.DidCloseTextDocumentParams) -> None:
-            """handle document close."""
+            """Handle document close."""
             uri = params.text_document.uri
             if uri in self._pending_changes:
                 del self._pending_changes[uri]
 
         @self.feature(types.TEXT_DOCUMENT_HOVER)
         def on_hover(params: types.HoverParams) -> types.Hover | None:
-            """handle hover requests."""
+            """Handle hover requests."""
             return self._get_hover_info(params)
 
     async def _debounced_analysis(self, uri: str) -> None:
         """
-        perform debounced analysis after delay.
+        Perform debounced analysis after delay.
 
         arguments:
             `uri: str`
@@ -126,7 +127,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
 
     def _analyse_document(self, uri: str) -> None:
         """
-        analyse a document and publish diagnostics.
+        Analyse a document and publish diagnostics.
 
         arguments:
             `uri: str`
@@ -154,7 +155,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
 
     def _to_lsp_diagnostic(self, diagnostic: Diagnostic) -> types.Diagnostic:
         """
-        convert internal diagnostic to lsp diagnostic.
+        Convert internal diagnostic to lsp diagnostic.
 
         arguments:
             `diagnostic: Diagnostic`
@@ -188,7 +189,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
 
     def _get_hover_info(self, params: types.HoverParams) -> types.Hover | None:
         """
-        get hover information for a position.
+        Get hover information for a position.
 
         arguments:
             `params: types.HoverParams`
@@ -227,7 +228,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
 
 def create_server(config: Config | None = None) -> RaiseAttentionLanguageServer:
     """
-    create and configure the lsp server.
+    Create and configure the lsp server.
 
     arguments:
         `config: Config | None`
@@ -241,7 +242,7 @@ def create_server(config: Config | None = None) -> RaiseAttentionLanguageServer:
 
 def run_server_stdio(config: Config | None = None) -> None:
     """
-    run the lsp server over stdio.
+    Run the lsp server over stdio.
 
     arguments:
         `config: Config | None`
@@ -253,7 +254,7 @@ def run_server_stdio(config: Config | None = None) -> None:
 
 def run_server_tcp(host: str = "127.0.0.1", port: int = 2087, config: Config | None = None) -> None:
     """
-    run the lsp server over tcp.
+    Run the lsp server over tcp.
 
     arguments:
         `host: str`

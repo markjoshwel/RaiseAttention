@@ -1,6 +1,4 @@
-"""
-tests for the ast visitor module.
-"""
+"""tests for the ast visitor module."""
 
 from __future__ import annotations
 
@@ -9,7 +7,6 @@ import pytest
 from raiseattention.ast_visitor import (
     ExceptionInfo,
     ExceptionVisitor,
-    FunctionInfo,
     TryExceptInfo,
     parse_source,
 )
@@ -19,7 +16,7 @@ class TestExceptionInfo:
     """tests for the ExceptionInfo dataclass."""
 
     def test_basic_creation(self) -> None:
-        """test basic exception info creation."""
+        """Test basic exception info creation."""
         info = ExceptionInfo(
             exception_type="ValueError",
             location=(10, 5),
@@ -35,7 +32,7 @@ class TestExceptionVisitor:
     """tests for the ExceptionVisitor class."""
 
     def test_import_tracking(self) -> None:
-        """test that imports are tracked correctly."""
+        """Test that imports are tracked correctly."""
         source = """
 import os
 import sys as system
@@ -51,7 +48,7 @@ from typing import Optional, List
         assert visitor.imports["Optional"] == "typing.Optional"
 
     def test_function_detection(self) -> None:
-        """test that functions are detected."""
+        """Test that functions are detected."""
         source = """
 def simple_function():
     pass
@@ -67,7 +64,7 @@ async def async_function():
         assert "<string>.async_function" in visitor.functions
 
     def test_raise_detection(self) -> None:
-        """test that raise statements are detected."""
+        """Test that raise statements are detected."""
         source = """
 def risky_function():
     raise ValueError("something went wrong")
@@ -81,7 +78,7 @@ def risky_function():
         assert func.raises[0].message == "something went wrong"
 
     def test_re_raise_detection(self) -> None:
-        """test that bare raise statements are detected as re-raises."""
+        """Test that bare raise statements are detected as re-raises."""
         source = """
 def handle_error():
     try:
@@ -98,7 +95,7 @@ def handle_error():
         assert func.raises[0].is_re_raise is True
 
     def test_try_except_detection(self) -> None:
-        """test that try-except blocks are detected."""
+        """Test that try-except blocks are detected."""
         source = """
 def handle_errors():
     try:
@@ -117,7 +114,7 @@ def handle_errors():
         assert "KeyError" in block.handled_types
 
     def test_bare_except_detection(self) -> None:
-        """test that bare except clauses are detected."""
+        """Test that bare except clauses are detected."""
         source = """
 def handle_all():
     try:
@@ -132,7 +129,7 @@ def handle_all():
         assert visitor.try_except_blocks[0].has_bare_except is True
 
     def test_function_calls_tracking(self) -> None:
-        """test that function calls are tracked."""
+        """Test that function calls are tracked."""
         source = """
 def caller():
     helper()
@@ -148,12 +145,12 @@ def caller():
         assert "module.function" in func.calls
 
     def test_class_method_detection(self) -> None:
-        """test that class methods are detected with qualified names."""
+        """Test that class methods are detected with qualified names."""
         source = """
 class MyClass:
     def method(self):
         pass
-    
+
     async def async_method(self):
         pass
 """
@@ -164,7 +161,7 @@ class MyClass:
         assert "<string>.MyClass.async_method" in visitor.functions
 
     def test_qualified_exception_type(self) -> None:
-        """test that qualified exception types are resolved."""
+        """Test that qualified exception types are resolved."""
         source = """
 import requests
 
@@ -179,12 +176,12 @@ def fetch():
         assert func.raises[0].exception_type == "requests.RequestException"
 
     def test_docstring_extraction(self) -> None:
-        """test that function docstrings are extracted."""
+        """Test that function docstrings are extracted."""
         source = '''
 def documented():
     """
     this function does something.
-    
+
     raises:
         ValueError: when input is invalid
     """
@@ -202,7 +199,7 @@ class TestParseSource:
     """tests for the parse_source function."""
 
     def test_valid_source(self) -> None:
-        """test parsing valid python source."""
+        """Test parsing valid python source."""
         source = "x = 1 + 2"
 
         visitor = parse_source(source)
@@ -211,7 +208,7 @@ class TestParseSource:
         assert visitor.module_name == "<string>"
 
     def test_custom_module_name(self) -> None:
-        """test parsing with custom module name."""
+        """Test parsing with custom module name."""
         source = "pass"
 
         visitor = parse_source(source, module_name="my_module")
@@ -219,7 +216,7 @@ class TestParseSource:
         assert visitor.module_name == "my_module"
 
     def test_invalid_syntax(self) -> None:
-        """test that invalid syntax raises SyntaxError."""
+        """Test that invalid syntax raises SyntaxError."""
         source = "def broken("
 
         with pytest.raises(SyntaxError):
@@ -230,7 +227,7 @@ class TestTryExceptInfo:
     """tests for the TryExceptInfo dataclass."""
 
     def test_basic_creation(self) -> None:
-        """test basic try-except info creation."""
+        """Test basic try-except info creation."""
         info = TryExceptInfo(
             location=(20, 4),
             handled_types=["ValueError", "TypeError"],

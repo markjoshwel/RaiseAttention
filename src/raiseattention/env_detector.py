@@ -10,8 +10,8 @@ from __future__ import annotations
 from libvenvfinder import (
     ToolType,
     VenvInfo,
-    find_venv,
     find_all_venvs,
+    find_venv,
 )
 
 # Compatibility alias

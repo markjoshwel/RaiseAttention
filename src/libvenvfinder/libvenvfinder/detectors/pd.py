@@ -35,14 +35,14 @@ def detect_pdm(project_path: Path) -> VenvInfo | None:
                 data = tomllib.load(f)
                 python_path = data.get("python", {}).get("path")
                 if python_path:
-                    python_exe = Path(python_path)
-                    venv_path = python_exe.parent.parent
+                    pdm_python_exe = Path(python_path)
+                    venv_path = pdm_python_exe.parent.parent
                     return VenvInfo(
                         tool=ToolType.PDM,
                         venv_path=venv_path,
-                        python_executable=python_exe,
+                        python_executable=pdm_python_exe,
                         python_version=None,
-                        is_valid=python_exe.exists(),
+                        is_valid=pdm_python_exe.exists(),
                     )
         except Exception:
             pass
@@ -50,13 +50,14 @@ def detect_pdm(project_path: Path) -> VenvInfo | None:
     # Fallback: check for in-project venv
     in_project_venv = project_path.joinpath(".venv")
     if in_project_venv.exists():
-        python_exe = get_python_executable(in_project_venv)
-        return VenvInfo(
-            tool=ToolType.PDM,
-            venv_path=in_project_venv,
-            python_executable=python_exe,
-            python_version=None,
-            is_valid=python_exe is not None,
-        )
+        venv_python_exe = get_python_executable(in_project_venv)
+        if venv_python_exe is not None:
+            return VenvInfo(
+                tool=ToolType.PDM,
+                venv_path=in_project_venv,
+                python_executable=venv_python_exe,
+                python_version=None,
+                is_valid=True,
+            )
 
     return None

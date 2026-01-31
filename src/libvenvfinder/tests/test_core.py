@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 
 from libvenvfinder import find_venv, find_all_venvs, ToolType
 

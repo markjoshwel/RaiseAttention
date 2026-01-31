@@ -1,26 +1,22 @@
-"""
-tests for the core analyzer module.
-"""
+"""tests for the core analyzer module."""
 
 from __future__ import annotations
 
 from pathlib import Path
-
-import pytest
 
 from raiseattention.analyzer import (
     AnalysisResult,
     Diagnostic,
     ExceptionAnalyzer,
 )
-from raiseattention.config import AnalysisConfig, Config
+from raiseattention.config import Config
 
 
 class TestDiagnostic:
     """tests for the Diagnostic dataclass."""
 
     def test_creation(self) -> None:
-        """test diagnostic creation."""
+        """Test diagnostic creation."""
         diag = Diagnostic(
             file_path=Path("/test.py"),
             line=10,
@@ -42,7 +38,7 @@ class TestAnalysisResult:
     """tests for the AnalysisResult dataclass."""
 
     def test_defaults(self) -> None:
-        """test default analysis result values."""
+        """Test default analysis result values."""
         result = AnalysisResult()
 
         assert result.diagnostics == []
@@ -55,14 +51,14 @@ class TestExceptionAnalyzer:
     """tests for the ExceptionAnalyzer class."""
 
     def test_init(self) -> None:
-        """test analyzer initialisation."""
+        """Test analyzer initialisation."""
         config = Config()
         analyzer = ExceptionAnalyzer(config)
 
         assert analyzer.config == config
 
     def test_analyse_file_not_found(self, tmp_path: Path) -> None:
-        """test analysing non-existent file."""
+        """Test analysing non-existent file."""
         config = Config()
         analyzer = ExceptionAnalyzer(config)
 
@@ -72,7 +68,7 @@ class TestExceptionAnalyzer:
         assert "failed to analyse" in result.diagnostics[0].message
 
     def test_analyse_simple_file(self, tmp_path: Path) -> None:
-        """test analysing a simple python file."""
+        """Test analysing a simple python file."""
         test_file = tmp_path / "test.py"
         test_file.write_text("""
 def simple():
@@ -88,7 +84,7 @@ def simple():
         assert result.functions_found == 1
 
     def test_analyse_file_with_exception(self, tmp_path: Path) -> None:
-        """test analysing a file that raises exceptions."""
+        """Test analysing a file that raises exceptions."""
         test_file = tmp_path / "test.py"
         test_file.write_text("""
 def risky():
@@ -104,7 +100,7 @@ def risky():
         assert result.exceptions_tracked == 1
 
     def test_analyse_project(self, tmp_path: Path) -> None:
-        """test analysing an entire project."""
+        """Test analysing an entire project."""
         # create multiple python files
         (tmp_path / "module1.py").write_text("""
 def func1():
@@ -129,7 +125,7 @@ def func3():
         assert result.functions_found == 3
 
     def test_get_function_signature(self, tmp_path: Path) -> None:
-        """test getting exception signature for a function."""
+        """Test getting exception signature for a function."""
         test_file = tmp_path / "test.py"
         test_file.write_text("""
 def risky():
@@ -145,7 +141,7 @@ def risky():
         assert "ValueError" in signature
 
     def test_transitive_exception_tracking(self, tmp_path: Path) -> None:
-        """test that exceptions propagate transitively."""
+        """Test that exceptions propagate transitively."""
         test_file = tmp_path / "test.py"
         test_file.write_text("""
 def level3():
@@ -168,7 +164,7 @@ def level1():
         # which is simplified in this implementation
 
     def test_ignore_exceptions_config(self, tmp_path: Path) -> None:
-        """test that ignored exceptions are filtered."""
+        """Test that ignored exceptions are filtered."""
         test_file = tmp_path / "test.py"
         test_file.write_text("""
 def func():
@@ -185,7 +181,7 @@ def func():
         assert result.exceptions_tracked == 1
 
     def test_strict_mode_docstring_check(self, tmp_path: Path) -> None:
-        """test strict mode requires documented exceptions."""
+        """Test strict mode requires documented exceptions."""
         test_file = tmp_path / "test.py"
         test_file.write_text("""
 def undocumented():
@@ -202,7 +198,7 @@ def undocumented():
         assert any("undocumented" in d.message for d in result.diagnostics)
 
     def test_cache_usage(self, tmp_path: Path) -> None:
-        """test that cache is used for repeated analysis."""
+        """Test that cache is used for repeated analysis."""
         test_file = tmp_path / "test.py"
         test_file.write_text("""
 def func():
@@ -221,7 +217,7 @@ def func():
         assert result1.functions_found == result2.functions_found
 
     def test_invalidate_file(self, tmp_path: Path) -> None:
-        """test invalidating a file from cache."""
+        """Test invalidating a file from cache."""
         test_file = tmp_path / "test.py"
         test_file.write_text("def func(): pass")
 
