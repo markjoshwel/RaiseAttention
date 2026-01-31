@@ -174,6 +174,19 @@ use british spelling throughout:
 - aim for >80% code coverage
 - use descriptive test method names
 
+### current status
+
+**libvenvfinder:** 95% coverage, all tests passing
+- 22 unit tests (core api, cli)
+- 42 edge case tests (hatch/pdm/pyenv detectors)
+- 6 real integration tests with actual tools
+
+**raiseattention:** tests currently broken due to workspace import issues
+- `env_detector.py` cannot import from `libvenvfinder`
+- import error: `cannot import name 'ToolType' from 'libvenvfinder'`
+- workspace structure needs debugging
+- see `next.txt` for details on fixing this
+
 ### test structure
 
 ```python
@@ -414,6 +427,44 @@ nix build .#libvenvfinder
 nix build .#raiseattention
 ```
 
+## continuous integration
+
+github actions workflow runs on every push to main and pull requests.
+
+### nix-based jobs (fully reproducible)
+
+- `check-flake` - validates flake.nix evaluates correctly
+- `unit-tests-nix` - runs unit tests via `nix run .#unit-tests`
+- `integration-tests-nix` - runs real integration tests on linux
+- `integration-tests-nix-macos` - runs integration tests on macos
+- `lint-nix` - runs ruff and mypy via `nix run .#lint`
+- `build-nix` - builds both packages via `nix build`
+
+### compatibility matrix
+
+- `compat` - tests across python 3.10-3.13 on ubuntu/windows/macos
+- uses uv directly (not nix) to verify broad compatibility
+
+### running ci locally
+
+```bash
+# run unit tests
+nix run .#unit-tests
+
+# run integration tests
+nix run .#integration-tests
+
+# run linters
+nix run .#lint
+
+# build packages
+nix build .#libvenvfinder
+nix build .#raiseattention
+
+# validate flake
+nix flake check
+```
+
 ## git workflow
 
 1. create feature branches from main
@@ -465,3 +516,4 @@ refer to:
 - `resources/MDF.md` - docstring format specification
 - `resources/VENV_DETECTION.md` - venv detection specification
 - `src/libvenvfinder/README.md` - libvenvfinder documentation
+- `next.txt` - current project status and priorities
