@@ -20,9 +20,11 @@ def detect_poetry(project_path: Path) -> VenvInfo | None:
     detect poetry virtual environment.
 
     arguments:
-        project_path: path to the project directory
+        `project_path: Path`
+            path to the project directory
 
-    returns: VenvInfo if poetry venv found, None otherwise
+    returns: `VenvInfo | None`
+        venvinfo if poetry venv found, none otherwise
     """
     # Check for poetry.lock
     if not (project_path.joinpath("poetry.lock")).exists():

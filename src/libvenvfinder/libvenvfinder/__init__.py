@@ -3,6 +3,12 @@ universal python virtual environment finder.
 
 libvenvfinder detects virtual environments created by various python tools
 including poetry, pipenv, pdm, uv, rye, hatch, standard venv, and pyenv.
+
+functions:
+    `def find_venv(project_root: str | Path, tool: ToolType | None = None) -> VenvInfo | None`
+        find a virtual environment in the given project directory
+    `def find_all_venvs(project_root: str | Path) -> list[VenvInfo]`
+        find all virtual environments in the given project directory
 """
 
 from __future__ import annotations

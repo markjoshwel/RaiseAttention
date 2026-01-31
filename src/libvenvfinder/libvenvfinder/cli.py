@@ -15,7 +15,12 @@ from .models import ToolType
 
 
 def create_parser() -> argparse.ArgumentParser:
-    """create the argument parser for venvfinder."""
+    """
+    create the argument parser for venvfinder.
+
+    returns: `argparse.ArgumentParser`
+        configured argument parser
+    """
     parser = argparse.ArgumentParser(
         prog="venvfinder",
         description="universal python virtual environment finder",
@@ -64,7 +69,18 @@ examples:
 
 
 def format_output(info, json_output: bool = False) -> str:
-    """format venvinfo for output."""
+    """
+    format venvinfo for output.
+
+    arguments:
+        `info: VenvInfo`
+            venv information to format
+        `json_output: bool`
+            whether to output as json
+
+    returns: `str`
+        formatted output string
+    """
     if json_output:
         return json.dumps(
             {
@@ -93,7 +109,16 @@ def format_output(info, json_output: bool = False) -> str:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """main entry point for venvfinder cli."""
+    """
+    main entry point for venvfinder cli.
+
+    arguments:
+        `argv: Sequence[str] | None`
+            command line arguments. if None, uses sys.argv.
+
+    returns: `int`
+        exit code (0 for success, 1 for error)
+    """
     parser = create_parser()
     args = parser.parse_args(argv)
 

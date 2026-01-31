@@ -53,11 +53,13 @@ def find_venv(project_root: str | Path, tool: ToolType | None = None) -> VenvInf
     find a virtual environment in the given project directory.
 
     arguments:
-        project_root: path to the project directory
-        tool: specific tool to detect (optional). if None, uses priority order.
+        `project_root: str | Path`
+            path to the project directory
+        `tool: ToolType | None`
+            specific tool to detect. if None, uses priority order.
 
-    returns:
-        VenvInfo if a venv is found, None otherwise
+    returns: `VenvInfo | None`
+        venvinfo if a venv is found, None otherwise
     """
     project_path = Path(project_root)
 
@@ -106,10 +108,11 @@ def find_all_venvs(project_root: str | Path) -> list[VenvInfo]:
     the actual venv is missing.
 
     arguments:
-        project_root: path to the project directory
+        `project_root: str | Path`
+            path to the project directory
 
-    returns:
-        list of VenvInfo objects (may be empty)
+    returns: `list[VenvInfo]`
+        list of venvinfo objects (may be empty)
     """
     project_path = Path(project_root)
     results: list[VenvInfo] = []

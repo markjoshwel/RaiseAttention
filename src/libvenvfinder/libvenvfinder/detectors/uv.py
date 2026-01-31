@@ -11,7 +11,16 @@ from .utils import get_python_executable
 
 
 def detect_uv(project_path: Path) -> VenvInfo | None:
-    """detect uv virtual environment."""
+    """
+    detect uv virtual environment.
+
+    arguments:
+        `project_path: Path`
+            path to the project directory
+
+    returns: `VenvInfo | None`
+        venvinfo if uv venv found, none otherwise
+    """
     # uv uses .venv in project root (identified by uv.lock)
     if not project_path.joinpath("uv.lock").exists():
         return None

@@ -11,7 +11,16 @@ from .utils import get_python_executable
 
 
 def detect_hatch(project_path: Path) -> VenvInfo | None:
-    """detect hatch virtual environment."""
+    """
+    detect hatch virtual environment.
+
+    arguments:
+        `project_path: Path`
+            path to the project directory
+
+    returns: `VenvInfo | None`
+        venvinfo if hatch venv found, none otherwise
+    """
     # Check pyproject.toml for hatch config
     pyproject = project_path.joinpath("pyproject.toml")
     if not pyproject.exists():

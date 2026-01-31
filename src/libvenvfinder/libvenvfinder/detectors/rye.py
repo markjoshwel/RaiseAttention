@@ -11,7 +11,16 @@ from .utils import get_python_executable
 
 
 def detect_rye(project_path: Path) -> VenvInfo | None:
-    """detect rye virtual environment."""
+    """
+    detect rye virtual environment.
+
+    arguments:
+        `project_path: Path`
+            path to the project directory
+
+    returns: `VenvInfo | None`
+        venvinfo if rye venv found, none otherwise
+    """
     # rye uses .venv in project root (identified by rye.lock or .python-version)
     has_rye_lock = project_path.joinpath("rye.lock").exists()
     has_python_version = project_path.joinpath(".python-version").exists()

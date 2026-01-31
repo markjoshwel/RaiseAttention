@@ -11,7 +11,16 @@ from .utils import get_python_executable
 
 
 def detect_pdm(project_path: Path) -> VenvInfo | None:
-    """detect pdm virtual environment."""
+    """
+    detect pdm virtual environment.
+
+    arguments:
+        `project_path: Path`
+            path to the project directory
+
+    returns: `VenvInfo | None`
+        venvinfo if pdm venv found, none otherwise
+    """
     # Check for pdm.lock
     if not project_path.joinpath("pdm.lock").exists():
         return None

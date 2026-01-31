@@ -2,90 +2,148 @@
 
 universal python virtual environment finder
 
-## Installation
+## installation
 
 ```bash
 pip install libvenvfinder
 ```
 
-## Quick Start
+## quickstart
 
 ```python
 from libvenvfinder import find_venv, find_all_venvs, ToolType
 
-# Find the first/best venv
+# find the first/best venv
 info = find_venv("/path/to/project")
 if info:
-    print(f"Found {info.tool.value} venv at {info.venv_path}")
+    print(f"found {info.tool.value} venv at {info.venv_path}")
 
-# Find all venvs
+# find all venvs
 all_venvs = find_all_venvs("/path/to/project")
 for venv in all_venvs:
     print(f"{venv.tool.value}: {venv.venv_path}")
 
-# Find specific tool only
+# find specific tool only
 poetry_venv = find_venv("/path/to/project", tool=ToolType.POETRY)
 ```
 
-## Supported Tools
+## supported tools
 
-- **Poetry** - `poetry.lock`, `pyproject.toml` with poetry config
-- **Pipenv** - `Pipfile.lock`
-- **PDM** - `pdm.lock`, `.pdm.toml`
+- **poetry** - `poetry.lock`, `pyproject.toml` with poetry config
+- **pipenv** - `pipfile.lock`
+- **pdm** - `pdm.lock`, `.pdm.toml`
 - **uv** - `uv.lock`, `.venv`
-- **Rye** - `rye.lock`, `.python-version`
-- **Hatch** - `pyproject.toml` with `[tool.hatch.envs]`
+- **rye** - `rye.lock`, `.python-version`
+- **hatch** - `pyproject.toml` with `[tool.hatch.envs]`
 - **venv** - `.venv/pyvenv.cfg`
 - **pyenv** - `.python-version`
 
-## CLI Usage
+## cli usage
 
 ```bash
-# Find first venv
+# find first venv
 venvfinder /path/to/project
 
-# List all venvs
+# list all venvs
 venvfinder /path/to/project --all
 
-# Find specific tool
+# find specific tool
 venvfinder /path/to/project --tool poetry
 
-# JSON output
+# json output
 venvfinder /path/to/project --json
 ```
 
-## API Reference
+## api reference
 
-### `find_venv(project_root: str | Path, tool: ToolType | None = None) -> VenvInfo | None`
+- [libvenvfinder.find_venv](#def-libvenvfinderfind_venv)
+- [libvenvfinder.find_all_venvs](#def-libvenvfinderfind_all_venvs)
+- [libvenvfinder.ToolType](#class-libvenvfindertooltype)
+- [libvenvfinder.VenvInfo](#class-libvenvfindervenvinfo)
 
-Find a virtual environment in the given project directory.
+### def libvenvfinder.find_venv()
 
-**Parameters:**
-- `project_root`: Path to the project directory
-- `tool`: Specific tool to detect (optional). If None, uses priority order.
+find a virtual environment in the given project directory
 
-**Returns:** `VenvInfo` if found, `None` otherwise
+- signature:
 
-### `find_all_venvs(project_root: str | Path) -> list[VenvInfo]`
+  ```python
+  def find_venv(
+      project_root: str | Path,
+      tool: ToolType | None = None,
+  ) -> VenvInfo | None: ...
+  ```
 
-Find all virtual environments in the given project directory.
+- arguments:
+  - `project_root: str | Path`
+    path to the project directory
+  - `tool: ToolType | None`
+    specific tool to detect. if none, uses priority order
 
-**Returns:** List of `VenvInfo` objects in priority order
+- returns: `VenvInfo | None`
+  venvinfo if a venv is found, none otherwise
 
-### `VenvInfo`
+### def libvenvfinder.find_all_venvs()
 
-Dataclass containing venv information:
+find all virtual environments in the given project directory
 
-- `tool: ToolType` - The detected tool (poetry, pdm, uv, etc.)
-- `venv_path: Path | None` - Path to venv directory
-- `python_executable: Path | None` - Path to python binary
-- `python_version: str | None` - Python version string (e.g., "3.10.5")
-- `is_valid: bool` - Whether the venv exists and is usable
+returns all detected venvs in priority order, including potentially
+invalid ones (is_valid=false) if the tool's marker files exist but
+the actual venv is missing
 
-### `ToolType` (Enum)
+- signature:
 
-- `POETRY`, `PIPENV`, `PDM`, `UV`, `RYE`, `HATCH`, `VENV`, `PYENV`
+  ```python
+  def find_all_venvs(project_root: str | Path) -> list[VenvInfo]: ...
+  ```
 
-## License
+- arguments:
+  - `project_root: str | Path`
+    path to the project directory
 
-MIT
+- returns: `list[VenvInfo]`
+  list of venvinfo objects (may be empty)
+
+### class libvenvfinder.ToolType
+
+enumeration of supported python environment management tools
+
+- attributes:
+  - `POETRY: str`
+    poetry package manager
+  - `PIPENV: str`
+    pipenv package manager
+  - `PDM: str`
+    pdm package manager
+  - `UV: str`
+    uv package manager
+  - `RYE: str`
+    rye package manager
+  - `HATCH: str`
+    hatch package manager
+  - `VENV: str`
+    standard venv module
+  - `PYENV: str`
+    pyenv version manager
+  - `ENV_VAR: str`
+    virtual environment from environment variable
+
+### class libvenvfinder.VenvInfo
+
+information about a detected python virtual environment
+
+- attributes:
+  - `tool: ToolType`
+    the detected tool type
+  - `venv_path: Path | None`
+    path to the virtual environment directory
+  - `python_executable: Path | None`
+    path to the python executable
+  - `python_version: str | None`
+    python version string (e.g., "3.10.5")
+  - `is_valid: bool`
+    whether the detected environment exists and is valid
+
+## licence
+
+mit

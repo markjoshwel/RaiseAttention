@@ -15,9 +15,11 @@ def get_python_executable(venv_path: Path) -> Path | None:
     handles cross-platform differences between windows and unix.
 
     arguments:
-        venv_path: path to the virtual environment
+        `venv_path: Path`
+            path to the virtual environment
 
-    returns: path to python executable, or none if not found
+    returns: `Path | None`
+        path to python executable, or none if not found
     """
     if sys.platform == "win32":
         # windows: scripts/python.exe

@@ -12,7 +12,16 @@ from .utils import get_python_executable
 
 
 def detect_pyenv(project_path: Path) -> VenvInfo | None:
-    """detect pyenv environment."""
+    """
+    detect pyenv environment.
+
+    arguments:
+        `project_path: Path`
+            path to the project directory
+
+    returns: `VenvInfo | None`
+        venvinfo if pyenv environment found, none otherwise
+    """
     # Check for .python-version file
     version_file = project_path.joinpath(".python-version")
     if not version_file.exists():

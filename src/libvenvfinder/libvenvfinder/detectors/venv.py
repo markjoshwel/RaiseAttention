@@ -11,7 +11,16 @@ from .utils import get_python_executable
 
 
 def detect_venv(project_path: Path) -> VenvInfo | None:
-    """detect standard venv virtual environment."""
+    """
+    detect standard venv virtual environment.
+
+    arguments:
+        `project_path: Path`
+            path to the project directory
+
+    returns: `VenvInfo | None`
+        venvinfo if standard venv found, none otherwise
+    """
     # Check for .venv with pyvenv.cfg
     venv_path = project_path.joinpath(".venv")
     pyvenv_cfg = venv_path.joinpath("pyvenv.cfg")

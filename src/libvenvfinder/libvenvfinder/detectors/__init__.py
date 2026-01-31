@@ -1,5 +1,23 @@
 """
 detectors for various python environment management tools.
+
+functions:
+    `def detect_poetry(project_path: Path) -> VenvInfo | None`
+        detect poetry virtual environment
+    `def detect_pipenv(project_path: Path) -> VenvInfo | None`
+        detect pipenv virtual environment
+    `def detect_pdm(project_path: Path) -> VenvInfo | None`
+        detect pdm virtual environment
+    `def detect_uv(project_path: Path) -> VenvInfo | None`
+        detect uv virtual environment
+    `def detect_rye(project_path: Path) -> VenvInfo | None`
+        detect rye virtual environment
+    `def detect_hatch(project_path: Path) -> VenvInfo | None`
+        detect hatch virtual environment
+    `def detect_venv(project_path: Path) -> VenvInfo | None`
+        detect standard venv virtual environment
+    `def detect_pyenv(project_path: Path) -> VenvInfo | None`
+        detect pyenv environment
 """
 
 from __future__ import annotations

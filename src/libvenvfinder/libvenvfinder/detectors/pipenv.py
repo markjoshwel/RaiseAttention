@@ -12,7 +12,16 @@ from .utils import get_python_executable
 
 
 def detect_pipenv(project_path: Path) -> VenvInfo | None:
-    """detect pipenv virtual environment."""
+    """
+    detect pipenv virtual environment.
+
+    arguments:
+        `project_path: Path`
+            path to the project directory
+
+    returns: `VenvInfo | None`
+        venvinfo if pipenv venv found, none otherwise
+    """
     # Check for Pipfile.lock
     if not project_path.joinpath("Pipfile.lock").exists():
         return None
