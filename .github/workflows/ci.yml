@@ -46,17 +46,17 @@ jobs:
       - run: nix run .#integration-tests
 
   # integration tests via nix - macos
-  # verifies the nix flake works on darwin too
-  integration-tests-nix-macos:
-    name: 'run integration tests on macos (nix run .#integration-tests)'
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v31
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-      - run: nix run .#integration-tests
+  # disabled: integration shell requires Linux-specific packages (glibc)
+  # integration-tests-nix-macos:
+  #   name: 'run integration tests on macos (nix run .#integration-tests)'
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: cachix/install-nix-action@v31
+  #       with:
+  #         github_access_token: ${{ secrets.GITHUB_TOKEN }}
+  #     - uses: DeterminateSystems/magic-nix-cache-action@main
+  #     - run: nix run .#integration-tests
 
   # lint and type check via nix
   lint-nix:
@@ -96,7 +96,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

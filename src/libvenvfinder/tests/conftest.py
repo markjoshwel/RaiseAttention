@@ -93,10 +93,21 @@ def pipenv_project(tmp_path: Path) -> Path:
 @pytest.fixture
 def pdm_project(tmp_path: Path) -> Path:
     """create a mock pdm project."""
+    import sys
+
     (tmp_path / "pdm.lock").write_text("")
     venv = tmp_path / ".venv"
     venv.mkdir()
     (venv / "pyvenv.cfg").write_text("")
+    # create mock python executable for detection
+    if sys.platform == "win32":
+        bin_dir = venv / "Scripts"
+        bin_dir.mkdir()
+        (bin_dir / "python.exe").write_text("")
+    else:
+        bin_dir = venv / "bin"
+        bin_dir.mkdir()
+        (bin_dir / "python").write_text("")
     return tmp_path
 
 
