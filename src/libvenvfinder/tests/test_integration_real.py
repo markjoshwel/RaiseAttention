@@ -229,10 +229,6 @@ class TestRealRyeIntegration:
     """integration tests using real rye."""
 
     @requires_rye
-    @pytest.mark.skipif(
-        os.environ.get("IN_NIX_BUILD") == "1",
-        reason="rye detection conflicts with pyenv in nix build environment",
-    )
     def test_rye_init_and_detection(self, tmp_path: Path) -> None:
         """test that rye init creates detectable venv."""
         rye_bin = get_tool_path("rye")

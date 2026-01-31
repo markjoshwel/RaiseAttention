@@ -27,6 +27,11 @@ def detect_pyenv(project_path: Path) -> VenvInfo | None:
     if not version_file.exists():
         return None
 
+    # If there's a local .venv directory, another tool is managing it
+    # defer to that tool instead of claiming it as pyenv
+    if project_path.joinpath(".venv").exists():
+        return None
+
     try:
         python_version = version_file.read_text().strip()
 

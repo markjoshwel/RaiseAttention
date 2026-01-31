@@ -176,8 +176,7 @@
           '';
           
           integration-tests = pkgs.runCommand "integration-tests" { 
-            nativeBuildInputs = [ venv pkgs.poetry pkgs.pipenv pkgs.pdm pkgs.rye pkgs.hatch pkgs.pyenv pkgs.patchelf pkgs.glibc ];
-            IN_NIX_BUILD = "1";
+            nativeBuildInputs = [ venv pkgs.poetry pkgs.pipenv pkgs.pdm pkgs.rye pkgs.hatch pkgs.pyenv pkgs.patchelf pkgs.glibc ]; 
           } ''
             export HOME=$(mktemp -d)
             
