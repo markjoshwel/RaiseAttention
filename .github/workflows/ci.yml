@@ -21,7 +21,7 @@ jobs:
       - run: nix flake check
 
   # unit tests via nix - linux
-  unit-tests-nix:
+  all-unit-tests-nix:
     name: 'run unit tests (nix run .#unit-tests)'
     runs-on: ubuntu-latest
     steps:
@@ -34,7 +34,7 @@ jobs:
 
   # integration tests via nix - linux
   # these actually invoke poetry, pipenv, pdm, uv, rye, hatch
-  integration-tests-nix:
+  soulsearching-integration-tests-nix:
     name: 'run integration tests (nix run .#integration-tests)'
     runs-on: ubuntu-latest
     steps:
@@ -59,7 +59,7 @@ jobs:
   #     - run: nix run .#integration-tests
 
   # lint and type check via nix
-  lint-nix:
+  nix-lint-and-typecheck:
     name: 'run linters (nix run .#lint)'
     runs-on: ubuntu-latest
     steps:
@@ -71,7 +71,7 @@ jobs:
       - run: nix run .#lint
 
   # build packages via nix
-  build-nix:
+  nix-build-packages:
     name: 'build packages (nix build)'
     runs-on: ubuntu-latest
     steps:
@@ -81,6 +81,7 @@ jobs:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - run: nix build .#libsoulsearching
+      - run: nix build .#libsightseeing
       - run: nix build .#raiseattention
       - uses: actions/upload-artifact@v4
         with:
@@ -112,3 +113,4 @@ jobs:
         run: |
           uv run pytest tests -v --tb=short
           uv run pytest src/libsoulsearching/tests -v --tb=short
+          uv run pytest src/libsightseeing/tests -v --tb=short

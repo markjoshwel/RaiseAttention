@@ -572,8 +572,11 @@ uv run ruff check src tests
 # run ruff formatter
 uv run ruff format src tests
 
-# run type checker
-uv run mypy src
+# run basedpyright type checker on all packages
+uv run basedpyright src/raiseattention src/libsoulsearching src/libsightseeing
+
+# run mypy type checker on all packages
+uv run mypy src/raiseattention src/libsoulsearching src/libsightseeing
 
 # run type checker on specific package
 uv run mypy src/libsoulsearching
@@ -642,11 +645,12 @@ github actions workflow runs on every push to main and pull requests.
 ### nix-based jobs (fully reproducible)
 
 - `check-flake` - validates flake.nix evaluates correctly
-- `unit-tests-nix` - runs unit tests via `nix run .#unit-tests`
-- `integration-tests-nix` - runs real integration tests on linux
+- `check-flake` - validates flake.nix evaluates correctly
+- `all-unit-tests-nix` - runs all unit tests via `nix run .#unit-tests`
+- `soulsearching-integration-tests-nix` - runs soulsearching real integration tests on linux
 - `integration-tests-nix-macos` - runs integration tests on macos
-- `lint-nix` - runs ruff and mypy via `nix run .#lint`
-- `build-nix` - builds both packages via `nix build`
+- `nix-lint-and-typecheck` - runs ruff, basedpyright, and mypy on all three packages via `nix run .#lint`
+- `nix-build-packages` - builds all three packages (libsoulsearching, libsightseeing, raiseattention) via `nix build`
 
 ### compatibility matrix
 
@@ -662,11 +666,12 @@ nix run .#unit-tests
 # run integration tests
 nix run .#integration-tests
 
-# run linters
+# run linters (ruff, basedpyright, and mypy on all three packages)
 nix run .#lint
 
-# build packages
+# build packages (libsoulsearching, libsightseeing, raiseattention)
 nix build .#libsoulsearching
+nix build .#libsightseeing
 nix build .#raiseattention
 
 # validate flake
