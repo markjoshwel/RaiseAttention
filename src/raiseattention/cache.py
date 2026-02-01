@@ -117,6 +117,7 @@ class FileCache:
 
         if self.config.enabled:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
+            self._ensure_gitignore()
             self._load_persistent_cache()
 
     def get(self, file_path: str | Path) -> FileAnalysis | None:
@@ -290,6 +291,21 @@ class FileCache:
             "disk_entries": disk_entries,
             "total_entries": len(self._memory_cache) + disk_entries,
         }
+
+    def _ensure_gitignore(self) -> None:
+        """
+        ensure a .gitignore file exists in the parent .raiseattention directory.
+
+        creates a .gitignore that ignores all files in the .raiseattention directory
+        to prevent cache files from being committed to git.
+        """
+        # get the parent directory (.raiseattention)
+        gitignore_dir = self.cache_dir.parent
+        gitignore_path = gitignore_dir.joinpath(".gitignore")
+
+        if not gitignore_path.exists():
+            with suppress(OSError):
+                gitignore_path.write_text("*\n")
 
     def _is_valid(self, entry: CacheEntry[FileAnalysis], file_path: Path) -> bool:
         """

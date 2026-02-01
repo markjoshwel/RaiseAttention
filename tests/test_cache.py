@@ -50,6 +50,30 @@ class TestFileCache:
 
         assert cache_dir.exists()
 
+    def test_init_creates_gitignore(self, tmp_path: Path) -> None:
+        """Test that .gitignore is created in parent directory."""
+        cache_dir = tmp_path / ".raiseattention" / "cache"
+        config = CacheConfig(enabled=True)
+
+        FileCache(config, cache_dir)
+
+        gitignore_path = tmp_path / ".raiseattention" / ".gitignore"
+        assert gitignore_path.exists()
+        assert gitignore_path.read_text() == "*\n"
+
+    def test_init_does_not_overwrite_existing_gitignore(self, tmp_path: Path) -> None:
+        """Test that existing .gitignore is not overwritten."""
+        raiseattention_dir = tmp_path / ".raiseattention"
+        raiseattention_dir.mkdir(parents=True)
+        gitignore_path = raiseattention_dir / ".gitignore"
+        gitignore_path.write_text("existing content\n")
+
+        cache_dir = raiseattention_dir / "cache"
+        config = CacheConfig(enabled=True)
+        FileCache(config, cache_dir)
+
+        assert gitignore_path.read_text() == "existing content\n"
+
     def test_store_and_get(self, tmp_path: Path) -> None:
         """Test storing and retrieving cache entries."""
         cache_dir = tmp_path / "cache"
