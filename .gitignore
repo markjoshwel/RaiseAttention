@@ -61,3 +61,8 @@ result-*
 playground/
 test_debug*.py
 test_env_config.py
+
+# caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/

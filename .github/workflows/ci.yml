@@ -89,7 +89,7 @@ jobs:
           retention-days: 7
 
   # compatibility matrix
-  # verifies tests pass across platforms and python versions
+  # verifies all tests pass across platforms and python versions
   compat:
     name: 'compat: python ${{ matrix.python-version }} on ${{ matrix.os }}'
     runs-on: ${{ matrix.os }}
@@ -102,6 +102,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: astral-sh/setup-uv@v3
-      - run: uv sync --dev --extra dev
-      - run: uv run pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py -v
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: 'latest'
+          enable-cache: true
+      - name: install dependencies
+        run: uv sync --dev --extra dev
+      - name: run all tests
+        run: |
+          uv run pytest tests -v --tb=short
+          uv run pytest src/libvenvfinder/tests -v --tb=short

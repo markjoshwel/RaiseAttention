@@ -83,7 +83,10 @@
             shellHook = ''
               echo "raiseattention dev shell (pure uv2nix)"
               echo "python: $(python --version)"
-              echo "run: uv run pytest src/libvenvfinder/tests/ -v"
+              echo ""
+              echo "run all tests:"
+              echo "  uv run pytest tests -v"
+              echo "  uv run pytest src/libvenvfinder/tests -v"
             '';
           };
 
@@ -173,7 +176,8 @@
             export HOME=$(mktemp -d)
             cp -r ${./.} $HOME/project
             cd $HOME/project
-            ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py -v --tb=short
+            ${venv}/bin/python -m pytest tests -v --tb=short
+            ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py -v --tb=short
             touch $out
           '';
           });
@@ -194,11 +198,12 @@
           venv = pythonSet.mkVirtualEnv "raiseattention-app-env" workspace.deps.all;
 
            unit-tests-script = pkgs.writeShellScriptBin "unit-tests" ''
-             export HOME=$(mktemp -d)
-             cp -r ${./.} $HOME/project
-             cd $HOME/project
-             ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py -v --tb=short
-           '';
+              export HOME=$(mktemp -d)
+              cp -r ${./.} $HOME/project
+              cd $HOME/project
+              ${venv}/bin/python -m pytest tests -v --tb=short
+              ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py -v --tb=short
+            '';
 
            lint-script = pkgs.writeShellScriptBin "lint" ''
              export HOME=$(mktemp -d)

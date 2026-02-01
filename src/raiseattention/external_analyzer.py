@@ -28,9 +28,7 @@ if TYPE_CHECKING:
 
 
 # c extension file suffixes that cannot be parsed
-_C_EXTENSION_SUFFIXES: Final[frozenset[str]] = frozenset(
-    {".so", ".pyd", ".dll", ".dylib"}
-)
+_C_EXTENSION_SUFFIXES: Final[frozenset[str]] = frozenset({".so", ".pyd", ".dll", ".dylib"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -290,7 +288,8 @@ class ExternalAnalyzer:
             # convert back to frozensets - cached_sigs is dict[str, list[str]]
             sigs: dict[str, frozenset[str]] = {
                 str(k): frozenset(
-                    str(item) for item in v  # pyright: ignore[reportAny]
+                    str(item)
+                    for item in v  # pyright: ignore[reportAny]
                 )
                 for k, v in cached_sigs.items()  # pyright: ignore[reportAny]
             }
@@ -409,7 +408,19 @@ class ExternalAnalyzer:
         if spec is None or spec.origin is None:
             return None
 
-        file_path = Path(spec.origin)
+        origin = spec.origin
+
+        # handle built-in modules (e.g., '_json', '_csv' on windows)
+        # these have origin='built-in' and cannot be statically analysed
+        if origin == "built-in":
+            return ModuleLocation(
+                module_name=module_name,
+                file_path=None,
+                is_stdlib=True,
+                is_c_extension=True,
+            )
+
+        file_path = Path(origin)
         is_c_ext = file_path.suffix.lower() in _C_EXTENSION_SUFFIXES
         is_stdlib = self._is_stdlib_path(file_path)
 
@@ -532,21 +543,86 @@ def get_stdlib_modules() -> frozenset[str]:
         modules.update(stdlib_names)
 
     # ensure common modules are included
-    modules.update({
-        "abc", "ast", "asyncio", "base64", "bz2", "calendar", "cmath",
-        "codecs", "collections", "configparser", "contextlib", "copy",
-        "csv", "ctypes", "datetime", "decimal", "difflib", "dis",
-        "doctest", "email", "fnmatch", "fractions", "functools", "glob",
-        "gzip", "hashlib", "hmac", "html", "http", "inspect", "io",
-        "itertools", "json", "keyword", "linecache", "logging", "lzma",
-        "math", "mmap", "multiprocessing", "numbers", "os", "pathlib",
-        "pickle", "pprint", "queue", "random", "re", "secrets", "select",
-        "shutil", "signal", "socket", "sqlite3", "ssl", "string", "struct",
-        "subprocess", "symtable", "sys", "tarfile", "tempfile", "textwrap",
-        "threading", "time", "token", "tokenize", "tomllib", "traceback",
-        "typing", "unicodedata", "unittest", "urllib", "warnings", "xml",
-        "zipfile",
-    })
+    modules.update(
+        {
+            "abc",
+            "ast",
+            "asyncio",
+            "base64",
+            "bz2",
+            "calendar",
+            "cmath",
+            "codecs",
+            "collections",
+            "configparser",
+            "contextlib",
+            "copy",
+            "csv",
+            "ctypes",
+            "datetime",
+            "decimal",
+            "difflib",
+            "dis",
+            "doctest",
+            "email",
+            "fnmatch",
+            "fractions",
+            "functools",
+            "glob",
+            "gzip",
+            "hashlib",
+            "hmac",
+            "html",
+            "http",
+            "inspect",
+            "io",
+            "itertools",
+            "json",
+            "keyword",
+            "linecache",
+            "logging",
+            "lzma",
+            "math",
+            "mmap",
+            "multiprocessing",
+            "numbers",
+            "os",
+            "pathlib",
+            "pickle",
+            "pprint",
+            "queue",
+            "random",
+            "re",
+            "secrets",
+            "select",
+            "shutil",
+            "signal",
+            "socket",
+            "sqlite3",
+            "ssl",
+            "string",
+            "struct",
+            "subprocess",
+            "symtable",
+            "sys",
+            "tarfile",
+            "tempfile",
+            "textwrap",
+            "threading",
+            "time",
+            "token",
+            "tokenize",
+            "tomllib",
+            "traceback",
+            "typing",
+            "unicodedata",
+            "unittest",
+            "urllib",
+            "warnings",
+            "xml",
+            "zipfile",
+        }
+    )
 
     return frozenset(modules)
 
