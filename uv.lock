@@ -145,12 +145,6 @@ toml = [
 ]
 
 [[package]]
-name = "gitignore-parser"
-version = "0.1.13"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e5/51/e391a1a4238f18d0abb47be479b07af265ad4519022cf51b7da47ef82487/gitignore_parser-0.1.13.tar.gz", hash = "sha256:c7e10c8190accb8ae57fb3711889e73a9c0dbc04d4222b91ace8a4bf64d2f746", size = 5603, upload-time = "2025-08-25T06:33:22.704Z" }
-
-[[package]]
 name = "iniconfig"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -227,7 +221,7 @@ name = "libsightseeing"
 version = "0.1.0"
 source = { editable = "src/libsightseeing" }
 dependencies = [
-    { name = "gitignore-parser" },
+    { name = "pathspec" },
 ]
 
 [package.optional-dependencies]
@@ -237,7 +231,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "gitignore-parser", specifier = ">=0.1.0" },
+    { name = "pathspec", specifier = ">=0.12.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
 ]
 provides-extras = ["dev"]

@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "gitignore-parser>=0.1.0",
+    "pathspec>=0.12.0",
 ]
 
 [project.optional-dependencies]

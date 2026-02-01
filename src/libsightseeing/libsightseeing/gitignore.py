@@ -1,8 +1,7 @@
 """
 gitignore handling module for libsightseeing.
 
-handles parsing and matching of .gitignore files, inspired by
-sota staircase SideStepper but simplified for libsightseeing's needs.
+handles parsing and matching of .gitignore files using pathspec.
 """
 
 from __future__ import annotations
@@ -11,7 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from gitignore_parser import IgnoreRule
+    from pathspec import PathSpec
 
 
 class GitignoreMatcher:
@@ -24,8 +23,8 @@ class GitignoreMatcher:
     attributes:
         `root: Path`
             the root directory to match against
-        `rules: list[tuple[Path, list[IgnoreRule]]]`
-            list of (directory, rules) tuples
+        `specs: list[tuple[Path, PathSpec]]`
+            list of (directory, pathspec) tuples
 
     usage:
         ```python
@@ -44,44 +43,39 @@ class GitignoreMatcher:
                 the root directory to search for .gitignore files
         """
         self.root = root.resolve()
-        self.rules: list[tuple[Path, list[IgnoreRule]]] = []
+        self.specs: list[tuple[Path, PathSpec]] = []
         self._collect_gitignore_rules()
 
     def _collect_gitignore_rules(self) -> None:
         """
         collect all .gitignore rules from root and subdirectories.
 
-        finds all .gitignore files and parses their rules.
+        finds all .gitignore files and parses their rules using pathspec.
         """
-        from gitignore_parser import rule_from_pattern
+        from pathspec import PathSpec
 
         # find all .gitignore files
         for gitignore_file in self.root.rglob(".gitignore"):
             if not gitignore_file.is_file():
                 continue
 
-            rules: list[IgnoreRule] = []
             try:
                 content = gitignore_file.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError):
                 continue
 
-            for line_no, line in enumerate(content.splitlines()):
+            # parse patterns from content
+            patterns = []
+            for line in content.splitlines():
                 line = line.rstrip("\n")
                 # skip empty lines and comments
                 if not line or line.startswith("#"):
                     continue
+                patterns.append(line)
 
-                rule = rule_from_pattern(
-                    pattern=line,
-                    base_path=gitignore_file.parent,
-                    source=(gitignore_file, line_no),
-                )
-                if rule is not None:
-                    rules.append(rule)
-
-            if rules:
-                self.rules.append((gitignore_file.parent, rules))
+            if patterns:
+                spec = PathSpec.from_lines("gitignore", patterns)
+                self.specs.append((gitignore_file.parent, spec))
 
     def is_ignored(self, file_path: Path) -> bool:
         """
@@ -121,17 +115,19 @@ class GitignoreMatcher:
         """
         matched = False
 
-        for ignore_dir, rules in self.rules:
+        for ignore_dir, spec in self.specs:
             # only apply rules from directories that contain the path
             if not str(path).startswith(str(ignore_dir)):
                 continue
 
-            for rule in rules:
-                if rule.match(path):
-                    # negation rules un-ignore
-                    if rule.negation:
-                        matched = False
-                    else:
-                        matched = True
+            # get relative path from the gitignore directory
+            try:
+                rel_path = path.relative_to(ignore_dir)
+            except ValueError:
+                continue
+
+            # check if path matches any pattern
+            if spec.match_file(str(rel_path)):
+                matched = True
 
         return matched
