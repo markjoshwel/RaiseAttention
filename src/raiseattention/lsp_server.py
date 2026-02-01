@@ -8,10 +8,11 @@ hover information, and code actions.
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, final
+from typing import TYPE_CHECKING
 
 from lsprotocol import types
 from pygls.lsp.server import LanguageServer
+from typing_extensions import final
 
 from .analyzer import Diagnostic, ExceptionAnalyzer
 from .config import Config
@@ -30,8 +31,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
     - hover information showing exception signatures
     - code actions to add exception handlers
 
-    Attributes
-    ----------
+    attributes:
         `analyzer: ExceptionAnalyzer`
             exception analysis engine
         `config: Config`
@@ -49,7 +49,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
 
     def __init__(self, config: Config | None = None) -> None:
         """
-        Initialise the lsp server.
+        initialise the lsp server.
 
         arguments:
             `config: Config | None`
@@ -126,7 +126,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
 
     def _analyse_document(self, uri: str) -> None:
         """
-        Analyse a document and publish diagnostics.
+        analyse a document and publish diagnostics.
 
         arguments:
             `uri: str`
@@ -227,7 +227,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
 
 def create_server(config: Config | None = None) -> RaiseAttentionLanguageServer:
     """
-    Create and configure the lsp server.
+    create and configure the lsp server.
 
     arguments:
         `config: Config | None`
@@ -241,7 +241,7 @@ def create_server(config: Config | None = None) -> RaiseAttentionLanguageServer:
 
 def run_server_stdio(config: Config | None = None) -> None:
     """
-    Run the lsp server over stdio.
+    run the lsp server over stdio.
 
     arguments:
         `config: Config | None`
@@ -253,7 +253,7 @@ def run_server_stdio(config: Config | None = None) -> None:
 
 def run_server_tcp(host: str = "127.0.0.1", port: int = 2087, config: Config | None = None) -> None:
     """
-    Run the lsp server over tcp.
+    run the lsp server over tcp.
 
     arguments:
         `host: str`

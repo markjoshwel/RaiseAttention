@@ -21,7 +21,7 @@ from .lsp_server import run_server_stdio
 
 def create_parser() -> argparse.ArgumentParser:
     """
-    Create the argument parser for the cli.
+    create the argument parser for the cli.
 
     returns: `argparse.ArgumentParser`
         configured argument parser
@@ -110,7 +110,7 @@ examples:
 
 def handle_check(args: argparse.Namespace, config: Config) -> int:
     """
-    Handle the check command.
+    handle the check command.
 
     arguments:
         `args: argparse.Namespace`
@@ -222,7 +222,7 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
 
 def handle_lsp(args: argparse.Namespace, config: Config) -> int:
     """
-    Handle the lsp command.
+    handle the lsp command.
 
     arguments:
         `args: argparse.Namespace`
@@ -245,7 +245,7 @@ def handle_lsp(args: argparse.Namespace, config: Config) -> int:
 
 def handle_cache(args: argparse.Namespace, config: Config) -> int:
     """
-    Handle cache subcommands.
+    handle cache subcommands.
 
     arguments:
         `args: argparse.Namespace`
@@ -284,7 +284,7 @@ def handle_cache(args: argparse.Namespace, config: Config) -> int:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """
-    Run the cli main entry point.
+    run the cli main entry point.
 
     arguments:
         `argv: Sequence[str] | None`

@@ -22,8 +22,7 @@ class CacheConfig:
     """
     caching configuration settings.
 
-    Attributes
-    ----------
+    attributes:
         `enabled: bool`
             whether caching is enabled
         `max_file_entries: int`
@@ -45,8 +44,7 @@ class LspConfig:
     """
     lsp server configuration settings.
 
-    Attributes
-    ----------
+    attributes:
         `debounce_ms: int`
             debounce interval in milliseconds
         `max_diagnostics_per_file: int`
@@ -60,10 +58,9 @@ class LspConfig:
 @dataclass
 class AnalysisConfig:
     """
-    Analysis configuration settings.
+    analysis configuration settings.
 
-    Attributes
-    ----------
+    attributes:
         `strict_mode: bool`
             require all exceptions to be declared in docstrings
         `allow_bare_except: bool`
@@ -88,8 +85,7 @@ class Config:
     this class holds all configuration settings and provides methods
     for loading from various sources.
 
-    Attributes
-    ----------
+    attributes:
         `project_root: Path`
             root directory of the project
         `python_path: str`
@@ -256,7 +252,7 @@ class Config:
 
     def merge(self, other: Config) -> Config:
         """
-        Merge another configuration into this one.
+        merge another configuration into this one.
 
         values from 'other' take precedence over this config.
 

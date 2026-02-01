@@ -30,8 +30,7 @@ class CacheEntry(Generic[T]):
     """
     a single cache entry with metadata.
 
-    Attributes
-    ----------
+    attributes:
         `data: T`
             cached data
         `mtime: float`
@@ -54,10 +53,9 @@ class CacheEntry(Generic[T]):
 @dataclass
 class FileAnalysis:
     """
-    Analysis result for a single file.
+    analysis result for a single file.
 
-    Attributes
-    ----------
+    attributes:
         `file_path: Path`
             path to the analysed file
         `functions: dict`
@@ -85,8 +83,7 @@ class FileCache:
     caches parsed ast and exception signatures for each file
     with mtime, size, and content hash invalidation.
 
-    Attributes
-    ----------
+    attributes:
         `config: CacheConfig`
             cache configuration
         `cache_dir: Path`
@@ -163,7 +160,7 @@ class FileCache:
 
     def store(self, file_path: str | Path, analysis: FileAnalysis) -> None:
         """
-        Cache analysis result with metadata.
+        cache analysis result with metadata.
 
         arguments:
             `file_path: str | Path`
@@ -291,7 +288,7 @@ class FileCache:
 
     def _is_valid(self, entry: CacheEntry[FileAnalysis], file_path: Path) -> bool:
         """
-        Check if a cache entry is still valid.
+        check if a cache entry is still valid.
 
         arguments:
             `entry: CacheEntry[FileAnalysis]`
@@ -378,8 +375,7 @@ class DependencyCache:
     caches exception signatures of dependencies by package name and version.
     stored globally and shared across projects.
 
-    Attributes
-    ----------
+    attributes:
         `config: CacheConfig`
             cache configuration
         `cache_dir: Path`
@@ -441,7 +437,7 @@ class DependencyCache:
 
     def store(self, package: str, version: str, exceptions: dict[str, Any]) -> None:
         """
-        Cache exception signatures for a package version.
+        cache exception signatures for a package version.
 
         arguments:
             `package: str`

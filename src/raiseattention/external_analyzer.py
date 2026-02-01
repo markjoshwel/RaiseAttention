@@ -38,8 +38,7 @@ class ModuleLocation:
     """
     immutable location information for a module.
 
-    Attributes
-    ----------
+    attributes:
         `module_name: str`
             fully qualified module name
         `file_path: Path | None`
@@ -61,8 +60,7 @@ class ModuleAnalysis:
     """
     analysis result for an external module.
 
-    Attributes
-    ----------
+    attributes:
         `location: ModuleLocation`
             module location information
         `exception_signatures: dict[str, frozenset[str]]`
@@ -82,8 +80,7 @@ class ExternalModuleInfo:
     """
     information about an external module (legacy compatibility).
 
-    Attributes
-    ----------
+    attributes:
         `module_name: str`
             fully qualified module name
         `file_path: Path | None`
@@ -114,8 +111,7 @@ class ExternalAnalyzer:
     exception tracking. follows imports and re-exports to find actual
     function implementations.
 
-    Attributes
-    ----------
+    attributes:
         `venv_info: VenvInfo | None`
             detected virtual environment information
     """
@@ -128,7 +124,7 @@ class ExternalAnalyzer:
         cache_config: CacheConfig | None = None,
     ) -> None:
         """
-        Initialise the external analyser.
+        initialise the external analyser.
 
         arguments:
             `venv_info: VenvInfo | None`
@@ -149,7 +145,7 @@ class ExternalAnalyzer:
         function_name: str,
     ) -> list[str]:
         """
-        Get exception signature for a function in an external module.
+        get exception signature for a function in an external module.
 
         uses a multi-step resolution strategy:
         1. analyse the target module
@@ -179,7 +175,7 @@ class ExternalAnalyzer:
         function_name: str,
     ) -> frozenset[str]:
         """
-        Look up a function's exceptions in a specific module.
+        look up a function's exceptions in a specific module.
 
         arguments:
             `module_name: str`
@@ -219,7 +215,7 @@ class ExternalAnalyzer:
         function_name: str,
     ) -> frozenset[str]:
         """
-        Follow imports to find a re-exported function.
+        follow imports to find a re-exported function.
 
         many packages re-export functions from internal modules
         (e.g., tomllib exports load from tomllib._parser).
@@ -259,7 +255,7 @@ class ExternalAnalyzer:
 
     def _analyse_module(self, module_name: str) -> ModuleAnalysis | None:
         """
-        Analyse a module for exception signatures.
+        analyse a module for exception signatures.
 
         uses caching at multiple levels:
         1. in-memory cache for current session
@@ -333,7 +329,7 @@ class ExternalAnalyzer:
         visitor: ExceptionVisitor,
     ) -> dict[str, frozenset[str]]:
         """
-        Compute transitive exception signatures for all functions.
+        compute transitive exception signatures for all functions.
 
         uses depth-first search with memoisation to efficiently
         handle call graphs with cycles and shared dependencies.
@@ -393,7 +389,7 @@ class ExternalAnalyzer:
 
     def _resolve_module(self, module_name: str) -> ModuleLocation | None:
         """
-        Resolve a module name to its file location.
+        resolve a module name to its file location.
 
         arguments:
             `module_name: str`
@@ -425,7 +421,7 @@ class ExternalAnalyzer:
         )
 
     def _is_stdlib_path(self, file_path: Path) -> bool:
-        """Check if a file path is within the stdlib."""
+        """check if a file path is within the stdlib."""
         if self._stdlib_path is None:
             return False
         try:
@@ -440,7 +436,7 @@ class ExternalAnalyzer:
         imports: dict[str, str],
     ) -> tuple[str, str] | None:
         """
-        Resolve an import reference to (module, function).
+        resolve an import reference to (module, function).
 
         arguments:
             `import_name: str`
@@ -476,7 +472,7 @@ class ExternalAnalyzer:
     # legacy compatibility methods for tests
     def resolve_module_path(self, module_name: str) -> ExternalModuleInfo | None:
         """
-        Resolve a module name to its source file path (legacy api).
+        resolve a module name to its source file path (legacy api).
 
         arguments:
             `module_name: str`
@@ -498,7 +494,7 @@ class ExternalAnalyzer:
 
     def analyse_module(self, module_name: str) -> ExternalModuleInfo | None:
         """
-        Analyse an external module for exception signatures (legacy api).
+        analyse an external module for exception signatures (legacy api).
 
         arguments:
             `module_name: str`
@@ -523,7 +519,7 @@ class ExternalAnalyzer:
 @lru_cache(maxsize=1)
 def get_stdlib_modules() -> frozenset[str]:
     """
-    Get the set of stdlib module names.
+    get the set of stdlib module names.
 
     returns: `frozenset[str]`
         all top-level stdlib module names
@@ -557,7 +553,7 @@ def get_stdlib_modules() -> frozenset[str]:
 
 def is_stdlib_module(module_name: str) -> bool:
     """
-    Check if a module is part of the standard library.
+    check if a module is part of the standard library.
 
     arguments:
         `module_name: str`

@@ -27,8 +27,7 @@ class Diagnostic:
     """
     a diagnostic message for an unhandled exception.
 
-    Attributes
-    ----------
+    attributes:
         `file_path: Path`
             file where the issue was found
         `line: int`
@@ -56,8 +55,7 @@ class AnalysisResult:
     """
     result of analysing a file or project.
 
-    Attributes
-    ----------
+    attributes:
         `diagnostics: list[Diagnostic]`
             all diagnostics found
         `files_analysed: list[Path]`
@@ -83,8 +81,7 @@ class ExceptionAnalyzer:
     try-except handling detection. also analyses external modules
     (stdlib and third-party packages) for exception signatures.
 
-    Attributes
-    ----------
+    attributes:
         `config: Config`
             configuration settings
         `file_cache: FileCache`
@@ -105,7 +102,7 @@ class ExceptionAnalyzer:
         venv_info: VenvInfo | None = None,
     ) -> None:
         """
-        Initialise the exception analyzer.
+        initialise the exception analyzer.
 
         arguments:
             `config: Config`
@@ -122,7 +119,7 @@ class ExceptionAnalyzer:
 
     def _get_ignore_exceptions(self) -> list[str]:
         """
-        Get the list of exception types to ignore.
+        get the list of exception types to ignore.
 
         combines the top-level config.ignore_exceptions with any
         exceptions defined in analysis config for compatibility.
@@ -146,7 +143,7 @@ class ExceptionAnalyzer:
 
     def analyse_file(self, file_path: str | Path) -> AnalysisResult:
         """
-        Analyse a single file for unhandled exceptions.
+        analyse a single file for unhandled exceptions.
 
         arguments:
             `file_path: str | Path`
@@ -246,7 +243,7 @@ class ExceptionAnalyzer:
 
     def analyse_project(self, project_root: str | Path | None = None) -> AnalysisResult:
         """
-        Analyse an entire project for unhandled exceptions.
+        analyse an entire project for unhandled exceptions.
 
         arguments:
             `project_root: str | Path | None`
@@ -281,7 +278,7 @@ class ExceptionAnalyzer:
         _recursion_stack: set[str] | None = None,
     ) -> list[str]:
         """
-        Get the exception signature for a function.
+        get the exception signature for a function.
 
         this computes the transitive exception signature, including
         exceptions from called functions. for functions not found in
@@ -402,7 +399,7 @@ class ExceptionAnalyzer:
         imports: dict[str, str],
     ) -> list[str]:
         """
-        Get exception signature for a function from external modules.
+        get exception signature for a function from external modules.
 
         this method resolves the function name to an external module
         and returns its exception signature. it handles both direct
@@ -657,7 +654,7 @@ class ExceptionAnalyzer:
 
     def _exception_is_caught(self, exception_type: str, handler_type: str) -> bool:
         """
-        Check if an exception type would be caught by a handler type.
+        check if an exception type would be caught by a handler type.
 
         this considers exception hierarchies. for example:
         - ValueError is caught by Exception
@@ -682,7 +679,7 @@ class ExceptionAnalyzer:
 
     def _is_subclass_of(self, child_type: str, parent_type: str) -> bool:
         """
-                Check if one exception type is a subclass of another.
+                check if one exception type is a subclass of another.
 
                 this method uses knowledge of python's built-in exception hierarchy
         and common patterns. it attempts to resolve actual class relationships
@@ -847,7 +844,7 @@ class ExceptionAnalyzer:
 
     def _find_python_files(self, project_path: Path) -> list[Path]:
         """
-        Find all python files in a project, respecting excludes.
+        find all python files in a project, respecting excludes.
 
         arguments:
             `project_path: Path`

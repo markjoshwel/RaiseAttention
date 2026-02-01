@@ -25,8 +25,7 @@ class ExceptionInfo:
     """
     information about an exception that may be raised.
 
-    Attributes
-    ----------
+    attributes:
         `exception_type: str`
             the fully qualified name of the exception type
         `location: tuple[int, int]`
@@ -48,8 +47,7 @@ class TryExceptInfo:
     """
     information about a try-except block.
 
-    Attributes
-    ----------
+    attributes:
         `location: tuple[int, int]`
             line and column of the try statement
         `end_location: tuple[int, int]`
@@ -77,8 +75,7 @@ class CallInfo:
     """
     information about a function call with exception tracking context.
 
-    Attributes
-    ----------
+    attributes:
         `func_name: str`
             name of the called function
         `location: tuple[int, int]`
@@ -100,8 +97,7 @@ class FunctionInfo:
     """
     information about a function and its exception signature.
 
-    Attributes
-    ----------
+    attributes:
         `name: str`
             function name
         `qualified_name: str`
@@ -137,8 +133,7 @@ class ExceptionVisitor(ast.NodeVisitor):
     - try-except blocks with line ranges
     - function calls with their try-except context
 
-    Attributes
-    ----------
+    attributes:
         `functions: dict[str, FunctionInfo]`
             mapping of qualified function names to their info
         `current_function: FunctionInfo | None`
@@ -161,7 +156,7 @@ class ExceptionVisitor(ast.NodeVisitor):
 
     def __init__(self, module_name: str = "") -> None:
         """
-        Initialise the exception visitor.
+        initialise the exception visitor.
 
         arguments:
             `module_name: str`
@@ -177,7 +172,7 @@ class ExceptionVisitor(ast.NodeVisitor):
 
     @override
     def visit_Import(self, node: ast.Import) -> None:
-        """Visit import statements to track imported modules."""
+        """visit import statements to track imported modules."""
         for alias in node.names:
             name = alias.asname if alias.asname else alias.name
             self.imports[name] = alias.name
@@ -185,7 +180,7 @@ class ExceptionVisitor(ast.NodeVisitor):
 
     @override
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
-        """Visit from-import statements to track imported names."""
+        """visit from-import statements to track imported names."""
         module = node.module or ""
         for alias in node.names:
             name = alias.asname if alias.asname else alias.name
@@ -197,7 +192,7 @@ class ExceptionVisitor(ast.NodeVisitor):
 
     @override
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        """Visit class definitions to track qualified names."""
+        """visit class definitions to track qualified names."""
         self._class_stack.append(node.name)
         self.generic_visit(node)
         self._class_stack.pop()
@@ -206,7 +201,7 @@ class ExceptionVisitor(ast.NodeVisitor):
         self, node: ast.FunctionDef | ast.AsyncFunctionDef, is_async: bool = False
     ) -> None:
         """
-        Process function definitions to collect exception information.
+        process function definitions to collect exception information.
 
         arguments:
             `node: ast.FunctionDef | ast.AsyncFunctionDef`
@@ -251,18 +246,18 @@ class ExceptionVisitor(ast.NodeVisitor):
 
     @override
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        """Visit function definitions."""
+        """visit function definitions."""
         self._process_function(node, is_async=False)
 
     @override
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
-        """Visit async function definitions."""
+        """visit async function definitions."""
         self._process_function(node, is_async=True)
 
     @override
     def visit_Raise(self, node: ast.Raise) -> None:
         """
-        Visit raise statements to collect exception information.
+        visit raise statements to collect exception information.
 
         arguments:
             `node: ast.Raise`
@@ -304,7 +299,7 @@ class ExceptionVisitor(ast.NodeVisitor):
     @override
     def visit_Try(self, node: ast.Try) -> None:
         """
-        Visit try-except blocks to collect exception handling information.
+        visit try-except blocks to collect exception handling information.
 
         arguments:
             `node: ast.Try`
@@ -373,7 +368,7 @@ class ExceptionVisitor(ast.NodeVisitor):
 
     @override
     def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
-        """Visit except handlers - do not track try-except context here."""
+        """visit except handlers - do not track try-except context here."""
         # except handlers are not inside the try block
         saved_blocks = self.active_try_blocks
         self.active_try_blocks = []
@@ -383,7 +378,7 @@ class ExceptionVisitor(ast.NodeVisitor):
     @override
     def visit_Call(self, node: ast.Call) -> None:
         """
-        Visit function calls to track what functions are called.
+        visit function calls to track what functions are called.
 
         arguments:
             `node: ast.Call`
@@ -405,7 +400,7 @@ class ExceptionVisitor(ast.NodeVisitor):
     @override
     def visit_Await(self, node: ast.Await) -> None:
         """
-        Visit await expressions to track async function calls.
+        visit await expressions to track async function calls.
 
         arguments:
             `node: ast.Await`
@@ -427,7 +422,7 @@ class ExceptionVisitor(ast.NodeVisitor):
 
     def _get_exception_type(self, node: ast.expr) -> str:
         """
-        Get the string representation of an exception type from an ast node.
+        get the string representation of an exception type from an ast node.
 
         arguments:
             `node: ast.expr`
@@ -459,7 +454,7 @@ class ExceptionVisitor(ast.NodeVisitor):
 
     def _get_attribute_string(self, node: ast.Attribute) -> str:
         """
-        Convert an attribute access to a string.
+        convert an attribute access to a string.
 
         arguments:
             `node: ast.Attribute`
@@ -482,7 +477,7 @@ class ExceptionVisitor(ast.NodeVisitor):
 
     def _get_call_name(self, node: ast.expr) -> str | None:
         """
-        Get the name of a called function.
+        get the name of a called function.
 
         arguments:
             `node: ast.expr`
@@ -500,7 +495,7 @@ class ExceptionVisitor(ast.NodeVisitor):
 
 def parse_file(file_path: str | Path) -> ExceptionVisitor:
     """
-    Parse a python file and return an exception visitor with collected info.
+    parse a python file and return an exception visitor with collected info.
 
     arguments:
         `file_path: str | Path`
@@ -509,8 +504,7 @@ def parse_file(file_path: str | Path) -> ExceptionVisitor:
     returns: `ExceptionVisitor`
         visitor containing all exception information
 
-    Raises
-    ------
+    raises:
         `SyntaxError`
             if the file contains invalid python syntax
         `FileNotFoundError`
@@ -538,7 +532,7 @@ def parse_file(file_path: str | Path) -> ExceptionVisitor:
 
 def parse_source(source: str, module_name: str = "<string>") -> ExceptionVisitor:
     """
-    Parse python source code and return an exception visitor.
+    parse python source code and return an exception visitor.
 
     arguments:
         `source: str`
@@ -549,8 +543,7 @@ def parse_source(source: str, module_name: str = "<string>") -> ExceptionVisitor
     returns: `ExceptionVisitor`
         visitor containing all exception information
 
-    Raises
-    ------
+    raises:
         `SyntaxError`
             if the source contains invalid python syntax
     """
