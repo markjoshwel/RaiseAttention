@@ -53,6 +53,7 @@
           
         in {
           libsoulsearching = pythonSet.libsoulsearching;
+          libsightseeing = pythonSet.libsightseeing;
           raiseattention = pythonSet.raiseattention;
           default = pythonSet.raiseattention;
         });
