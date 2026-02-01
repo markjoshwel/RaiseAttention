@@ -1,13 +1,13 @@
-"""tests for the core analyzer module."""
+"""tests for the core analyser module."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from raiseattention.analyzer import (
+from raiseattention.analyser import (
     AnalysisResult,
     Diagnostic,
-    ExceptionAnalyzer,
+    ExceptionAnalyser,
 )
 from raiseattention.config import Config
 
@@ -47,20 +47,20 @@ class TestAnalysisResult:
         assert result.exceptions_tracked == 0
 
 
-class TestExceptionAnalyzer:
-    """tests for the ExceptionAnalyzer class."""
+class TestExceptionAnalyser:
+    """tests for the ExceptionAnalyser class."""
 
     def test_init(self) -> None:
         """Test analyzer initialisation."""
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         assert analyzer.config == config
 
     def test_analyse_file_not_found(self, tmp_path: Path) -> None:
         """Test analysing non-existent file."""
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         result = analyzer.analyse_file(tmp_path / "nonexistent.py")
 
@@ -76,7 +76,7 @@ def simple():
 """)
 
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         result = analyzer.analyse_file(test_file)
 
@@ -92,7 +92,7 @@ def risky():
 """)
 
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         result = analyzer.analyse_file(test_file)
 
@@ -117,7 +117,7 @@ def func3():
 """)
 
         config = Config(project_root=tmp_path, exclude=[])
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         result = analyzer.analyse_project(tmp_path)
 
@@ -133,7 +133,7 @@ def risky():
 """)
 
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
         analyzer.analyse_file(test_file)
 
         signature = analyzer.get_function_signature("test.risky")
@@ -155,7 +155,7 @@ def level1():
 """)
 
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
         analyzer.analyse_file(test_file)
 
         # all levels should have ValueError in signature
@@ -172,7 +172,7 @@ def func():
 """)
 
         config = Config(ignore_exceptions=["KeyboardInterrupt"])
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         result = analyzer.analyse_file(test_file)
 
@@ -193,7 +193,7 @@ def caller():
 
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         result = analyzer.analyse_file(test_file)
 
@@ -210,7 +210,7 @@ def func():
 """)
 
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         # first analysis
         result1 = analyzer.analyse_file(test_file)
@@ -226,7 +226,7 @@ def func():
         test_file.write_text("def func(): pass")
 
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
         analyzer.analyse_file(test_file)
 
         # invalidate

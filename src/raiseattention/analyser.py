@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 from .ast_visitor import parse_file
 from .cache import DependencyCache, FileAnalysis, FileCache
 from .config import Config
-from .external_analyzer import ExternalAnalyzer
+from .external_analyser import ExternalAnalyser
 
 if TYPE_CHECKING:
     from .env_detector import VenvInfo
@@ -72,7 +72,7 @@ class AnalysisResult:
     exceptions_tracked: int = 0
 
 
-class ExceptionAnalyzer:
+class ExceptionAnalyser:
     """
     core exception analysis engine.
 
@@ -88,7 +88,7 @@ class ExceptionAnalyzer:
             file-level analysis cache
         `dependency_cache: DependencyCache`
             external library exception cache
-        `external_analyzer: ExternalAnalyzer`
+        `external_analyser: ExternalAnalyser`
             analyser for external modules (stdlib/third-party)
         `_file_analyses: dict[Path, FileAnalysis]`
             current analysis results by file
@@ -113,7 +113,7 @@ class ExceptionAnalyzer:
         self.config = config
         self.file_cache = FileCache(config.cache)
         self.dependency_cache = DependencyCache(config.cache)
-        self.external_analyzer = ExternalAnalyzer(venv_info, config.cache)
+        self.external_analyser = ExternalAnalyser(venv_info, config.cache)
         self._file_analyses: dict[Path, FileAnalysis] = {}
         self._exception_signatures: dict[str, list[str]] = {}
 
@@ -362,13 +362,18 @@ class ExceptionAnalyzer:
                 imports = analysis.imports
                 break
 
+        # determine module name for qualifying local exceptions
+        module_name = self._get_module_name_from_path(func_file_path)
+
         # collect directly raised exceptions
         exceptions: set[str] = set()
         for exc in func_info.get("raises", []):
             exc_type = exc.get("type", "")
             is_re_raise = exc.get("is_re_raise", False)
             if exc_type and not is_re_raise and exc_type not in self._get_ignore_exceptions():
-                exceptions.add(exc_type)
+                # qualify local exception types with module name
+                qualified_exc = self._qualify_exception_type(exc_type, module_name)
+                exceptions.add(qualified_exc)
 
         # collect from called functions (transitive)
         for call in func_info.get("calls", []):
@@ -416,14 +421,14 @@ class ExceptionAnalyzer:
             list of exception types, empty if not found
         """
         # try to resolve the module and function
-        resolved = self.external_analyzer.resolve_import_to_module(func_name, imports)
+        resolved = self.external_analyser.resolve_import_to_module(func_name, imports)
         if resolved is None:
             return []
 
         module_name, function_name = resolved
 
         # get the exceptions for this function
-        return self.external_analyzer.get_function_exceptions(module_name, function_name)
+        return self.external_analyser.get_function_exceptions(module_name, function_name)
 
     def invalidate_file(self, file_path: str | Path) -> None:
         """
@@ -841,6 +846,164 @@ class ExceptionAnalyzer:
             pass
 
         return False
+
+    def _get_module_name_from_path(self, file_path: Path | None) -> str | None:
+        """
+        derive a python module name from a file path.
+
+        attempts to determine the module name by looking for common
+        project structures (e.g., src/ layout, package directories).
+
+        arguments:
+            `file_path: Path | None`
+                path to the python file
+
+        returns: `str | None`
+            module name (e.g., 'tomlantic.tomlantic') or none if cannot be determined
+        """
+        if file_path is None:
+            return None
+
+        file_path = file_path.resolve()
+
+        # try to find the project root by looking for common markers
+        project_root = self.config.project_root.resolve()
+
+        try:
+            # get path relative to project root
+            rel_path = file_path.relative_to(project_root)
+        except ValueError:
+            # file is not under project root
+            return None
+
+        # remove .py extension
+        parts = list(rel_path.with_suffix("").parts)
+
+        # handle src/ layout - remove 'src' prefix if present
+        if parts and parts[0] == "src":
+            parts = parts[1:]
+
+        # join parts with dots to form module name
+        if parts:
+            module_name = ".".join(parts)
+            # handle case where package and module have same name (e.g., tomlantic/tomlantic.py)
+            # in this case, the exception is typically imported as tomlantic.ExceptionName
+            # not tomlantic.tomlantic.ExceptionName
+            # but if full_module_path is enabled, use the full path
+            if (
+                len(parts) == 2
+                and parts[0] == parts[1]
+                and not self.config.analysis.full_module_path
+            ):
+                return parts[0]
+            return module_name
+
+        return None
+
+    def _qualify_exception_type(self, exc_type: str, module_name: str | None) -> str:
+        """
+        qualify an exception type with its module name if needed.
+
+        arguments:
+            `exc_type: str`
+                the exception type name
+            `module_name: str | None`
+                the module name to use for qualification
+
+        returns: `str`
+            qualified exception type name
+        """
+        if not exc_type:
+            return exc_type
+
+        # already qualified (contains a dot)
+        if "." in exc_type:
+            return exc_type
+
+        # built-in exceptions don't need qualification
+        builtin_exceptions = {
+            "BaseException",
+            "BaseExceptionGroup",
+            "Exception",
+            "ExceptionGroup",
+            "GeneratorExit",
+            "KeyboardInterrupt",
+            "SystemExit",
+            "ArithmeticError",
+            "FloatingPointError",
+            "OverflowError",
+            "ZeroDivisionError",
+            "AssertionError",
+            "AttributeError",
+            "BufferError",
+            "EOFError",
+            "ImportError",
+            "ModuleNotFoundError",
+            "LookupError",
+            "IndexError",
+            "KeyError",
+            "MemoryError",
+            "NameError",
+            "UnboundLocalError",
+            "OSError",
+            "BlockingIOError",
+            "ChildProcessError",
+            "ConnectionError",
+            "BrokenPipeError",
+            "ConnectionAbortedError",
+            "ConnectionRefusedError",
+            "ConnectionResetError",
+            "FileExistsError",
+            "FileNotFoundError",
+            "InterruptedError",
+            "IsADirectoryError",
+            "NotADirectoryError",
+            "PermissionError",
+            "ProcessLookupError",
+            "TimeoutError",
+            "ReferenceError",
+            "RuntimeError",
+            "NotImplementedError",
+            "PythonFinalizationError",
+            "RecursionError",
+            "StopAsyncIteration",
+            "StopIteration",
+            "SyntaxError",
+            "IndentationError",
+            "TabError",
+            "SystemError",
+            "TypeError",
+            "ValueError",
+            "UnicodeError",
+            "UnicodeDecodeError",
+            "UnicodeEncodeError",
+            "UnicodeTranslateError",
+            "Warning",
+            "BytesWarning",
+            "DeprecationWarning",
+            "EncodingWarning",
+            "FutureWarning",
+            "ImportWarning",
+            "PendingDeprecationWarning",
+            "ResourceWarning",
+            "RuntimeWarning",
+            "SyntaxWarning",
+            "UnicodeWarning",
+            "UserWarning",
+            "EnvironmentError",
+            "IOError",
+            "VMSError",
+            "WindowsError",
+        }
+
+        if exc_type in builtin_exceptions:
+            return exc_type
+
+        # qualify with module name if available
+        if module_name:
+            return f"{module_name}.{exc_type}"
+
+        return exc_type
 
     def _find_python_files(self, project_path: Path) -> list[Path]:
         """

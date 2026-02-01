@@ -8,13 +8,12 @@ hover information, and code actions.
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
 from lsprotocol import types
 from pygls.lsp.server import LanguageServer
-from typing_extensions import final
 
-from .analyzer import Diagnostic, ExceptionAnalyzer
+from .analyser import Diagnostic, ExceptionAnalyser
 from .config import Config
 
 if TYPE_CHECKING:
@@ -32,7 +31,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
     - code actions to add exception handlers
 
     attributes:
-        `analyzer: ExceptionAnalyzer`
+        `analyzer: ExceptionAnalyser`
             exception analysis engine
         `config: Config`
             configuration settings
@@ -43,7 +42,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
     """
 
     config: Config
-    analyzer: ExceptionAnalyzer
+    analyzer: ExceptionAnalyser
     _pending_changes: dict[str, list[types.TextDocumentContentChangeEvent]]
     _debounce_task: asyncio.Task[None] | None
 
@@ -58,7 +57,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
         super().__init__("raiseattention", "0.1.0")
 
         self.config = config or Config.load()
-        self.analyzer = ExceptionAnalyzer(self.config)
+        self.analyzer = ExceptionAnalyser(self.config)
         self._pending_changes = {}
         self._debounce_task = None
 

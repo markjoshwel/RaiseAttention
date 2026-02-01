@@ -17,7 +17,6 @@ from raiseattention.config import Config
 from raiseattention.lsp_server import (
     RaiseAttentionLanguageServer,
     create_server,
-    run_server_stdio,
 )
 
 
@@ -62,7 +61,7 @@ class TestDiagnosticConversion:
 
     def test_diagnostic_conversion(self) -> None:
         """test conversion of internal diagnostic to lsp diagnostic."""
-        from raiseattention.analyzer import Diagnostic
+        from raiseattention.analyser import Diagnostic
 
         config = Config()
         server = RaiseAttentionLanguageServer(config)
@@ -88,7 +87,7 @@ class TestDiagnosticConversion:
 
     def test_diagnostic_severity_mapping(self) -> None:
         """test that severity levels map correctly."""
-        from raiseattention.analyzer import Diagnostic
+        from raiseattention.analyser import Diagnostic
 
         config = Config()
         server = RaiseAttentionLanguageServer(config)
@@ -113,7 +112,7 @@ class TestDiagnosticConversion:
 
     def test_diagnostic_default_severity(self) -> None:
         """test that unknown severity defaults to error."""
-        from raiseattention.analyzer import Diagnostic
+        from raiseattention.analyser import Diagnostic
 
         config = Config()
         server = RaiseAttentionLanguageServer(config)

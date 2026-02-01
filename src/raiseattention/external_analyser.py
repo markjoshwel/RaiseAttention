@@ -101,7 +101,7 @@ class ExternalModuleInfo:
     exception_signatures: dict[str, list[str]] = field(default_factory=dict)
 
 
-class ExternalAnalyzer:
+class ExternalAnalyser:
     """
     analyser for external (third-party and stdlib) python modules.
 
@@ -307,7 +307,7 @@ class ExternalAnalyzer:
             return None
 
         # compute transitive exception signatures using dfs with memoisation
-        sigs = self._compute_signatures(visitor)
+        sigs = self._compute_signatures(visitor, module_name)
         imports = dict(visitor.imports)
 
         analysis = ModuleAnalysis(
@@ -326,22 +326,114 @@ class ExternalAnalyzer:
     def _compute_signatures(
         self,
         visitor: ExceptionVisitor,
+        module_name: str,
     ) -> dict[str, frozenset[str]]:
         """
         compute transitive exception signatures for all functions.
 
         uses depth-first search with memoisation to efficiently
         handle call graphs with cycles and shared dependencies.
+        exception types are qualified with the module name when not already
+        fully qualified.
 
         arguments:
             `visitor: ExceptionVisitor`
                 parsed ast visitor with function information
+            `module_name: str`
+                the module name to use for qualifying exception types
 
         returns: `dict[str, frozenset[str]]`
             mapping of function names to their exception types
         """
         functions = visitor.functions
         memo: dict[str, frozenset[str]] = {}
+
+        def _qualify_exception_type(exc_type: str) -> str:
+            """qualify an exception type with the module name if needed."""
+            if not exc_type:
+                return exc_type
+            # already qualified (contains a dot)
+            if "." in exc_type:
+                return exc_type
+            # built-in exceptions don't need qualification
+            builtin_exceptions = {
+                "BaseException",
+                "BaseExceptionGroup",
+                "Exception",
+                "ExceptionGroup",
+                "GeneratorExit",
+                "KeyboardInterrupt",
+                "SystemExit",
+                "ArithmeticError",
+                "FloatingPointError",
+                "OverflowError",
+                "ZeroDivisionError",
+                "AssertionError",
+                "AttributeError",
+                "BufferError",
+                "EOFError",
+                "ImportError",
+                "ModuleNotFoundError",
+                "LookupError",
+                "IndexError",
+                "KeyError",
+                "MemoryError",
+                "NameError",
+                "UnboundLocalError",
+                "OSError",
+                "BlockingIOError",
+                "ChildProcessError",
+                "ConnectionError",
+                "BrokenPipeError",
+                "ConnectionAbortedError",
+                "ConnectionRefusedError",
+                "ConnectionResetError",
+                "FileExistsError",
+                "FileNotFoundError",
+                "InterruptedError",
+                "IsADirectoryError",
+                "NotADirectoryError",
+                "PermissionError",
+                "ProcessLookupError",
+                "TimeoutError",
+                "ReferenceError",
+                "RuntimeError",
+                "NotImplementedError",
+                "PythonFinalizationError",
+                "RecursionError",
+                "StopAsyncIteration",
+                "StopIteration",
+                "SyntaxError",
+                "IndentationError",
+                "TabError",
+                "SystemError",
+                "TypeError",
+                "ValueError",
+                "UnicodeError",
+                "UnicodeDecodeError",
+                "UnicodeEncodeError",
+                "UnicodeTranslateError",
+                "Warning",
+                "BytesWarning",
+                "DeprecationWarning",
+                "EncodingWarning",
+                "FutureWarning",
+                "ImportWarning",
+                "PendingDeprecationWarning",
+                "ResourceWarning",
+                "RuntimeWarning",
+                "SyntaxWarning",
+                "UnicodeWarning",
+                "UserWarning",
+                "EnvironmentError",
+                "IOError",
+                "VMSError",
+                "WindowsError",
+            }
+            if exc_type in builtin_exceptions:
+                return exc_type
+            # qualify with module name
+            return f"{module_name}.{exc_type}"
 
         def dfs(func_name: str, visiting: frozenset[str]) -> frozenset[str]:
             """depth-first traversal with cycle detection."""
@@ -364,7 +456,7 @@ class ExternalAnalyzer:
             exceptions: set[str] = set()
             for exc in func_info.raises:
                 if exc.exception_type and not exc.is_re_raise:
-                    exceptions.add(exc.exception_type)
+                    exceptions.add(_qualify_exception_type(exc.exception_type))
 
             # collect from called functions (transitive)
             for call in func_info.calls:

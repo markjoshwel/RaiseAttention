@@ -1,6 +1,6 @@
-"""comprehensive tests for the analyzer using synthetic codebases.
+"""comprehensive tests for the analyser using synthetic codebases.
 
-this module tests the exception analyzer against synthetic codebases
+this module tests the exception analyser against synthetic codebases
 to verify:
 - unhandled exceptions are detected
 - caught exceptions are not flagged
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from raiseattention.analyzer import ExceptionAnalyzer
+from raiseattention.analyser import ExceptionAnalyser
 from raiseattention.config import Config
 from tests.fixtures.code_samples import (
     create_async_exceptions_file,
@@ -34,7 +34,7 @@ class TestUnhandledExceptions:
         """test detection of simple unhandled exception."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_unhandled_exception_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -50,7 +50,7 @@ class TestUnhandledExceptions:
         """test that calling a raising function without handling is flagged."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_unhandled_exception_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -63,7 +63,7 @@ class TestUnhandledExceptions:
         """test detection of exceptions through multiple call levels."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_complex_nesting_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -80,7 +80,7 @@ class TestHandledExceptions:
         """test that simple try-except blocks prevent flagging."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_handled_exception_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -92,7 +92,7 @@ class TestHandledExceptions:
         """test handling of multiple exception types."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_handled_exception_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -107,7 +107,7 @@ class TestHandledExceptions:
         """test that nested try-except blocks work correctly."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_handled_exception_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -120,7 +120,7 @@ class TestHandledExceptions:
         """test handling at intermediate call level."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_complex_nesting_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -137,7 +137,7 @@ class TestCustomExceptions:
         """test detection of custom exception types."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_custom_exceptions_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -153,7 +153,7 @@ class TestCustomExceptions:
         """test that catching parent class handles child exceptions."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_custom_exceptions_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -166,7 +166,7 @@ class TestCustomExceptions:
         """test handling of specific custom exception."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_custom_exceptions_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -183,7 +183,7 @@ class TestExceptionChaining:
         """test detection of chained exceptions."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_exception_chaining_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -196,7 +196,7 @@ class TestExceptionChaining:
         """test handling both chained and original exceptions."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_exception_chaining_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -213,7 +213,7 @@ class TestMixedScenarios:
         """test that partial handling only flags unhandled paths."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_mixed_scenario_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -233,7 +233,7 @@ class TestMixedScenarios:
         """test detection in mixed caller function."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_mixed_scenario_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -254,7 +254,7 @@ class TestAsyncExceptions:
         """test detection in async functions."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_async_exceptions_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -269,7 +269,7 @@ class TestAsyncExceptions:
         """test that handled async exceptions are not flagged."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_async_exceptions_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -288,7 +288,7 @@ class TestSyntheticCodebase:
         """test analysis of the entire synthetic codebase."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         # create the full codebase
         codebase_path = tmp_path / "test_codebase"
@@ -306,7 +306,7 @@ class TestSyntheticCodebase:
     def test_codebase_file_counts(self, tmp_path: Path) -> None:
         """test that all files are analysed."""
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         codebase_path = tmp_path / "test_codebase"
         create_synthetic_codebase(codebase_path)
@@ -324,7 +324,7 @@ class TestConfigurationImpact:
         """test that strict mode finds more issues."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = create_unhandled_exception_file(tmp_path)
         result = analyzer.analyse_file(test_file)
@@ -334,7 +334,7 @@ class TestConfigurationImpact:
         # compare with non-strict mode
         config2 = Config()
         config2.analysis.strict_mode = False
-        analyzer2 = ExceptionAnalyzer(config2)
+        analyzer2 = ExceptionAnalyser(config2)
 
         result2 = analyzer2.analyse_file(test_file)
         non_strict_count = len(result2.diagnostics)
@@ -346,7 +346,7 @@ class TestConfigurationImpact:
         """test bare except configuration."""
         config = Config()
         config.analysis.allow_bare_except = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         # create file with bare except
         test_file = tmp_path / "bare_except.py"
@@ -369,7 +369,7 @@ def handler():
         """test that ignored exceptions are not flagged."""
         config = Config()
         config.ignore_exceptions = ["ValueError"]
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = tmp_path / "ignored.py"
         test_file.write_text("""

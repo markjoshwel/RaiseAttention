@@ -13,7 +13,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from .analyzer import ExceptionAnalyzer
+from .analyser import ExceptionAnalyser
 from .cache import FileCache
 from .config import Config
 from .lsp_server import run_server_stdio
@@ -54,10 +54,10 @@ examples:
         help="files or directories to analyse",
     )
     check_parser.add_argument(
-        "--format",
-        choices=["text", "json"],
-        default="text",
-        help="output format (default: text)",
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="output in json format (default: text)",
     )
     check_parser.add_argument(
         "--output",
@@ -80,6 +80,20 @@ examples:
         "--strict",
         action="store_true",
         help="enable strict mode (require all exceptions to be declared)",
+    )
+    check_parser.add_argument(
+        "--absolute",
+        action="store_true",
+        help="use absolute paths in output (default: cwd-relative for text, absolute for json)",
+    )
+    check_parser.add_argument(
+        "--full-module-path",
+        action="store_true",
+        help=(
+            "show full module path for exceptions (e.g., "
+            "'tomlantic.tomlantic.TOMLValidationError' instead of "
+            "'tomlantic.TOMLValidationError')"
+        ),
     )
 
     # lsp command
@@ -108,6 +122,32 @@ examples:
     return parser
 
 
+def _format_path(file_path: Path, use_absolute: bool) -> str:
+    """
+    format a path for output.
+
+    uses cwd-relative paths by default for human readability,
+    or absolute paths when explicitly requested or for machine output.
+
+    arguments:
+        `file_path: Path`
+            the path to format
+        `use_absolute: bool`
+            whether to use absolute paths
+
+    returns: `str`
+        formatted path string
+    """
+    if use_absolute:
+        return str(file_path.resolve())
+
+    try:
+        return str(file_path.resolve().relative_to(Path.cwd()))
+    except ValueError:
+        # path is not under cwd, use absolute
+        return str(file_path.resolve())
+
+
 def handle_check(args: argparse.Namespace, config: Config) -> int:
     """
     handle the check command.
@@ -126,8 +166,10 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
         config.analysis.local_only = True
     if args.strict:
         config.analysis.strict_mode = True
+    if args.full_module_path:
+        config.analysis.full_module_path = True
 
-    analyzer = ExceptionAnalyzer(config)
+    analyzer = ExceptionAnalyser(config)
     all_results = []
 
     for path_str in args.paths:
@@ -153,12 +195,15 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
         total_functions += result.functions_found
         total_exceptions += result.exceptions_tracked
 
+    # determine path formatting: json always uses absolute, text uses relative by default
+    use_absolute = args.absolute or args.json_output
+
     # output results
-    if args.format == "json":
+    if args.json_output:
         output = {
             "diagnostics": [
                 {
-                    "file": str(d.file_path),
+                    "file": _format_path(d.file_path, use_absolute=True),
                     "line": d.line,
                     "column": d.column,
                     "message": d.message,
@@ -185,9 +230,8 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
         # text format
         if combined_diagnostics:
             for diag in combined_diagnostics:
-                print(
-                    f"{diag.file_path}:{diag.line}:{diag.column}: {diag.severity}: {diag.message}"
-                )
+                path_str = _format_path(diag.file_path, use_absolute)
+                print(f"{path_str}:{diag.line}:{diag.column}: {diag.severity}: {diag.message}")
 
         if args.verbose:
             print("\nsummary:")
@@ -200,8 +244,9 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
             # also write text output to file
             lines = []
             for diag in combined_diagnostics:
+                path_str = _format_path(diag.file_path, use_absolute)
                 lines.append(
-                    f"{diag.file_path}:{diag.line}:{diag.column}: {diag.severity}: {diag.message}"
+                    f"{path_str}:{diag.line}:{diag.column}: {diag.severity}: {diag.message}"
                 )
 
             if args.verbose:

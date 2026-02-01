@@ -40,8 +40,7 @@ class TestCreateParser:
         args = parser.parse_args(
             [
                 "check",
-                "--format",
-                "json",
+                "--json",
                 "--output",
                 "report.json",
                 "--verbose",
@@ -49,7 +48,7 @@ class TestCreateParser:
             ]
         )
 
-        assert args.format == "json"
+        assert args.json_output is True
         assert args.output == "report.json"
         assert args.verbose is True
 
@@ -114,8 +113,7 @@ class TestHandleCheck:
         args = parser.parse_args(
             [
                 "check",
-                "--format",
-                "json",
+                "--json",
                 "--output",
                 str(output_file),
                 str(test_file),

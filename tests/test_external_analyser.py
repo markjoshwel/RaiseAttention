@@ -1,4 +1,4 @@
-"""tests for external analyzer functionality.
+"""tests for external analyser functionality.
 
 this module tests the external analyser's ability to detect exceptions
 from stdlib and third-party modules.
@@ -8,12 +8,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-from raiseattention.analyzer import ExceptionAnalyzer
+from raiseattention.analyser import ExceptionAnalyser
 from raiseattention.config import Config
-from raiseattention.external_analyzer import (
-    ExternalAnalyzer,
+from raiseattention.external_analyser import (
+    ExternalAnalyser,
     ExternalModuleInfo,
     get_stdlib_modules,
     is_stdlib_module,
@@ -50,18 +48,18 @@ class TestExternalModuleInfo:
         assert info.file_path is None
 
 
-class TestExternalAnalyzer:
-    """tests for the ExternalAnalyzer class."""
+class TestExternalAnalyser:
+    """tests for the ExternalAnalyser class."""
 
     def test_init(self) -> None:
-        """test initialising external analyzer."""
-        analyzer = ExternalAnalyzer()
+        """test initialising external analyser."""
+        analyzer = ExternalAnalyser()
         assert analyzer.venv_info is None
         assert analyzer._stdlib_path is not None
 
     def test_resolve_stdlib_module(self) -> None:
         """test resolving stdlib module path."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
         module_info = analyzer.resolve_module_path("json")
 
         assert module_info is not None
@@ -73,7 +71,7 @@ class TestExternalAnalyzer:
 
     def test_resolve_c_extension(self) -> None:
         """test resolving c extension module."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
         module_info = analyzer.resolve_module_path("_json")
 
         assert module_info is not None
@@ -84,14 +82,14 @@ class TestExternalAnalyzer:
 
     def test_resolve_nonexistent_module(self) -> None:
         """test resolving nonexistent module."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
         module_info = analyzer.resolve_module_path("nonexistent_module_xyz")
 
         assert module_info is None
 
     def test_analyse_stdlib_module(self) -> None:
         """test analysing a stdlib module."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
         module_info = analyzer.analyse_module("json")
 
         assert module_info is not None
@@ -101,7 +99,7 @@ class TestExternalAnalyzer:
 
     def test_analyse_json_decoder(self) -> None:
         """test analysing json.decoder module for exceptions."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
         module_info = analyzer.analyse_module("json.decoder")
 
         assert module_info is not None
@@ -111,7 +109,7 @@ class TestExternalAnalyzer:
 
     def test_skip_c_extension_analysis(self) -> None:
         """test that c extensions are skipped during analysis."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
         module_info = analyzer.analyse_module("_json")
 
         assert module_info is not None
@@ -121,7 +119,7 @@ class TestExternalAnalyzer:
 
     def test_get_function_exceptions_from_module(self) -> None:
         """test getting function exceptions from a module."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
 
         # First analyse the module
         analyzer.analyse_module("tomllib")
@@ -131,7 +129,7 @@ class TestExternalAnalyzer:
 
     def test_resolve_import_to_module_dotted(self) -> None:
         """test resolving dotted import name."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
 
         result = analyzer.resolve_import_to_module("json.loads", {})
         # should resolve to (json, loads)
@@ -142,7 +140,7 @@ class TestExternalAnalyzer:
 
     def test_resolve_import_to_module_with_imports_map(self) -> None:
         """test resolving import using imports map."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
 
         imports = {"loads": "json.loads"}
         result = analyzer.resolve_import_to_module("loads", imports)
@@ -188,7 +186,7 @@ class TestIntegrationWithAnalyzer:
     def test_analyzer_with_external_import(self, tmp_path: Path) -> None:
         """test that analyzer can look up external module exceptions."""
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         # create a file that imports from stdlib
         test_file = tmp_path / "test_external.py"
@@ -209,7 +207,7 @@ def load_config(path: str) -> dict:
         """test that analyzer can detect exceptions from tomllib."""
         config = Config()
         config.analysis.strict_mode = True
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         # create a file that calls tomllib.loads which raises TOMLDecodeError
         test_file = tmp_path / "test_toml.py"
@@ -232,7 +230,7 @@ def caller():
     def test_analyzer_with_json_import(self, tmp_path: Path) -> None:
         """test analyzer with json module import."""
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = tmp_path / "test_json.py"
         test_file.write_text('''
@@ -253,7 +251,7 @@ def caller():
     def test_analyzer_with_from_import(self, tmp_path: Path) -> None:
         """test analyzer with from ... import style."""
         config = Config()
-        analyzer = ExceptionAnalyzer(config)
+        analyzer = ExceptionAnalyser(config)
 
         test_file = tmp_path / "test_from_import.py"
         test_file.write_text('''
@@ -269,7 +267,7 @@ def parse_data(data: str) -> dict:
 
     def test_external_analyzer_caching(self) -> None:
         """test that external module analysis is cached."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
 
         # First analysis
         info1 = analyzer.analyse_module("json")
@@ -284,19 +282,19 @@ def parse_data(data: str) -> dict:
         assert info1.exception_signatures == info2.exception_signatures
 
 
-class TestExternalAnalyzerEdgeCases:
-    """edge case tests for external analyzer."""
+class TestExternalAnalyserEdgeCases:
+    """edge case tests for external analyser."""
 
     def test_empty_module_name(self) -> None:
         """test resolving empty module name."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
         result = analyzer.resolve_module_path("")
         assert result is None
 
     def test_module_with_syntax_error(self, tmp_path: Path) -> None:
         """test handling modules that can't be parsed."""
         # This tests the error handling path in analyse_module
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
 
         # Try to analyse a builtin module (which should work)
         result = analyzer.analyse_module("builtins")
@@ -305,12 +303,10 @@ class TestExternalAnalyzerEdgeCases:
 
     def test_resolve_deeply_nested_module(self) -> None:
         """test resolving deeply nested module path."""
-        analyzer = ExternalAnalyzer()
+        analyzer = ExternalAnalyser()
 
         # Try to resolve a deeply nested stdlib module
-        result = analyzer.resolve_import_to_module(
-            "xml.etree.ElementTree.parse", {}
-        )
+        result = analyzer.resolve_import_to_module("xml.etree.ElementTree.parse", {})
         # Should be able to find xml.etree.ElementTree
 
     def test_module_info_with_exception_signatures(self) -> None:

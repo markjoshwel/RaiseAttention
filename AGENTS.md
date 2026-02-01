@@ -187,7 +187,7 @@ use british spelling throughout:
 - use descriptive test method names
 - **use synthetic codebases in `tests/fixtures/` for comprehensive exception testing**
 
-### current status (2026-01-31)
+### current status (2026-02-02)
 
 **libvenvfinder:** 95% coverage, all tests passing
 - 22 unit tests (core api, cli)
@@ -196,13 +196,15 @@ use british spelling throughout:
 - ci passing (14 jobs)
 
 **raiseattention:** ✅ production ready
-- **153+ tests, all passing, 82% coverage**
+- **154+ tests, all passing, 82% coverage**
 - **exception analyzer completely rewritten** with proper flow tracking:
   - transitive exception tracking through call chains
   - try-except context detection at call sites
   - exception hierarchy support (built-in exceptions)
   - async/await exception handling
   - **external module analysis** for stdlib and third-party packages
+  - **fully qualified exception types** (e.g., `copy.Error`, `tomlantic.TOMLValidationError`)
+  - **cwd-relative paths** for human-readable output
 - **comprehensive test coverage**:
   - 35 synthetic analyzer tests (unhandled/caught/edge cases)
   - 24 external analyzer tests (stdlib/third-party tracking)
@@ -259,6 +261,7 @@ the exception analyzer has been redesigned for robust flow tracking:
    - **first pass**: finds unhandled exceptions at call sites
    - **second pass** (strict mode): flags functions with undocumented exceptions
    - exception hierarchy resolution (e.g., catching `Exception` handles `ValueError`)
+   - **fully qualified exception types**: reports `tomlantic.TOMLValidationError` instead of just `TOMLValidationError`
    - recursion detection for circular call graphs
    - integrates with external_analyzer for stdlib/third-party lookups
 
@@ -313,7 +316,8 @@ the external analyzer:
 1. resolves imports to find actual module files
 2. follows re-exports (e.g., `tomllib.load` → `tomllib._parser.load`)
 3. uses dfs to compute transitive exception signatures
-4. caches results to avoid redundant parsing
+4. **qualifies exception types with module name** (e.g., `copy.Error` instead of just `Error`)
+5. caches results to avoid redundant parsing
 
 ## libvenvfinder
 
@@ -519,13 +523,19 @@ uv run raiseattention check .
 uv run raiseattention check src/main.py
 
 # analyse with json output
-uv run raiseattention check --format=json .
+uv run raiseattention check --json .
 
 # analyse only local/first-party code (skip external modules)
 uv run raiseattention check --local .
 
 # enable strict mode
 uv run raiseattention check --strict .
+
+# use absolute paths in output
+uv run raiseattention check --absolute .
+
+# show full module path for exceptions (e.g., 'tomlantic.tomlantic.TOMLValidationError')
+uv run raiseattention check --full-module-path .
 
 # start lsp server
 uv run raiseattention lsp

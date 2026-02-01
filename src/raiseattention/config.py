@@ -69,12 +69,16 @@ class AnalysisConfig:
             require re-raise after logging exceptions
         `local_only: bool`
             only analyse local/first-party code, skip external modules
+        `full_module_path: bool`
+            show full module path for exceptions (e.g.,
+            'pkg.mod.Exception' instead of 'pkg.Exception')
     """
 
     strict_mode: bool = False
     allow_bare_except: bool = False
     require_reraise_after_log: bool = True
     local_only: bool = False
+    full_module_path: bool = False
 
 
 @dataclass
@@ -293,6 +297,7 @@ class Config:
                 allow_bare_except=other.analysis.allow_bare_except,
                 require_reraise_after_log=other.analysis.require_reraise_after_log,
                 local_only=other.analysis.local_only,
+                full_module_path=other.analysis.full_module_path,
             )
             if other.analysis != AnalysisConfig()
             else self.analysis,
@@ -349,6 +354,7 @@ class Config:
                 allow_bare_except=analysis_data.get("allow_bare_except", False),  # pyright: ignore[reportAny]
                 require_reraise_after_log=analysis_data.get("require_reraise_after_log", True),  # pyright: ignore[reportAny]
                 local_only=analysis_data.get("local_only", False),  # pyright: ignore[reportAny]
+                full_module_path=analysis_data.get("full_module_path", False),  # pyright: ignore[reportAny]
             )
 
         return config
