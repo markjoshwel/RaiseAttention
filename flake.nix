@@ -44,10 +44,18 @@
           # Workspace overlay from uv.lock
           workspaceOverlay = workspace.mkPyprojectOverlay { sourcePreference = "wheel"; };
           
-          # Combine overlays: build-systems first, then workspace
+          # Overlay for packages with missing build dependencies
+          fixBuildDepsOverlay = final: prev: {
+            gitignore-parser = prev.gitignore-parser.override {
+              nativeBuildInputs = [ final.setuptools ];
+            };
+          };
+          
+          # Combine overlays: build-systems first, then fix deps, then workspace
           # Order matters! Build systems must be available for workspace packages
           pythonSet = baseSet.overrideScope (lib.composeManyExtensions [
             pyproject-build-systems.overlays.default
+            fixBuildDepsOverlay
             workspaceOverlay
           ]);
           
@@ -65,8 +73,15 @@
           baseSet = pkgs.callPackage pyproject-nix.build.packages { inherit python; };
           workspaceOverlay = workspace.mkPyprojectOverlay { sourcePreference = "wheel"; };
           
+          fixBuildDepsOverlay = final: prev: {
+            gitignore-parser = prev.gitignore-parser.override {
+              nativeBuildInputs = [ final.setuptools ];
+            };
+          };
+          
           pythonSet = baseSet.overrideScope (lib.composeManyExtensions [
             pyproject-build-systems.overlays.default
+            fixBuildDepsOverlay
             workspaceOverlay
           ]);
           
@@ -162,8 +177,15 @@
           baseSet = pkgs.callPackage pyproject-nix.build.packages { inherit python; };
           workspaceOverlay = workspace.mkPyprojectOverlay { sourcePreference = "wheel"; };
           
+          fixBuildDepsOverlay = final: prev: {
+            gitignore-parser = prev.gitignore-parser.override {
+              nativeBuildInputs = [ final.setuptools ];
+            };
+          };
+          
           pythonSet = baseSet.overrideScope (lib.composeManyExtensions [
             pyproject-build-systems.overlays.default
+            fixBuildDepsOverlay
             workspaceOverlay
           ]);
           
@@ -179,6 +201,7 @@
             cd $HOME/project
             ${venv}/bin/python -m pytest tests -v --tb=short
             ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py -v --tb=short
+            ${venv}/bin/python -m pytest src/libsightseeing/tests -v --tb=short
             touch $out
           '';
           });
@@ -191,8 +214,15 @@
           baseSet = pkgs.callPackage pyproject-nix.build.packages { inherit python; };
           workspaceOverlay = workspace.mkPyprojectOverlay { sourcePreference = "wheel"; };
 
+          fixBuildDepsOverlay = final: prev: {
+            gitignore-parser = prev.gitignore-parser.override {
+              nativeBuildInputs = [ final.setuptools ];
+            };
+          };
+
           pythonSet = baseSet.overrideScope (lib.composeManyExtensions [
             pyproject-build-systems.overlays.default
+            fixBuildDepsOverlay
             workspaceOverlay
           ]);
 
@@ -205,6 +235,7 @@
               cd $HOME/project
               ${venv}/bin/python -m pytest tests -v --tb=short
               ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py -v --tb=short
+              ${venv}/bin/python -m pytest src/libsightseeing/tests -v --tb=short
             '';
 
            lint-script = pkgs.writeShellScriptBin "lint" ''
