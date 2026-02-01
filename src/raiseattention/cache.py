@@ -107,7 +107,12 @@ class FileCache:
                 directory for cache files (default: .raiseattention/cache)
         """
         self.config = config
-        self.cache_dir = cache_dir or Path(".raiseattention").joinpath("cache")
+        if cache_dir is not None:
+            self.cache_dir = cache_dir
+        else:
+            # respect xdg cache home if set, otherwise use local .raiseattention
+            base_dir = Path(os.environ.get("XDG_CACHE_HOME", ".raiseattention"))
+            self.cache_dir = base_dir.joinpath("cache")
         self._memory_cache: dict[str, CacheEntry[FileAnalysis]] = {}
 
         if self.config.enabled:

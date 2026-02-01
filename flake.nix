@@ -174,6 +174,7 @@
           # work well in the sandboxed nix build environment (different behavior)
           unit-tests = pkgs.runCommand "unit-tests" { nativeBuildInputs = [ venv ]; } ''
             export HOME=$(mktemp -d)
+            export XDG_CACHE_HOME=$HOME/.cache
             cp -r ${./.} $HOME/project
             cd $HOME/project
             ${venv}/bin/python -m pytest tests -v --tb=short
@@ -199,6 +200,7 @@
 
            unit-tests-script = pkgs.writeShellScriptBin "unit-tests" ''
               export HOME=$(mktemp -d)
+              export XDG_CACHE_HOME=$HOME/.cache
               cp -r ${./.} $HOME/project
               cd $HOME/project
               ${venv}/bin/python -m pytest tests -v --tb=short
