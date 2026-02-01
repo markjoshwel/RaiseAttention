@@ -1,5 +1,5 @@
 """
-conftest for libvenvfinder tests.
+conftest for libsoulsearching tests.
 """
 
 from __future__ import annotations

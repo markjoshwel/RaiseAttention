@@ -1,5 +1,5 @@
 """
-core detection logic for libvenvfinder.
+core detection logic for libsoulsearching.
 """
 
 from __future__ import annotations

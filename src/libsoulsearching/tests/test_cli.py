@@ -1,5 +1,5 @@
 """
-tests for libvenvfinder cli.
+tests for libsoulsearching cli.
 """
 
 from __future__ import annotations
@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from libvenvfinder.cli import main
+from libsoulsearching.cli import main
 
 
 class TestCliBasic:

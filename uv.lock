@@ -5,7 +5,7 @@ requires-python = ">=3.11"
 [manifest]
 members = [
     "libsightseeing",
-    "libvenvfinder",
+    "libsoulsearching",
     "raiseattention",
 ]
 
@@ -231,15 +231,15 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pathspec", specifier = ">=0.12.0" },
+    { name = "pathspec", specifier = ">=1.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
 ]
 provides-extras = ["dev"]
 
 [[package]]
-name = "libvenvfinder"
+name = "libsoulsearching"
 version = "0.1.0"
-source = { editable = "src/libvenvfinder" }
+source = { editable = "src/libsoulsearching" }
 dependencies = [
     { name = "typing-extensions" },
 ]
@@ -432,7 +432,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "libsightseeing" },
-    { name = "libvenvfinder" },
+    { name = "libsoulsearching" },
     { name = "lsprotocol" },
     { name = "pygls" },
     { name = "typing-extensions" },
@@ -459,7 +459,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "libsightseeing", editable = "src/libsightseeing" },
-    { name = "libvenvfinder", editable = "src/libvenvfinder" },
+    { name = "libsoulsearching", editable = "src/libsoulsearching" },
     { name = "lsprotocol", specifier = ">=2023.0.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.8.0" },
     { name = "pygls", specifier = ">=1.3.0" },

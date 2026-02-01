@@ -1,17 +1,17 @@
-# libvenvfinder
+# libsoulsearching
 
 universal python virtual environment finder
 
 ## installation
 
 ```bash
-pip install libvenvfinder
+pip install libsoulsearching
 ```
 
 ## quickstart
 
 ```python
-from libvenvfinder import find_venv, find_all_venvs, ToolType
+from libsoulsearching import find_venv, find_all_venvs, ToolType
 
 # find the first/best venv
 info = find_venv("/path/to/project")
@@ -56,12 +56,12 @@ venvfinder /path/to/project --json
 
 ## api reference
 
-- [libvenvfinder.find_venv](#def-libvenvfinderfind_venv)
-- [libvenvfinder.find_all_venvs](#def-libvenvfinderfind_all_venvs)
-- [libvenvfinder.ToolType](#class-libvenvfindertooltype)
-- [libvenvfinder.VenvInfo](#class-libvenvfindervenvinfo)
+- [libsoulsearching.find_venv](#def-libsoulsearchingfind_venv)
+- [libsoulsearching.find_all_venvs](#def-libsoulsearchingfind_all_venvs)
+- [libsoulsearching.ToolType](#class-libsoulsearchingtooltype)
+- [libsoulsearching.VenvInfo](#class-libsoulsearchingvenvinfo)
 
-### def libvenvfinder.find_venv()
+### def libsoulsearching.find_venv()
 
 find a virtual environment in the given project directory
 
@@ -83,7 +83,7 @@ find a virtual environment in the given project directory
 - returns: `VenvInfo | None`
   venvinfo if a venv is found, none otherwise
 
-### def libvenvfinder.find_all_venvs()
+### def libsoulsearching.find_all_venvs()
 
 find all virtual environments in the given project directory
 
@@ -104,7 +104,7 @@ the actual venv is missing
 - returns: `list[VenvInfo]`
   list of venvinfo objects (may be empty)
 
-### class libvenvfinder.ToolType
+### class libsoulsearching.ToolType
 
 enumeration of supported python environment management tools
 
@@ -128,7 +128,7 @@ enumeration of supported python environment management tools
   - `ENV_VAR: str`
     virtual environment from environment variable
 
-### class libvenvfinder.VenvInfo
+### class libsoulsearching.VenvInfo
 
 information about a detected python virtual environment
 

@@ -1,3 +1,0 @@
-"""
-test suite for libvenvfinder.
-"""

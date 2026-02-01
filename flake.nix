@@ -52,7 +52,7 @@
           ]);
           
         in {
-          libvenvfinder = pythonSet.libvenvfinder;
+          libsoulsearching = pythonSet.libsoulsearching;
           raiseattention = pythonSet.raiseattention;
           default = pythonSet.raiseattention;
         });
@@ -65,15 +65,8 @@
           baseSet = pkgs.callPackage pyproject-nix.build.packages { inherit python; };
           workspaceOverlay = workspace.mkPyprojectOverlay { sourcePreference = "wheel"; };
           
-          fixBuildDepsOverlay = final: prev: {
-            gitignore-parser = prev.gitignore-parser.override {
-              nativeBuildInputs = [ final.setuptools ];
-            };
-          };
-          
           pythonSet = baseSet.overrideScope (lib.composeManyExtensions [
             pyproject-build-systems.overlays.default
-            fixBuildDepsOverlay
             workspaceOverlay
           ]);
           
@@ -93,7 +86,7 @@
               echo ""
               echo "run all tests:"
               echo "  uv run pytest tests -v"
-              echo "  uv run pytest src/libvenvfinder/tests -v"
+              echo "  uv run pytest src/libsoulsearching/tests -v"
             '';
           };
 
@@ -119,10 +112,10 @@
               echo "raiseattention integration shell"
               echo ""
               echo "run unit tests:"
-              echo "  uv run pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py -v"
+              echo "  uv run pytest src/libsoulsearching/tests/test_core.py src/libsoulsearching/tests/test_cli.py -v"
               echo ""
               echo "run real integration tests (creates actual projects):"
-              echo "  uv run pytest src/libvenvfinder/tests/test_integration_real.py -v"
+              echo "  uv run pytest src/libsoulsearching/tests/test_integration_real.py -v"
               echo ""
               
               # on NixOS, patch Rye's bundled binaries to work with NixOS's dynamic linker
@@ -185,7 +178,7 @@
             cp -r ${./.} $HOME/project
             cd $HOME/project
             ${venv}/bin/python -m pytest tests -v --tb=short
-            ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py -v --tb=short
+            ${venv}/bin/python -m pytest src/libsoulsearching/tests/test_core.py src/libsoulsearching/tests/test_cli.py src/libsoulsearching/tests/test_detectors_edge_cases.py -v --tb=short
             ${venv}/bin/python -m pytest src/libsightseeing/tests -v --tb=short
             touch $out
           '';
@@ -212,7 +205,7 @@
               cp -r ${./.} $HOME/project
               cd $HOME/project
               ${venv}/bin/python -m pytest tests -v --tb=short
-              ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_core.py src/libvenvfinder/tests/test_cli.py src/libvenvfinder/tests/test_detectors_edge_cases.py -v --tb=short
+              ${venv}/bin/python -m pytest src/libsoulsearching/tests/test_core.py src/libsoulsearching/tests/test_cli.py src/libsoulsearching/tests/test_detectors_edge_cases.py -v --tb=short
               ${venv}/bin/python -m pytest src/libsightseeing/tests -v --tb=short
             '';
 
@@ -225,7 +218,7 @@
              echo "running ruff format check..."
              ${venv}/bin/python -m ruff format --check src tests
              echo "running mypy..."
-             ${venv}/bin/python -m mypy src/libvenvfinder
+             ${venv}/bin/python -m mypy src/libsoulsearching
              echo "lint complete"
            '';
 
@@ -257,7 +250,7 @@
 
             cp -r ${./.} $HOME/project
             cd $HOME/project
-            ${venv}/bin/python -m pytest src/libvenvfinder/tests/test_integration_real.py -v --tb=short
+            ${venv}/bin/python -m pytest src/libsoulsearching/tests/test_integration_real.py -v --tb=short
           '';
 
         in {

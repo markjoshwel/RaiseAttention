@@ -11,10 +11,10 @@ from pathlib import Path
 from unittest import mock
 
 
-from libvenvfinder.detectors.hatch import detect_hatch
-from libvenvfinder.detectors.pd import detect_pdm
-from libvenvfinder.detectors.pyenv import detect_pyenv
-from libvenvfinder.models import ToolType
+from libsoulsearching.detectors.hatch import detect_hatch
+from libsoulsearching.detectors.pd import detect_pdm
+from libsoulsearching.detectors.pyenv import detect_pyenv
+from libsoulsearching.models import ToolType
 
 
 class TestHatchDetectorEdgeCases:

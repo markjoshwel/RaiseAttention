@@ -1,5 +1,5 @@
 """
-real integration tests for libvenvfinder.
+real integration tests for libsoulsearching.
 
 these tests actually invoke poetry, pipenv, pdm, uv, rye, hatch to create
 real projects and verify venv detection works correctly.
@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from libvenvfinder import find_venv, ToolType
+from libsoulsearching import find_venv, ToolType
 
 
 def get_tool_path(tool_name: str) -> str | None:

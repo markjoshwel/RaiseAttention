@@ -1,5 +1,5 @@
 """
-models for libvenvfinder.
+models for libsoulsearching.
 """
 
 from __future__ import annotations

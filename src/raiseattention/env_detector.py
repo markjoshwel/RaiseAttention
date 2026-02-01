@@ -1,13 +1,13 @@
 """
 virtual environment detection for raiseattention.
 
-this module re-exports libvenvfinder with compatibility aliases for raiseattention.
+this module re-exports libsoulsearching with compatibility aliases for raiseattention.
 """
 
 from __future__ import annotations
 
-# Re-export everything from libvenvfinder
-from libvenvfinder import (
+# Re-export everything from libsoulsearching
+from libsoulsearching import (
     ToolType,
     VenvInfo,
     find_all_venvs,

@@ -1,5 +1,5 @@
 """
-tests for libvenvfinder core module.
+tests for libsoulsearching core module.
 """
 
 from __future__ import annotations
@@ -7,7 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 
 
-from libvenvfinder import find_venv, find_all_venvs, ToolType
+from libsoulsearching import find_venv, find_all_venvs, ToolType
 
 
 class TestFindVenv:

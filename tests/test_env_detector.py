@@ -1,7 +1,7 @@
 """
 tests for the environment detector module.
 
-this module tests the compatibility layer that re-exports libvenvfinder
+this module tests the compatibility layer that re-exports libsoulsearching
 functionality for raiseattention.
 """
 
@@ -22,7 +22,7 @@ from raiseattention.env_detector import (
 
 
 class TestVenvInfo:
-    """tests for the VenvInfo dataclass (re-exported from libvenvfinder)."""
+    """tests for the VenvInfo dataclass (re-exported from libsoulsearching)."""
 
     def test_basic_creation(self) -> None:
         """Test basic initialisation of VenvInfo."""
@@ -66,7 +66,7 @@ class TestEnvironmentInfo:
 
 
 class TestToolType:
-    """tests for the ToolType enum (re-exported from libvenvfinder)."""
+    """tests for the ToolType enum (re-exported from libsoulsearching)."""
 
     def test_tool_type_values(self) -> None:
         """Test that ToolType has expected values."""
@@ -81,7 +81,7 @@ class TestToolType:
 
 
 class TestFindVenv:
-    """tests for the find_venv function (re-exported from libvenvfinder)."""
+    """tests for the find_venv function (re-exported from libsoulsearching)."""
 
     def test_find_venv_returns_none_for_nonexistent_path(self) -> None:
         """Test that find_venv returns None for non-existent paths."""
@@ -97,7 +97,7 @@ class TestFindVenv:
 
 
 class TestFindAllVenvs:
-    """tests for the find_all_venvs function (re-exported from libvenvfinder)."""
+    """tests for the find_all_venvs function (re-exported from libsoulsearching)."""
 
     def test_find_all_venvs_returns_list(self, tmp_path: Path) -> None:
         """Test that find_all_venvs returns a list."""
@@ -126,7 +126,7 @@ class TestDetectEnvironment:
 
 
 class TestIntegrationWithLibvenvfinder:
-    """integration tests to verify libvenvfinder re-exports work correctly."""
+    """integration tests to verify libsoulsearching re-exports work correctly."""
 
     def test_poetry_project_detection(self, tmp_path: Path) -> None:
         """Test detection of poetry project with lock file."""

@@ -10,7 +10,7 @@ unhandled exceptions in python codebases. it provides:
 - cli tool for analysing projects
 - lsp server for real-time editor integration
 - multi-tier caching for performance
-- virtual environment auto-detection (via libvenvfinder)
+- virtual environment auto-detection (via libsoulsearching)
 - **robust exception flow tracking** through transitive call chains
 - **intelligent try-except detection** at call sites
 - **external module analysis** for stdlib and third-party packages
@@ -29,12 +29,12 @@ raiseattention/
 │   │   ├── cache.py          # caching system
 │   │   ├── cli.py            # command-line interface
 │   │   ├── config.py         # configuration loading
-│   │   ├── env_detector.py   # venv detection (re-exports libvenvfinder)
+│   │   ├── env_detector.py   # venv detection (re-exports libsoulsearching)
 │   │   ├── external_analyser.py  # stdlib/third-party module analysis
 │   │   └── lsp_server.py     # lsp server implementation
 │   │
-│   ├── libvenvfinder/        # standalone venv detection library
-│   │   ├── libvenvfinder/
+│   ├── libsoulsearching/        # standalone venv detection library
+│   │   ├── libsoulsearching/
 │   │   │   ├── __init__.py   # public api: find_venv, find_all_venvs, ToolType, VenvInfo
 │   │   │   ├── cli.py        # venvfinder executable
 │   │   │   ├── core.py       # main detection orchestration
@@ -200,7 +200,7 @@ use british spelling throughout:
 
 ### current status (2026-02-02)
 
-**libvenvfinder:** 95% coverage, all tests passing
+**libsoulsearching:** 95% coverage, all tests passing
 - 22 unit tests (core api, cli)
 - 42 edge case tests (hatch/pdm/pyenv detectors)
 - 6 real integration tests with actual tools
@@ -282,7 +282,7 @@ the exception analyser has been redesigned for robust flow tracking:
    - follows imports and re-exports (e.g., `tomllib.load` → `tomllib._parser.load`)
    - skips c extensions (`.so`/`.pyd`) as they cannot be statically analysed
    - per-module caching to avoid redundant parsing
-   - integrates with libvenvfinder to locate site-packages
+   - integrates with libsoulsearching to locate site-packages
 
 ### how it works
 
@@ -330,15 +330,15 @@ the external analyser:
 4. **qualifies exception types with module name** (e.g., `copy.Error` instead of just `Error`)
 5. caches results to avoid redundant parsing
 
-## libvenvfinder
+## libsoulsearching
 
-libvenvfinder is a standalone library for detecting python virtual environments.
+libsoulsearching is a standalone library for detecting python virtual environments.
 it is published separately to pypi and can be used independently.
 
-### using libvenvfinder programmatically
+### using libsoulsearching programmatically
 
 ```python
-from libvenvfinder import find_venv, find_all_venvs, ToolType
+from libsoulsearching import find_venv, find_all_venvs, ToolType
 
 # find first/best venv
 info = find_venv("/path/to/project")
@@ -381,17 +381,17 @@ venvfinder /path/to/project --json
 - venv (.venv/pyvenv.cfg)
 - pyenv (.python-version)
 
-### testing libvenvfinder
+### testing libsoulsearching
 
-libvenvfinder has its own test suite in `src/libvenvfinder/tests/`:
+libsoulsearching has its own test suite in `src/libsoulsearching/tests/`:
 
 ```bash
-# run libvenvfinder tests
-cd src/libvenvfinder
+# run libsoulsearching tests
+cd src/libsoulsearching
 uv run pytest tests/ -v
 
 # run with coverage
-uv run pytest tests/ --cov=libvenvfinder --cov-report=term-missing
+uv run pytest tests/ --cov=libsoulsearching --cov-report=term-missing
 ```
 
 **test structure:**
@@ -432,7 +432,7 @@ pdm, uv, rye, and hatch to create projects and verify detection works.
 nix develop .#integration
 
 # run real integration tests (creates actual projects)
-uv run pytest src/libvenvfinder/tests/test_integration_real.py -v
+uv run pytest src/libsoulsearching/tests/test_integration_real.py -v
 ```
 
 **run via nix flake check:**
@@ -457,7 +457,7 @@ see: `flake.nix` integration shell `shellhook` for implementation details.
 
 - `pygls>=1.3.0` - lsp server framework
 - `lsprotocol>=2023.0.0` - lsp types
-- `libvenvfinder` - venv detection (workspace member)
+- `libsoulsearching` - venv detection (workspace member)
 - `typing-extensions>=4.6.0` - type hints backport
 
 ### development
@@ -482,8 +482,8 @@ uv sync --extra dev
 # install in editable mode
 uv pip install -e ".[dev]"
 
-# install just libvenvfinder
-uv pip install -e src/libvenvfinder
+# install just libsoulsearching
+uv pip install -e src/libsoulsearching
 
 # install just libsightseeing
 uv pip install -e src/libsightseeing
@@ -559,8 +559,8 @@ uv run pytest tests/test_analyzer_synthetic.py -v
 # run lsp server tests
 uv run pytest tests/test_lsp_server.py -v
 
-# run libvenvfinder tests only
-uv run --directory src/libvenvfinder pytest
+# run libsoulsearching tests only
+uv run --directory src/libsoulsearching pytest
 ```
 
 ### linting and type checking
@@ -576,7 +576,7 @@ uv run ruff format src tests
 uv run mypy src
 
 # run type checker on specific package
-uv run mypy src/libvenvfinder
+uv run mypy src/libsoulsearching
 ```
 
 ### running the tools
@@ -631,7 +631,7 @@ nix flake check .#unit-tests
 nix flake check .#integration-tests
 
 # build packages
-nix build .#libvenvfinder
+nix build .#libsoulsearching
 nix build .#raiseattention
 ```
 
@@ -666,7 +666,7 @@ nix run .#integration-tests
 nix run .#lint
 
 # build packages
-nix build .#libvenvfinder
+nix build .#libsoulsearching
 nix build .#raiseattention
 
 # validate flake
@@ -745,4 +745,4 @@ refer to:
 - `resources/PROMPT.md` - full project specification
 - `resources/MDF.md` - docstring format specification
 - `resources/VENV_DETECTION.md` - venv detection specification
-- `src/libvenvfinder/README.md` - libvenvfinder documentation
+- `src/libsoulsearching/README.md` - libsoulsearching documentation

@@ -1,7 +1,7 @@
 """
 universal python virtual environment finder.
 
-libvenvfinder detects virtual environments created by various python tools
+libsoulsearching detects virtual environments created by various python tools
 including poetry, pipenv, pdm, uv, rye, hatch, standard venv, and pyenv.
 
 functions:
