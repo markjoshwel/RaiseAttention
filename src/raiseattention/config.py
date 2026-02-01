@@ -96,8 +96,12 @@ class Config:
             path to python executable (or 'auto' for auto-detection)
         `venv_path: str`
             path to virtual environment (or 'auto' for auto-detection)
+        `include: list[str]`
+            glob patterns for files to include
         `exclude: list[str]`
             glob patterns for files/directories to exclude
+        `respect_gitignore: bool`
+            whether to respect .gitignore files
         `ignore_exceptions: list[str]`
             exception types to ignore globally
         `ignore_modules: list[str]`
@@ -113,7 +117,9 @@ class Config:
     project_root: Path = field(default_factory=lambda: Path(".").resolve())
     python_path: str = "auto"
     venv_path: str = "auto"
+    include: list[str] = field(default_factory=list)
     exclude: list[str] = field(default_factory=list)
+    respect_gitignore: bool = True
     ignore_exceptions: list[str] = field(default_factory=list)
     ignore_modules: list[str] = field(default_factory=list)
     cache: CacheConfig = field(default_factory=CacheConfig)
@@ -238,6 +244,7 @@ class Config:
             "**/.venv/**",
             "**/.git/**",
         ]
+        config.include = ["**/*.py"]
         config.ignore_exceptions = ["KeyboardInterrupt", "SystemExit"]
 
         # load from pyproject.toml
@@ -273,7 +280,11 @@ class Config:
             else self.project_root,
             python_path=other.python_path if other.python_path != "auto" else self.python_path,
             venv_path=other.venv_path if other.venv_path != "auto" else self.venv_path,
+            include=other.include if other.include else self.include,
             exclude=other.exclude if other.exclude else self.exclude,
+            respect_gitignore=other.respect_gitignore
+            if not other.respect_gitignore
+            else self.respect_gitignore,
             ignore_exceptions=other.ignore_exceptions
             if other.ignore_exceptions
             else self.ignore_exceptions,
@@ -324,8 +335,12 @@ class Config:
             config.python_path = data["python_path"]
         if "venv_path" in data:
             config.venv_path = data["venv_path"]
+        if "include" in data:
+            config.include = data["include"]
         if "exclude" in data:
             config.exclude = data["exclude"]
+        if "respect_gitignore" in data:
+            config.respect_gitignore = data["respect_gitignore"]
         if "ignore_exceptions" in data:
             config.ignore_exceptions = data["ignore_exceptions"]
         if "ignore_modules" in data:

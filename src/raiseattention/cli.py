@@ -13,6 +13,8 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+from libsightseeing import find_files
+
 from .analyser import ExceptionAnalyser
 from .cache import FileCache
 from .config import Config
@@ -50,8 +52,14 @@ examples:
     )
     check_parser.add_argument(
         "paths",
-        nargs="+",
-        help="files or directories to analyse",
+        nargs="*",
+        default=["."],
+        help="files or directories to analyse (default: current directory)",
+    )
+    check_parser.add_argument(
+        "--include-ignored",
+        action="store_true",
+        help="include files that are ignored by .gitignore",
     )
     check_parser.add_argument(
         "--json",
@@ -168,19 +176,44 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
         config.analysis.strict_mode = True
     if args.full_module_path:
         config.analysis.full_module_path = True
+    if args.include_ignored:
+        config.respect_gitignore = False
 
     analyzer = ExceptionAnalyser(config)
     all_results = []
+    files_to_analyse: list[Path] = []
 
+    # collect all files to analyse
     for path_str in args.paths:
         path = Path(path_str)
 
         if not path.exists():
-            print(f"error: path not found: {path}", file=sys.stderr)
-            return 2
+            print(
+                f"raiseattention: warning: skipping '{path_str}', path does not exist",
+                file=sys.stderr,
+            )
+            continue
 
-        result = analyzer.analyse_file(path) if path.is_file() else analyzer.analyse_project(path)
+        if path.is_file():
+            files_to_analyse.append(path)
+        else:
+            # use libsightseeing to find python files
+            found_files = find_files(
+                root=path,
+                include=config.include,
+                exclude=config.exclude,
+                respect_gitignore=config.respect_gitignore,
+            )
+            files_to_analyse.extend(found_files)
 
+    if not files_to_analyse:
+        if args.verbose:
+            print("no files to analyse")
+        return 0
+
+    # analyse each file
+    for file_path in files_to_analyse:
+        result = analyzer.analyse_file(file_path)
         all_results.append(result)
 
     # combine results

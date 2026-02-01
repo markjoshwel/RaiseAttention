@@ -78,16 +78,18 @@ class TestHandleCheck:
     """tests for the handle_check function."""
 
     def test_check_nonexistent_path(self, capsys) -> None:
-        """Test check with non-existent path."""
+        """Test check with non-existent path shows warning but continues."""
         parser = create_parser()
         args = parser.parse_args(["check", "/nonexistent/path"])
         config = Config()
 
         result = handle_check(args, config)
 
-        assert result == 2
+        # non-existent paths now show warning and return 0 (no issues)
+        assert result == 0
         captured = capsys.readouterr()
-        assert "path not found" in captured.err
+        assert "warning" in captured.err
+        assert "path does not exist" in captured.err
 
     def test_check_valid_file(self, tmp_path: Path, capsys) -> None:
         """Test check with valid file."""
