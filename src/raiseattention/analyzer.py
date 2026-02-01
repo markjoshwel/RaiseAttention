@@ -486,7 +486,8 @@ class ExceptionAnalyzer:
         for func_name, func_info in analysis.functions.items():
             func_location = func_info.get("location", (1, 0))
             func_display_name = func_info.get("name", func_name)
-            func_info.get("is_async", False)
+            # note: is_async is available but not used currently
+            # _ = func_info.get("is_async", False)
 
             # get full exception signature for this function (with file context)
             func_exceptions = self.get_function_signature(func_name, file_path)
@@ -506,7 +507,8 @@ class ExceptionAnalyzer:
                     called_func_name = call.get("func_name", "")
                     call_location = call.get("location", (1, 0))
                     containing_tries = call.get("containing_try_blocks", [])
-                    call.get("is_async", False)
+                    # note: is_async is available but not used currently
+                    # _ = call.get("is_async", False)
                 else:
                     # backward compatibility with string-only calls
                     called_func_name = call
