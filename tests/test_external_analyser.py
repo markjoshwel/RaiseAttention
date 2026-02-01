@@ -226,6 +226,7 @@ def caller():
 
         result = analyzer.analyse_file(test_file)
         # should find some diagnostics about the ValueError propagation
+        assert len(result.files_analysed) == 1  # verify file was analysed
 
     def test_analyzer_with_json_import(self, tmp_path: Path) -> None:
         """test analyzer with json module import."""
@@ -299,7 +300,8 @@ class TestExternalAnalyserEdgeCases:
         # Try to analyse a builtin module (which should work)
         result = analyzer.analyse_module("builtins")
         # builtins is special and may not have a file path
-        # just ensure no crash occurs
+        # just ensure no crash occurs and result is returned
+        assert result is not None  # verify module info returned
 
     def test_resolve_deeply_nested_module(self) -> None:
         """test resolving deeply nested module path."""
@@ -308,6 +310,7 @@ class TestExternalAnalyserEdgeCases:
         # Try to resolve a deeply nested stdlib module
         result = analyzer.resolve_import_to_module("xml.etree.ElementTree.parse", {})
         # Should be able to find xml.etree.ElementTree
+        assert result is not None  # verify resolution succeeded
 
     def test_module_info_with_exception_signatures(self) -> None:
         """test module info stores exception signatures."""

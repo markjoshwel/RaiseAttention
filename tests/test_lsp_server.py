@@ -7,6 +7,7 @@ diagnostics, document handling, and debouncing.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -184,10 +185,8 @@ class TestDebouncing:
         # task1 might be cancelled if we cancel it manually
         task1.cancel()
 
-        try:
+        with contextlib.suppress(asyncio.CancelledError):
             await task1
-        except asyncio.CancelledError:
-            pass  # expected
 
         await task2
 

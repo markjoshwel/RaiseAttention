@@ -293,11 +293,13 @@ class TestSyntheticCodebase:
         # create the full codebase
         codebase_path = tmp_path / "test_codebase"
         files = create_synthetic_codebase(codebase_path)
+        assert len(files) == 5  # verify all 5 main files created
+        assert all(isinstance(path, Path) for path in files.values())  # verify paths returned
 
         # analyse the project
         result = analyzer.analyse_project(codebase_path)
 
-        # should analyse all files (6 files including __init__.py)
+        # should analyse all files (5 main files + __init__.py = 6 total)
         assert len(result.files_analysed) == 6
 
         # should find unhandled exceptions (at least one per unhandled file)
@@ -364,6 +366,7 @@ def handler():
         result = analyzer.analyse_file(test_file)
         # with allow_bare_except=True, should not flag the bare except
         # and should consider the exception handled
+        assert result.files_analysed  # verify file was analysed
 
     def test_ignore_exceptions_list(self, tmp_path: Path) -> None:
         """test that ignored exceptions are not flagged."""
