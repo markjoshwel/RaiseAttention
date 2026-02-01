@@ -596,7 +596,21 @@ configuration is loaded from (in order of precedence):
 
 ## known limitations
 
-1. **custom exception hierarchies** - the analyzer understands built-in exception hierarchies (e.g., `ValueError` → `Exception`) but not custom class inheritance without parsing class definitions. marked as skipped test.
+1. **built-in function exceptions** - the analyzer does not detect exceptions from built-in functions (e.g., `open()`, `json.load()`, `csv.reader()`, `pathlib.Path.read_text()`). it only tracks exceptions through:
+   - explicit `raise` statements in your code
+   - function calls to other functions in your codebase
+   
+   **workaround**: wrap built-in operations in your own functions with explicit exception handling:
+   ```python
+   def safe_read_file(path: str) -> str:
+       try:
+           with open(path) as f:
+               return f.read()
+       except FileNotFoundError:
+           raise FileReadError(f"file not found: {path}")
+   ```
+
+2. **custom exception hierarchies** - the analyzer understands built-in exception hierarchies (e.g., `ValueError` → `Exception`) but not custom class inheritance without parsing class definitions. marked as skipped test.
 
 ## questions?
 
