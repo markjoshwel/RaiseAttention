@@ -8,11 +8,10 @@ hover information, and code actions.
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
 from lsprotocol import types
 from pygls.lsp.server import LanguageServer
-from typing_extensions import final
 
 from .analyzer import Diagnostic, ExceptionAnalyzer
 from .config import Config

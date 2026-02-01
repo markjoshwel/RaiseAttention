@@ -13,7 +13,7 @@ import pickle
 import sys
 import time
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, final
 
@@ -54,7 +54,7 @@ class CacheEntry(Generic[T]):
 @dataclass
 class FileAnalysis:
     """
-    analysis result for a single file.
+    Analysis result for a single file.
 
     Attributes
     ----------
@@ -66,12 +66,15 @@ class FileAnalysis:
             import mappings
         `timestamp: float`
             when analysis was performed
+        `try_except_blocks: list`
+            try-except block information
     """
 
     file_path: Path
     functions: dict[str, Any]
     imports: dict[str, str]
     timestamp: float
+    try_except_blocks: list[dict[str, Any]] = field(default_factory=list)
 
 
 @final

@@ -71,6 +71,16 @@ examples:
         action="store_true",
         help="verbose output",
     )
+    check_parser.add_argument(
+        "--local",
+        action="store_true",
+        help="only analyse local/first-party code, skip external modules",
+    )
+    check_parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="enable strict mode (require all exceptions to be declared)",
+    )
 
     # lsp command
     lsp_parser = subparsers.add_parser(
@@ -111,6 +121,12 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
     returns: `int`
         exit code (0 = no issues, 1 = issues found, 2 = error)
     """
+    # apply cli overrides
+    if args.local:
+        config.analysis.local_only = True
+    if args.strict:
+        config.analysis.strict_mode = True
+
     analyzer = ExceptionAnalyzer(config)
     all_results = []
 

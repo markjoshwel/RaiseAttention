@@ -60,7 +60,7 @@ class LspConfig:
 @dataclass
 class AnalysisConfig:
     """
-    analysis configuration settings.
+    Analysis configuration settings.
 
     Attributes
     ----------
@@ -70,11 +70,14 @@ class AnalysisConfig:
             allow bare 'except:' clauses
         `require_reraise_after_log: bool`
             require re-raise after logging exceptions
+        `local_only: bool`
+            only analyse local/first-party code, skip external modules
     """
 
     strict_mode: bool = False
     allow_bare_except: bool = False
     require_reraise_after_log: bool = True
+    local_only: bool = False
 
 
 @dataclass
@@ -293,6 +296,7 @@ class Config:
                 strict_mode=other.analysis.strict_mode,
                 allow_bare_except=other.analysis.allow_bare_except,
                 require_reraise_after_log=other.analysis.require_reraise_after_log,
+                local_only=other.analysis.local_only,
             )
             if other.analysis != AnalysisConfig()
             else self.analysis,
@@ -348,6 +352,7 @@ class Config:
                 strict_mode=analysis_data.get("strict_mode", False),  # pyright: ignore[reportAny]
                 allow_bare_except=analysis_data.get("allow_bare_except", False),  # pyright: ignore[reportAny]
                 require_reraise_after_log=analysis_data.get("require_reraise_after_log", True),  # pyright: ignore[reportAny]
+                local_only=analysis_data.get("local_only", False),  # pyright: ignore[reportAny]
             )
 
         return config
