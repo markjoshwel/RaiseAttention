@@ -21,7 +21,7 @@ from .lsp_server import run_server_stdio
 
 def create_parser() -> argparse.ArgumentParser:
     """
-    Create the argument parser for the cli.
+    create the argument parser for the cli.
 
     returns: `argparse.ArgumentParser`
         configured argument parser
@@ -71,6 +71,16 @@ examples:
         action="store_true",
         help="verbose output",
     )
+    check_parser.add_argument(
+        "--local",
+        action="store_true",
+        help="only analyse local/first-party code, skip external modules",
+    )
+    check_parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="enable strict mode (require all exceptions to be declared)",
+    )
 
     # lsp command
     lsp_parser = subparsers.add_parser(
@@ -100,7 +110,7 @@ examples:
 
 def handle_check(args: argparse.Namespace, config: Config) -> int:
     """
-    Handle the check command.
+    handle the check command.
 
     arguments:
         `args: argparse.Namespace`
@@ -111,6 +121,12 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
     returns: `int`
         exit code (0 = no issues, 1 = issues found, 2 = error)
     """
+    # apply cli overrides
+    if args.local:
+        config.analysis.local_only = True
+    if args.strict:
+        config.analysis.strict_mode = True
+
     analyzer = ExceptionAnalyzer(config)
     all_results = []
 
@@ -206,7 +222,7 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
 
 def handle_lsp(args: argparse.Namespace, config: Config) -> int:
     """
-    Handle the lsp command.
+    handle the lsp command.
 
     arguments:
         `args: argparse.Namespace`
@@ -229,7 +245,7 @@ def handle_lsp(args: argparse.Namespace, config: Config) -> int:
 
 def handle_cache(args: argparse.Namespace, config: Config) -> int:
     """
-    Handle cache subcommands.
+    handle cache subcommands.
 
     arguments:
         `args: argparse.Namespace`
@@ -268,7 +284,7 @@ def handle_cache(args: argparse.Namespace, config: Config) -> int:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """
-    Run the cli main entry point.
+    run the cli main entry point.
 
     arguments:
         `argv: Sequence[str] | None`

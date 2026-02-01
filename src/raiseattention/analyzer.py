@@ -13,12 +13,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .ast_visitor import CallInfo, parse_file
+from .ast_visitor import parse_file
 from .cache import DependencyCache, FileAnalysis, FileCache
 from .config import Config
+from .external_analyzer import ExternalAnalyzer
 
 if TYPE_CHECKING:
-    pass
+    from .env_detector import VenvInfo
 
 
 @dataclass
@@ -77,7 +78,8 @@ class ExceptionAnalyzer:
 
     analyses python code to detect unhandled exceptions, including
     transitive propagation through function calls with proper
-    try-except handling detection.
+    try-except handling detection. also analyses external modules
+    (stdlib and third-party packages) for exception signatures.
 
     attributes:
         `config: Config`
@@ -86,23 +88,32 @@ class ExceptionAnalyzer:
             file-level analysis cache
         `dependency_cache: DependencyCache`
             external library exception cache
+        `external_analyzer: ExternalAnalyzer`
+            analyser for external modules (stdlib/third-party)
         `_file_analyses: dict[Path, FileAnalysis]`
             current analysis results by file
         `_exception_signatures: dict[str, list[str]]`
             computed exception signatures for functions
     """
 
-    def __init__(self, config: Config) -> None:
+    def __init__(
+        self,
+        config: Config,
+        venv_info: VenvInfo | None = None,
+    ) -> None:
         """
         initialise the exception analyzer.
 
         arguments:
             `config: Config`
                 configuration settings
+            `venv_info: VenvInfo | None`
+                virtual environment info for external module analysis
         """
         self.config = config
         self.file_cache = FileCache(config.cache)
         self.dependency_cache = DependencyCache(config.cache)
+        self.external_analyzer = ExternalAnalyzer(venv_info, config.cache)
         self._file_analyses: dict[Path, FileAnalysis] = {}
         self._exception_signatures: dict[str, list[str]] = {}
 
@@ -203,20 +214,18 @@ class ExceptionAnalyzer:
             },
             imports=visitor.imports,
             timestamp=time.time(),
+            try_except_blocks=[
+                {
+                    "location": try_info.location,
+                    "end_location": try_info.end_location,
+                    "handled_types": try_info.handled_types,
+                    "has_bare_except": try_info.has_bare_except,
+                    "has_except_exception": try_info.has_except_exception,
+                    "reraises": try_info.reraises,
+                }
+                for try_info in visitor.try_except_blocks
+            ],
         )
-
-        # store try-except blocks separately for diagnostics
-        analysis.try_except_blocks = [  # type: ignore[attr-defined]
-            {
-                "location": try_info.location,
-                "end_location": try_info.end_location,
-                "handled_types": try_info.handled_types,
-                "has_bare_except": try_info.has_bare_except,
-                "has_except_exception": try_info.has_except_exception,
-                "reraises": try_info.reraises,
-            }
-            for try_info in visitor.try_except_blocks
-        ]
 
         # store in cache and memory
         self.file_cache.store(file_path, analysis)
@@ -272,8 +281,10 @@ class ExceptionAnalyzer:
         get the exception signature for a function.
 
         this computes the transitive exception signature, including
-        exceptions from called functions. exceptions in the
-        ignore_exceptions config are filtered out.
+        exceptions from called functions. for functions not found in
+        the local codebase, it looks up external modules (stdlib and
+        third-party packages). exceptions in the ignore_exceptions
+        config are filtered out.
 
         arguments:
             `qualified_name: str`
@@ -296,26 +307,44 @@ class ExceptionAnalyzer:
         # find function in analyses
         func_info = None
         resolved_name = qualified_name
+        imports: dict[str, str] = {}
 
         # first try exact match
-        for analysis_path, analysis in self._file_analyses.items():
+        for _analysis_path, analysis in self._file_analyses.items():
             if qualified_name in analysis.functions:
                 func_info = analysis.functions[qualified_name]
                 resolved_name = qualified_name
+                imports = analysis.imports
                 break
 
         # if not found and context provided, try to resolve relative to context
-        if func_info is None and context_file is not None:
-            if context_file in self._file_analyses:
-                analysis = self._file_analyses[context_file]
-                # try with module prefix from the context file
-                for name in analysis.functions:
-                    if name.endswith(f".{qualified_name}") or name == qualified_name:
-                        func_info = analysis.functions[name]
-                        resolved_name = name
-                        break
+        if func_info is None and context_file is not None and context_file in self._file_analyses:
+            analysis = self._file_analyses[context_file]
+            imports = analysis.imports
+            # try with module prefix from the context file
+            for name in analysis.functions:
+                if name.endswith(f".{qualified_name}") or name == qualified_name:
+                    func_info = analysis.functions[name]
+                    resolved_name = name
+                    break
 
+        # if not found locally, try to resolve from external modules
+        # if not found locally, try to resolve from external modules
+        # (unless local_only mode is enabled)
         if func_info is None:
+            if not self.config.analysis.local_only:
+                external_exceptions = self._get_external_function_exceptions(
+                    qualified_name, imports
+                )
+                if external_exceptions:
+                    # filter out ignored exceptions
+                    result = [
+                        exc
+                        for exc in external_exceptions
+                        if exc not in self._get_ignore_exceptions()
+                    ]
+                    self._exception_signatures[qualified_name] = result
+                    return result
             return []
 
         # detect circular references using resolved name
@@ -330,23 +359,20 @@ class ExceptionAnalyzer:
         for analysis_path, analysis in self._file_analyses.items():
             if resolved_name in analysis.functions:
                 func_file_path = analysis_path
+                imports = analysis.imports
                 break
 
         # collect directly raised exceptions
         exceptions: set[str] = set()
         for exc in func_info.get("raises", []):
             exc_type = exc.get("type", "")
-            if exc_type and not exc.get("is_re_raise", False):
-                # filter out ignored exceptions at the source
-                if exc_type not in self._get_ignore_exceptions():
-                    exceptions.add(exc_type)
+            is_re_raise = exc.get("is_re_raise", False)
+            if exc_type and not is_re_raise and exc_type not in self._get_ignore_exceptions():
+                exceptions.add(exc_type)
 
         # collect from called functions (transitive)
         for call in func_info.get("calls", []):
-            if isinstance(call, dict):
-                called_func_name = call.get("func_name", "")
-            else:
-                called_func_name = call
+            called_func_name = call.get("func_name", "") if isinstance(call, dict) else call
 
             if called_func_name:
                 called_exceptions = self.get_function_signature(
@@ -367,9 +393,41 @@ class ExceptionAnalyzer:
 
         return result
 
+    def _get_external_function_exceptions(
+        self,
+        func_name: str,
+        imports: dict[str, str],
+    ) -> list[str]:
+        """
+        get exception signature for a function from external modules.
+
+        this method resolves the function name to an external module
+        and returns its exception signature. it handles both direct
+        module references (e.g., 'json.loads') and imported names
+        (e.g., 'loads' when 'from json import loads' was used).
+
+        arguments:
+            `func_name: str`
+                function name (may be dotted like 'json.loads')
+            `imports: dict[str, str]`
+                mapping of imported names to full paths
+
+        returns: `list[str]`
+            list of exception types, empty if not found
+        """
+        # try to resolve the module and function
+        resolved = self.external_analyzer.resolve_import_to_module(func_name, imports)
+        if resolved is None:
+            return []
+
+        module_name, function_name = resolved
+
+        # get the exceptions for this function
+        return self.external_analyzer.get_function_exceptions(module_name, function_name)
+
     def invalidate_file(self, file_path: str | Path) -> None:
         """
-        invalidate cache for a file.
+        Invalidate cache for a file.
 
         arguments:
             `file_path: str | Path`
@@ -385,7 +443,7 @@ class ExceptionAnalyzer:
         self._exception_signatures.clear()
 
     def clear_cache(self) -> None:
-        """clear all caches."""
+        """Clear all caches."""
         self.file_cache.clear()
         self._file_analyses.clear()
         self._exception_signatures.clear()
@@ -396,7 +454,7 @@ class ExceptionAnalyzer:
         analysis: FileAnalysis,
     ) -> list[Diagnostic]:
         """
-                compute diagnostics for a file analysis.
+                Compute diagnostics for a file analysis.
 
                 this method analyses each function's calls and checks whether
         the exceptions from called functions are handled by try-except blocks
@@ -425,7 +483,8 @@ class ExceptionAnalyzer:
         for func_name, func_info in analysis.functions.items():
             func_location = func_info.get("location", (1, 0))
             func_display_name = func_info.get("name", func_name)
-            is_async = func_info.get("is_async", False)
+            # note: is_async is available but not used currently
+            # _ = func_info.get("is_async", False)
 
             # get full exception signature for this function (with file context)
             func_exceptions = self.get_function_signature(func_name, file_path)
@@ -445,13 +504,13 @@ class ExceptionAnalyzer:
                     called_func_name = call.get("func_name", "")
                     call_location = call.get("location", (1, 0))
                     containing_tries = call.get("containing_try_blocks", [])
-                    call_is_async = call.get("is_async", False)
+                    # note: is_async is available but not used currently
+                    # _ = call.get("is_async", False)
                 else:
                     # backward compatibility with string-only calls
                     called_func_name = call
                     call_location = func_location
                     containing_tries = []
-                    call_is_async = False
 
                 if not called_func_name:
                     continue
@@ -542,7 +601,7 @@ class ExceptionAnalyzer:
         try_blocks: list[dict],
     ) -> list[str]:
         """
-                determine which exceptions are not handled by the given try-except blocks.
+                Determine which exceptions are not handled by the given try-except blocks.
 
                 this method checks if each exception type would be caught by any of the
         try-except blocks in scope. it considers exception hierarchies where
@@ -575,10 +634,9 @@ class ExceptionAnalyzer:
                 reraises = try_block.get("reraises", False)
 
                 # bare except catches everything (unless it re-raises)
-                if has_bare_except:
-                    if not reraises:
-                        is_handled = True
-                        break
+                if has_bare_except and not reraises:
+                    is_handled = True
+                    break
 
                 # check if any handler catches this exception type
                 for handled_type in handled_types:

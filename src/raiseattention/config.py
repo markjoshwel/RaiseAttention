@@ -22,8 +22,7 @@ class CacheConfig:
     """
     caching configuration settings.
 
-    Attributes
-    ----------
+    attributes:
         `enabled: bool`
             whether caching is enabled
         `max_file_entries: int`
@@ -45,8 +44,7 @@ class LspConfig:
     """
     lsp server configuration settings.
 
-    Attributes
-    ----------
+    attributes:
         `debounce_ms: int`
             debounce interval in milliseconds
         `max_diagnostics_per_file: int`
@@ -62,19 +60,21 @@ class AnalysisConfig:
     """
     analysis configuration settings.
 
-    Attributes
-    ----------
+    attributes:
         `strict_mode: bool`
             require all exceptions to be declared in docstrings
         `allow_bare_except: bool`
             allow bare 'except:' clauses
         `require_reraise_after_log: bool`
             require re-raise after logging exceptions
+        `local_only: bool`
+            only analyse local/first-party code, skip external modules
     """
 
     strict_mode: bool = False
     allow_bare_except: bool = False
     require_reraise_after_log: bool = True
+    local_only: bool = False
 
 
 @dataclass
@@ -85,8 +85,7 @@ class Config:
     this class holds all configuration settings and provides methods
     for loading from various sources.
 
-    Attributes
-    ----------
+    attributes:
         `project_root: Path`
             root directory of the project
         `python_path: str`
@@ -253,7 +252,7 @@ class Config:
 
     def merge(self, other: Config) -> Config:
         """
-        Merge another configuration into this one.
+        merge another configuration into this one.
 
         values from 'other' take precedence over this config.
 
@@ -293,6 +292,7 @@ class Config:
                 strict_mode=other.analysis.strict_mode,
                 allow_bare_except=other.analysis.allow_bare_except,
                 require_reraise_after_log=other.analysis.require_reraise_after_log,
+                local_only=other.analysis.local_only,
             )
             if other.analysis != AnalysisConfig()
             else self.analysis,
@@ -348,6 +348,7 @@ class Config:
                 strict_mode=analysis_data.get("strict_mode", False),  # pyright: ignore[reportAny]
                 allow_bare_except=analysis_data.get("allow_bare_except", False),  # pyright: ignore[reportAny]
                 require_reraise_after_log=analysis_data.get("require_reraise_after_log", True),  # pyright: ignore[reportAny]
+                local_only=analysis_data.get("local_only", False),  # pyright: ignore[reportAny]
             )
 
         return config
