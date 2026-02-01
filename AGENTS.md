@@ -24,13 +24,13 @@ raiseattention/
 ├── src/
 │   ├── raiseattention/       # main exception analyser
 │   │   ├── __init__.py
-│   │   ├── analyzer.py       # core analysis engine (rewritten with proper exception tracking)
+│   │   ├── analyser.py       # core analysis engine (rewritten with proper exception tracking)
 │   │   ├── ast_visitor.py    # ast traversal (tracks calls with try-except context)
 │   │   ├── cache.py          # caching system
 │   │   ├── cli.py            # command-line interface
 │   │   ├── config.py         # configuration loading
 │   │   ├── env_detector.py   # venv detection (re-exports libvenvfinder)
-│   │   ├── external_analyzer.py  # stdlib/third-party module analysis
+│   │   ├── external_analyser.py  # stdlib/third-party module analysis
 │   │   └── lsp_server.py     # lsp server implementation
 │   │
 │   └── libvenvfinder/        # standalone venv detection library
@@ -57,14 +57,14 @@ raiseattention/
 │   ├── fixtures/            # synthetic codebases for testing
 │   │   ├── __init__.py
 │   │   └── code_samples.py  # synthetic exception scenarios
-│   ├── test_analyzer.py
+│   ├── test_analyser.py
 │   ├── test_analyzer_synthetic.py  # 35 synthetic exception tests
 │   ├── test_ast_visitor.py
 │   ├── test_cache.py
 │   ├── test_cli.py
 │   ├── test_config.py
 │   ├── test_env_detector.py
-│   ├── test_external_analyzer.py  # 24 external module analysis tests
+│   ├── test_external_analyser.py  # 24 external module analysis tests
 │   └── test_lsp_server.py   # 18 comprehensive lsp tests
 │
 ├── resources/                # documentation and specs
@@ -197,7 +197,7 @@ use british spelling throughout:
 
 **raiseattention:** ✅ production ready
 - **154+ tests, all passing, 82% coverage**
-- **exception analyzer completely rewritten** with proper flow tracking:
+- **exception analyser completely rewritten** with proper flow tracking:
   - transitive exception tracking through call chains
   - try-except context detection at call sites
   - exception hierarchy support (built-in exceptions)
@@ -206,8 +206,8 @@ use british spelling throughout:
   - **fully qualified exception types** (e.g., `copy.Error`, `tomlantic.TOMLValidationError`)
   - **cwd-relative paths** for human-readable output
 - **comprehensive test coverage**:
-  - 35 synthetic analyzer tests (unhandled/caught/edge cases)
-  - 24 external analyzer tests (stdlib/third-party tracking)
+  - 35 synthetic analyser tests (unhandled/caught/edge cases)
+  - 24 external analyser tests (stdlib/third-party tracking)
   - 18 comprehensive LSP server tests
   - 8 synthetic code generators for testing scenarios
 - **ci passing** - all integration tests working
@@ -244,9 +244,9 @@ def test_descriptive_name() -> None:
     assert result == expected_value
 ```
 
-## exception analyzer architecture
+## exception analyser architecture
 
-the exception analyzer has been redesigned for robust flow tracking:
+the exception analyser has been redesigned for robust flow tracking:
 
 ### key components
 
@@ -256,16 +256,16 @@ the exception analyzer has been redesigned for robust flow tracking:
    - tracks which calls are inside which try-except blocks
    - handles async/await expressions
 
-2. **analyzer.py** - core analysis engine:
+2. **analyser.py** - core analysis engine:
    - two-pass diagnostic computation
    - **first pass**: finds unhandled exceptions at call sites
    - **second pass** (strict mode): flags functions with undocumented exceptions
    - exception hierarchy resolution (e.g., catching `Exception` handles `ValueError`)
    - **fully qualified exception types**: reports `tomlantic.TOMLValidationError` instead of just `TOMLValidationError`
    - recursion detection for circular call graphs
-   - integrates with external_analyzer for stdlib/third-party lookups
+   - integrates with external_analyser for stdlib/third-party lookups
 
-3. **external_analyzer.py** - stdlib and third-party module analysis:
+3. **external_analyser.py** - stdlib and third-party module analysis:
    - analyses external python source files for exception signatures
    - uses dfs with memoisation for transitive exception tracking
    - follows imports and re-exports (e.g., `tomllib.load` → `tomllib._parser.load`)
@@ -298,7 +298,7 @@ def parse_data(data: str) -> dict:
 
 ### external module analysis
 
-the analyzer can detect exceptions from stdlib and third-party packages:
+the analyser can detect exceptions from stdlib and third-party packages:
 
 ```python
 import tomllib
@@ -312,7 +312,7 @@ def parse_json(data: str) -> dict:
     return json.loads(data)  # detects: JSONDecodeError, TypeError
 ```
 
-the external analyzer:
+the external analyser:
 1. resolves imports to find actual module files
 2. follows re-exports (e.g., `tomllib.load` → `tomllib._parser.load`)
 3. uses dfs to compute transitive exception signatures
@@ -485,7 +485,7 @@ uv run pytest
 uv run pytest --cov=src/raiseattention --cov-report=html
 
 # run specific test file
-uv run pytest tests/test_analyzer.py
+uv run pytest tests/test_analyser.py
 
 # run synthetic exception tests
 uv run pytest tests/test_analyzer_synthetic.py -v
@@ -654,11 +654,11 @@ configuration is loaded from (in order of precedence):
 
 ## known limitations
 
-1. **c extension modules** - the analyzer cannot analyse c extensions (e.g., `_json`, `_csv`, modules with `.so`/`.pyd` files). these are skipped during external analysis. only pure python modules can be statically analysed.
+1. **c extension modules** - the analyser cannot analyse c extensions (e.g., `_json`, `_csv`, modules with `.so`/`.pyd` files). these are skipped during external analysis. only pure python modules can be statically analysed.
 
-2. **custom exception hierarchies** - the analyzer understands built-in exception hierarchies (e.g., `ValueError` → `Exception`) but not custom class inheritance without parsing class definitions. marked as skipped test.
+2. **custom exception hierarchies** - the analyser understands built-in exception hierarchies (e.g., `ValueError` → `Exception`) but not custom class inheritance without parsing class definitions. marked as skipped test.
 
-3. **dynamic imports and calls** - the analyzer cannot track exceptions through dynamic imports (`importlib.import_module`) or dynamic function calls (`getattr(obj, method_name)()`).
+3. **dynamic imports and calls** - the analyser cannot track exceptions through dynamic imports (`importlib.import_module`) or dynamic function calls (`getattr(obj, method_name)()`).
 
 ## local-only mode
 
