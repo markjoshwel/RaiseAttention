@@ -26,13 +26,15 @@ dependencies = [
     "lsprotocol>=2023.0.0",
     "typing-extensions>=4.6.0",
     "libvenvfinder",
+    "libsightseeing",
 ]
 
 [tool.uv.sources]
 libvenvfinder = { workspace = true }
+libsightseeing = { workspace = true }
 
 [tool.uv.workspace]
-members = ["src/libvenvfinder"]
+members = ["src/libvenvfinder", "src/libsightseeing"]
 
 [project.optional-dependencies]
 dev = [

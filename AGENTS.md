@@ -33,26 +33,37 @@ raiseattention/
 │   │   ├── external_analyser.py  # stdlib/third-party module analysis
 │   │   └── lsp_server.py     # lsp server implementation
 │   │
-│   └── libvenvfinder/        # standalone venv detection library
-│       ├── libvenvfinder/
-│       │   ├── __init__.py   # public api: find_venv, find_all_venvs, ToolType, VenvInfo
-│       │   ├── cli.py        # venvfinder executable
-│       │   ├── core.py       # main detection orchestration
-│       │   ├── models.py     # dataclasses and enums
-│       │   └── detectors/    # individual tool detectors
-│       │       ├── poetry.py
-│       │       ├── pipenv.py
-│       │       ├── pdm.py
-│       │       ├── uv.py
-│       │       ├── rye.py
-│       │       ├── hatch.py
-│       │       ├── venv.py
-│       │       ├── pyenv.py
-│       │       └── utils.py
+│   ├── libvenvfinder/        # standalone venv detection library
+│   │   ├── libvenvfinder/
+│   │   │   ├── __init__.py   # public api: find_venv, find_all_venvs, ToolType, VenvInfo
+│   │   │   ├── cli.py        # venvfinder executable
+│   │   │   ├── core.py       # main detection orchestration
+│   │   │   ├── models.py     # dataclasses and enums
+│   │   │   └── detectors/    # individual tool detectors
+│   │   │       ├── poetry.py
+│   │   │       ├── pipenv.py
+│   │   │       ├── pdm.py
+│   │   │       ├── uv.py
+│   │   │       ├── rye.py
+│   │   │       ├── hatch.py
+│   │   │       ├── venv.py
+│   │   │       ├── pyenv.py
+│   │   │       └── utils.py
+│   │   ├── pyproject.toml    # standalone package config
+│   │   └── README.md
+│   │
+│   └── libsightseeing/       # file finding library with gitignore support
+│       ├── libsightseeing/
+│       │   ├── __init__.py   # public api: find_files, SourceResolver
+│       │   ├── core.py       # SourceResolver class
+│       │   ├── gitignore.py  # GitignoreMatcher for .gitignore handling
+│       │   └── patterns.py   # include/exclude pattern matching
+│       ├── tests/
+│       │   └── test_core.py  # 15 comprehensive tests
 │       ├── pyproject.toml    # standalone package config
 │       └── README.md
 │
-├── tests/                    # comprehensive test suite (153+ tests, 82% coverage)
+├── tests/                    # comprehensive test suite (170+ tests, 82% coverage)
 │   ├── __init__.py
 │   ├── fixtures/            # synthetic codebases for testing
 │   │   ├── __init__.py
@@ -196,7 +207,7 @@ use british spelling throughout:
 - ci passing (14 jobs)
 
 **raiseattention:** ✅ production ready
-- **154+ tests, all passing, 82% coverage**
+- **170+ tests, all passing, 82% coverage**
 - **exception analyser completely rewritten** with proper flow tracking:
   - transitive exception tracking through call chains
   - try-except context detection at call sites
@@ -473,7 +484,62 @@ uv pip install -e ".[dev]"
 
 # install just libvenvfinder
 uv pip install -e src/libvenvfinder
+
+# install just libsightseeing
+uv pip install -e src/libsightseeing
 ```
+
+## libsightseeing
+
+libsightseeing is a standalone library for file finding and source resolution with gitignore support.
+it is used by raiseattention for finding python files to analyse.
+
+### using libsightseeing programmatically
+
+```python
+from libsightseeing import find_files, SourceResolver
+
+# simple one-liner
+files = find_files(".", include=["*.py"])
+
+# advanced usage with resolver
+resolver = SourceResolver(
+    root=".",
+    include=["src/**/*.py"],
+    exclude=["tests"],
+    respect_gitignore=True,
+)
+files = resolver.resolve()
+```
+
+### features
+
+- respects .gitignore files automatically
+- supports glob patterns for include/exclude
+- default excludes `.venv` directory
+- cross-platform path handling
+- only depends on gitignore-parser
+
+### testing libsightseeing
+
+libsightseeing has its own test suite in `src/libsightseeing/tests/`:
+
+```bash
+# run libsightseeing tests
+cd src/libsightseeing
+uv run pytest tests/ -v
+
+# run with coverage
+uv run pytest tests/ --cov=libsightseeing --cov-report=term-missing
+```
+
+**test structure:**
+- `test_core.py` - 15 comprehensive tests covering:
+  - basic file finding
+  - exclude patterns (including .venv)
+  - gitignore respect
+  - pattern matching with globs
+  - nested directories
 
 ### testing
 
