@@ -13,6 +13,7 @@ unhandled exceptions in python codebases. it provides:
 - virtual environment auto-detection (via libvenvfinder)
 - **robust exception flow tracking** through transitive call chains
 - **intelligent try-except detection** at call sites
+- **external module analysis** for stdlib and third-party packages
 
 ## workspace structure
 
@@ -29,6 +30,7 @@ raiseattention/
 │   │   ├── cli.py            # command-line interface
 │   │   ├── config.py         # configuration loading
 │   │   ├── env_detector.py   # venv detection (re-exports libvenvfinder)
+│   │   ├── external_analyzer.py  # stdlib/third-party module analysis
 │   │   └── lsp_server.py     # lsp server implementation
 │   │
 │   └── libvenvfinder/        # standalone venv detection library
@@ -50,7 +52,7 @@ raiseattention/
 │       ├── pyproject.toml    # standalone package config
 │       └── README.md
 │
-├── tests/                    # comprehensive test suite (130 tests, 82% coverage)
+├── tests/                    # comprehensive test suite (153+ tests, 82% coverage)
 │   ├── __init__.py
 │   ├── fixtures/            # synthetic codebases for testing
 │   │   ├── __init__.py
@@ -62,6 +64,7 @@ raiseattention/
 │   ├── test_cli.py
 │   ├── test_config.py
 │   ├── test_env_detector.py
+│   ├── test_external_analyzer.py  # 24 external module analysis tests
 │   └── test_lsp_server.py   # 18 comprehensive lsp tests
 │
 ├── resources/                # documentation and specs
@@ -193,14 +196,16 @@ use british spelling throughout:
 - ci passing (14 jobs)
 
 **raiseattention:** ✅ production ready
-- **130 tests, 129 passing (99.2%), 82% coverage**
+- **153+ tests, all passing, 82% coverage**
 - **exception analyzer completely rewritten** with proper flow tracking:
   - transitive exception tracking through call chains
   - try-except context detection at call sites
   - exception hierarchy support (built-in exceptions)
   - async/await exception handling
+  - **external module analysis** for stdlib and third-party packages
 - **comprehensive test coverage**:
   - 35 synthetic analyzer tests (unhandled/caught/edge cases)
+  - 24 external analyzer tests (stdlib/third-party tracking)
   - 18 comprehensive LSP server tests
   - 8 synthetic code generators for testing scenarios
 - **ci passing** - all integration tests working
@@ -255,11 +260,20 @@ the exception analyzer has been redesigned for robust flow tracking:
    - **second pass** (strict mode): flags functions with undocumented exceptions
    - exception hierarchy resolution (e.g., catching `Exception` handles `ValueError`)
    - recursion detection for circular call graphs
+   - integrates with external_analyzer for stdlib/third-party lookups
+
+3. **external_analyzer.py** - stdlib and third-party module analysis:
+   - analyses external python source files for exception signatures
+   - uses dfs with memoisation for transitive exception tracking
+   - follows imports and re-exports (e.g., `tomllib.load` → `tomllib._parser.load`)
+   - skips c extensions (`.so`/`.pyd`) as they cannot be statically analysed
+   - per-module caching to avoid redundant parsing
+   - integrates with libvenvfinder to locate site-packages
 
 ### how it works
 
 ```python
-# example detection
+# example detection - local code
 def risky():
     raise ValueError("error")
 
@@ -271,7 +285,35 @@ def safe_caller():
         risky()  # no diagnostic - handled by except ValueError
     except ValueError:
         pass
+
+# example detection - external/stdlib code
+import json
+
+def parse_data(data: str) -> dict:
+    return json.loads(data)  # diagnostic: unhandled JSONDecodeError, TypeError
 ```
+
+### external module analysis
+
+the analyzer can detect exceptions from stdlib and third-party packages:
+
+```python
+import tomllib
+import json
+
+def load_config(path: str) -> dict:
+    with open(path, "rb") as f:
+        return tomllib.load(f)  # detects: TypeError, TOMLDecodeError (via suffixed_err)
+
+def parse_json(data: str) -> dict:
+    return json.loads(data)  # detects: JSONDecodeError, TypeError
+```
+
+the external analyzer:
+1. resolves imports to find actual module files
+2. follows re-exports (e.g., `tomllib.load` → `tomllib._parser.load`)
+3. uses dfs to compute transitive exception signatures
+4. caches results to avoid redundant parsing
 
 ## libvenvfinder
 
@@ -479,6 +521,12 @@ uv run raiseattention check src/main.py
 # analyse with json output
 uv run raiseattention check --format=json .
 
+# analyse only local/first-party code (skip external modules)
+uv run raiseattention check --local .
+
+# enable strict mode
+uv run raiseattention check --strict .
+
 # start lsp server
 uv run raiseattention lsp
 
@@ -596,21 +644,24 @@ configuration is loaded from (in order of precedence):
 
 ## known limitations
 
-1. **built-in function exceptions** - the analyzer does not detect exceptions from built-in functions (e.g., `open()`, `json.load()`, `csv.reader()`, `pathlib.Path.read_text()`). it only tracks exceptions through:
-   - explicit `raise` statements in your code
-   - function calls to other functions in your codebase
-   
-   **workaround**: wrap built-in operations in your own functions with explicit exception handling:
-   ```python
-   def safe_read_file(path: str) -> str:
-       try:
-           with open(path) as f:
-               return f.read()
-       except FileNotFoundError:
-           raise FileReadError(f"file not found: {path}")
-   ```
+1. **c extension modules** - the analyzer cannot analyse c extensions (e.g., `_json`, `_csv`, modules with `.so`/`.pyd` files). these are skipped during external analysis. only pure python modules can be statically analysed.
 
 2. **custom exception hierarchies** - the analyzer understands built-in exception hierarchies (e.g., `ValueError` → `Exception`) but not custom class inheritance without parsing class definitions. marked as skipped test.
+
+3. **dynamic imports and calls** - the analyzer cannot track exceptions through dynamic imports (`importlib.import_module`) or dynamic function calls (`getattr(obj, method_name)()`).
+
+## local-only mode
+
+to analyse only first-party code without external module analysis:
+
+```bash
+# cli flag
+raiseattention check --local .
+
+# or in pyproject.toml
+[tool.raiseattention.analysis]
+local_only = true
+```
 
 ## questions?
 
