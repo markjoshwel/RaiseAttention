@@ -206,6 +206,9 @@ exclude_lines = [
 show_missing = true
 precision = 2
 
+[tool.uv.extra-build-dependencies]
+"gitignore-parser" = ["setuptools"]
+
 [dependency-groups]
 dev = [
     "basedpyright>=1.37.2",
