@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pathspec import PathSpec
+    from pathspec import GitIgnoreSpec
 
 
 class GitignoreMatcher:
@@ -23,8 +23,8 @@ class GitignoreMatcher:
     attributes:
         `root: Path`
             the root directory to match against
-        `specs: list[tuple[Path, PathSpec]]`
-            list of (directory, pathspec) tuples
+        `specs: list[tuple[Path, GitIgnoreSpec]]`
+            list of (directory, spec) tuples
 
     usage:
         ```python
@@ -43,7 +43,7 @@ class GitignoreMatcher:
                 the root directory to search for .gitignore files
         """
         self.root = root.resolve()
-        self.specs: list[tuple[Path, PathSpec]] = []
+        self.specs: list[tuple[Path, GitIgnoreSpec]] = []
         self._collect_gitignore_rules()
 
     def _collect_gitignore_rules(self) -> None:
@@ -52,7 +52,7 @@ class GitignoreMatcher:
 
         finds all .gitignore files and parses their rules using pathspec.
         """
-        from pathspec import PathSpec
+        from pathspec import GitIgnoreSpec
 
         # find all .gitignore files
         for gitignore_file in self.root.rglob(".gitignore"):
@@ -74,7 +74,7 @@ class GitignoreMatcher:
                 patterns.append(line)
 
             if patterns:
-                spec = PathSpec.from_lines("gitignore", patterns)
+                spec = GitIgnoreSpec.from_lines(patterns)
                 self.specs.append((gitignore_file.parent, spec))
 
     def is_ignored(self, file_path: Path) -> bool:
