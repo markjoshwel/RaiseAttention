@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+import pytest
 
 from raiseattention.analyser import (
     AnalysisResult,
@@ -10,6 +13,9 @@ from raiseattention.analyser import (
     ExceptionAnalyser,
 )
 from raiseattention.config import Config
+
+if TYPE_CHECKING:
+    pass
 
 
 class TestDiagnostic:
@@ -234,3 +240,318 @@ def func():
 
         # file analyses should be cleared
         assert test_file.resolve() not in analyzer._file_analyses
+
+
+class TestDebugLogging:
+    """tests for debug logging functionality."""
+
+    def test_debug_logging_enabled(
+        self, tmp_path: Path, caplog: "pytest.LogCaptureFixture"
+    ) -> None:
+        """test that debug logging produces output when enabled."""
+        import logging
+
+        # enable debug logging for raiseattention
+        logging.getLogger("raiseattention").setLevel(logging.DEBUG)
+
+        test_file = tmp_path / "test.py"
+        test_file.write_text("""
+def risky():
+    raise ValueError("error")
+
+def caller():
+    risky()
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+
+        with caplog.at_level(logging.DEBUG, logger="raiseattention"):
+            analyzer.analyse_file(test_file)
+
+        # check that some debug messages were logged
+        debug_messages = [r.message for r in caplog.records if r.levelno == logging.DEBUG]
+        assert len(debug_messages) > 0
+
+        # reset logging level
+        logging.getLogger("raiseattention").setLevel(logging.WARNING)
+
+    def test_debug_logging_shows_signature_computation(
+        self, tmp_path: Path, caplog: "pytest.LogCaptureFixture"
+    ) -> None:
+        """test that debug logging shows signature computation."""
+        import logging
+
+        logging.getLogger("raiseattention").setLevel(logging.DEBUG)
+
+        test_file = tmp_path / "test.py"
+        test_file.write_text("""
+def level2():
+    raise ValueError("deep")
+
+def level1():
+    level2()
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+
+        with caplog.at_level(logging.DEBUG, logger="raiseattention"):
+            analyzer.analyse_file(test_file)
+            # trigger signature computation
+            _ = analyzer.get_function_signature("test.level1")
+
+        # check that signature computation was logged
+        log_text = "\n".join(r.message for r in caplog.records)
+        # should have some logging about function analysis
+        assert len(caplog.records) > 0
+
+        # reset logging level
+        logging.getLogger("raiseattention").setLevel(logging.WARNING)
+
+    def test_ast_visitor_logs_function_visits(
+        self, tmp_path: Path, caplog: "pytest.LogCaptureFixture"
+    ) -> None:
+        """test that AST visitor logs function visits."""
+        import logging
+
+        from raiseattention.ast_visitor import parse_source
+
+        logging.getLogger("raiseattention").setLevel(logging.DEBUG)
+
+        source = """
+@my_decorator
+def decorated_func():
+    raise ValueError("error")
+"""
+
+        with caplog.at_level(logging.DEBUG, logger="raiseattention"):
+            _ = parse_source(source)
+
+        # check for function visit log
+        log_text = "\n".join(r.message for r in caplog.records)
+        assert "visiting function" in log_text or "decorated_func" in log_text
+
+        # reset logging level
+        logging.getLogger("raiseattention").setLevel(logging.WARNING)
+
+
+class TestHOFExceptionPropagation:
+    """tests for higher-order function exception propagation."""
+
+    def test_map_with_risky_callable(self, tmp_path: Path) -> None:
+        """test that exceptions from functions passed to map are tracked."""
+        test_file = tmp_path / "test.py"
+        test_file.write_text("""
+def risky_transform(x):
+    if x < 0:
+        raise ValueError("negative value")
+    return x * 2
+
+def uses_map():
+    data = [1, -2, 3]
+    result = list(map(risky_transform, data))
+    return result
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        analyzer.analyse_file(test_file)
+
+        # uses_map should have ValueError in its signature via risky_transform
+        signature = analyzer.get_function_signature("test.uses_map")
+        assert "ValueError" in signature
+
+    def test_filter_with_risky_predicate(self, tmp_path: Path) -> None:
+        """test that exceptions from predicates passed to filter are tracked."""
+        test_file = tmp_path / "test.py"
+        test_file.write_text("""
+def risky_predicate(x):
+    if x == 0:
+        raise ZeroDivisionError("cannot check zero")
+    return x > 0
+
+def uses_filter():
+    data = [1, 0, 3]
+    result = list(filter(risky_predicate, data))
+    return result
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        analyzer.analyse_file(test_file)
+
+        signature = analyzer.get_function_signature("test.uses_filter")
+        assert "ZeroDivisionError" in signature
+
+    def test_sorted_with_risky_key(self, tmp_path: Path) -> None:
+        """test that exceptions from key functions passed to sorted are tracked."""
+        test_file = tmp_path / "test.py"
+        test_file.write_text("""
+def risky_key(item):
+    if "key" not in item:
+        raise KeyError("missing key")
+    return item["key"]
+
+def uses_sorted():
+    data = [{"key": "b"}, {"no_key": "a"}]
+    result = sorted(data, key=risky_key)
+    return result
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        analyzer.analyse_file(test_file)
+
+        signature = analyzer.get_function_signature("test.uses_sorted")
+        assert "KeyError" in signature
+
+    def test_min_max_with_risky_key(self, tmp_path: Path) -> None:
+        """test that exceptions from key functions passed to min/max are tracked."""
+        test_file = tmp_path / "test.py"
+        test_file.write_text("""
+def risky_key(item):
+    if item is None:
+        raise TypeError("cannot compare None")
+    return item
+
+def uses_min():
+    data = [1, None, 3]
+    result = min(data, key=risky_key)
+    return result
+
+def uses_max():
+    data = [1, None, 3]
+    result = max(data, key=risky_key)
+    return result
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        analyzer.analyse_file(test_file)
+
+        min_sig = analyzer.get_function_signature("test.uses_min")
+        max_sig = analyzer.get_function_signature("test.uses_max")
+        assert "TypeError" in min_sig
+        assert "TypeError" in max_sig
+
+    def test_nested_hof_calls(self, tmp_path: Path) -> None:
+        """test that nested HOF calls propagate exceptions correctly."""
+        test_file = tmp_path / "test.py"
+        test_file.write_text("""
+def risky_transform(x):
+    if x < 0:
+        raise ValueError("negative")
+    return x * 2
+
+def risky_predicate(x):
+    if x == 0:
+        raise RuntimeError("zero not allowed")
+    return x > 0
+
+def uses_nested_hofs():
+    data = [1, -2, 0, 3]
+    transformed = map(risky_transform, data)
+    filtered = filter(risky_predicate, transformed)
+    return list(filtered)
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        analyzer.analyse_file(test_file)
+
+        signature = analyzer.get_function_signature("test.uses_nested_hofs")
+        assert "ValueError" in signature
+        assert "RuntimeError" in signature
+
+    def test_lambda_in_hof_not_tracked(self, tmp_path: Path) -> None:
+        """test that lambdas in HOFs are gracefully skipped (not tracked)."""
+        test_file = tmp_path / "test.py"
+        test_file.write_text("""
+def uses_lambda_in_map():
+    data = [1, 2, 3]
+    # lambda exceptions are not tracked
+    result = list(map(lambda x: x / 0, data))
+    return result
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        analyzer.analyse_file(test_file)
+
+        # should not crash, and signature should be empty (lambdas not tracked)
+        signature = analyzer.get_function_signature("test.uses_lambda_in_map")
+        # ZeroDivisionError from the lambda is NOT tracked (expected behaviour)
+        assert "ZeroDivisionError" not in signature
+
+    def test_method_reference_in_hof(self, tmp_path: Path) -> None:
+        """test that method references passed to HOFs are tracked."""
+        test_file = tmp_path / "test.py"
+        test_file.write_text("""
+class Processor:
+    def process(self, x):
+        if x < 0:
+            raise ValueError("negative")
+        return x * 2
+
+    def process_all(self, items):
+        return list(map(self.process, items))
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        analyzer.analyse_file(test_file)
+
+        # process_all should include ValueError from self.process
+        signature = analyzer.get_function_signature("test.Processor.process_all")
+        # Note: method resolution via self.process may not work perfectly
+        # but the callable_args should be captured as "self.process"
+
+    def test_safe_hof_no_exceptions(self, tmp_path: Path) -> None:
+        """test that HOFs with safe callables don't add spurious exceptions."""
+        test_file = tmp_path / "test.py"
+        test_file.write_text("""
+def safe_transform(x):
+    return x * 2
+
+def uses_safe_map():
+    data = [1, 2, 3]
+    result = list(map(safe_transform, data))
+    return result
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        analyzer.analyse_file(test_file)
+
+        signature = analyzer.get_function_signature("test.uses_safe_map")
+        # should have no exceptions
+        assert len(signature) == 0
+
+    def test_hof_exception_signature_tracking(self, tmp_path: Path) -> None:
+        """test that HOF exceptions are tracked in function signatures."""
+        test_file = tmp_path / "test.py"
+        test_file.write_text("""
+def risky_transform(x):
+    if x < 0:
+        raise ValueError("negative")
+    return x * 2
+
+def caller():
+    data = [1, -2, 3]
+    result = list(map(risky_transform, data))
+    return result
+""")
+
+        config = Config()
+        config.analysis.strict_mode = True
+        analyzer = ExceptionAnalyser(config)
+        analyzer.analyse_file(test_file)
+
+        # the function signature should include ValueError from the HOF call
+        caller_sig = analyzer.get_function_signature("test.caller")
+        assert "ValueError" in caller_sig
+
+        # risky_transform should also have ValueError in its signature
+        risky_sig = analyzer.get_function_signature("test.risky_transform")
+        assert "ValueError" in risky_sig

@@ -72,6 +72,8 @@ class AnalysisConfig:
         `full_module_path: bool`
             show full module path for exceptions (e.g.,
             'pkg.mod.Exception' instead of 'pkg.Exception')
+        `warn_native: bool`
+            warn about possible exceptions from native/c extension code
     """
 
     strict_mode: bool = False
@@ -79,6 +81,7 @@ class AnalysisConfig:
     require_reraise_after_log: bool = True
     local_only: bool = False
     full_module_path: bool = False
+    warn_native: bool = True
 
 
 @dataclass
@@ -309,6 +312,7 @@ class Config:
                 require_reraise_after_log=other.analysis.require_reraise_after_log,
                 local_only=other.analysis.local_only,
                 full_module_path=other.analysis.full_module_path,
+                warn_native=other.analysis.warn_native,
             )
             if other.analysis != AnalysisConfig()
             else self.analysis,
@@ -370,6 +374,7 @@ class Config:
                 require_reraise_after_log=analysis_data.get("require_reraise_after_log", True),  # pyright: ignore[reportAny]
                 local_only=analysis_data.get("local_only", False),  # pyright: ignore[reportAny]
                 full_module_path=analysis_data.get("full_module_path", False),  # pyright: ignore[reportAny]
+                warn_native=analysis_data.get("warn_native", True),  # pyright: ignore[reportAny]
             )
 
         return config

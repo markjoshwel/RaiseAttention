@@ -14,6 +14,10 @@ unhandled exceptions in python codebases. it provides:
 - **robust exception flow tracking** through transitive call chains
 - **intelligent try-except detection** at call sites
 - **external module analysis** for stdlib and third-party packages
+- **higher-order function traversal** for map/filter/sorted and callable args
+- **native code detection** with `PossibleNativeException` warnings
+- **docstring heuristics** for functions that can't be statically analysed
+- **debug logging** throughout the analysis pipeline
 
 ## workspace structure
 
@@ -63,7 +67,7 @@ raiseattention/
 │       ├── pyproject.toml    # standalone package config
 │       └── README.md
 │
-├── tests/                    # comprehensive test suite (170+ tests, 82% coverage)
+├── tests/                    # comprehensive test suite (178 tests, 82% coverage)
 │   ├── __init__.py
 │   ├── fixtures/            # synthetic codebases for testing
 │   │   ├── __init__.py
@@ -207,7 +211,7 @@ use british spelling throughout:
 - ci passing (14 jobs)
 
 **raiseattention:** ✅ production ready
-- **170+ tests, all passing, 82% coverage**
+- **178 tests, all passing, 82% coverage**
 - **exception analyser completely rewritten** with proper flow tracking:
   - transitive exception tracking through call chains
   - try-except context detection at call sites
@@ -216,11 +220,19 @@ use british spelling throughout:
   - **external module analysis** for stdlib and third-party packages
   - **fully qualified exception types** (e.g., `copy.Error`, `tomlantic.TOMLValidationError`)
   - **cwd-relative paths** for human-readable output
+  - **higher-order function traversal** (map, filter, sorted, min, max, reduce, etc.)
+  - **native code detection** with `PossibleNativeException` for C extensions
+  - **docstring heuristics** for functions that can't be statically analysed
+  - **debug logging** with `--debug` CLI flag
 - **comprehensive test coverage**:
   - 35 synthetic analyser tests (unhandled/caught/edge cases)
   - 24 external analyser tests (stdlib/third-party tracking)
   - 18 comprehensive LSP server tests
-  - 8 synthetic code generators for testing scenarios
+  - 12 synthetic code generators for testing scenarios
+  - 9 HOF exception propagation tests
+  - 6 native code detection tests
+  - 5 callable argument detection tests
+  - 3 debug logging tests
 - **ci passing** - all integration tests working
 
 ### synthetic codebases for testing
@@ -237,6 +249,10 @@ from tests.fixtures import (
     create_mixed_scenario_file,        # both handled and unhandled
     create_async_exceptions_file,      # async/await scenarios
     create_synthetic_codebase,         # complete test codebase
+    create_decorator_wrapper_file,     # decorator wrapper patterns
+    create_hof_callable_file,          # higher-order function patterns
+    create_callable_passing_file,      # callable passing patterns
+    create_native_code_test_file,      # native/C extension code usage
 )
 ```
 
@@ -606,6 +622,12 @@ uv run raiseattention check --absolute .
 # show full module path for exceptions (e.g., 'tomlantic.tomlantic.TOMLValidationError')
 uv run raiseattention check --full-module-path .
 
+# enable debug logging (shows analysis steps)
+uv run raiseattention check --debug .
+
+# disable native code warnings (suppresses PossibleNativeException)
+uv run raiseattention check --no-warn-native .
+
 # start lsp server
 uv run raiseattention lsp
 
@@ -725,11 +747,13 @@ configuration is loaded from (in order of precedence):
 
 ## known limitations
 
-1. **c extension modules** - the analyser cannot analyse c extensions (e.g., `_json`, `_csv`, modules with `.so`/`.pyd` files). these are skipped during external analysis. only pure python modules can be statically analysed.
+1. **c extension modules** - the analyser cannot statically analyse c extensions (e.g., `_json`, `_csv`, modules with `.so`/`.pyd` files). instead, it reports `PossibleNativeException` as a warning. use `--no-warn-native` to suppress these warnings.
 
 2. **custom exception hierarchies** - the analyser understands built-in exception hierarchies (e.g., `ValueError` → `Exception`) but not custom class inheritance without parsing class definitions. marked as skipped test.
 
 3. **dynamic imports and calls** - the analyser cannot track exceptions through dynamic imports (`importlib.import_module`) or dynamic function calls (`getattr(obj, method_name)()`).
+
+4. **lambda expressions in HOFs** - when lambda expressions are passed to higher-order functions like `map`, `filter`, or `sorted`, the analyser cannot currently analyse the lambda body for potential exceptions. named functions passed to HOFs are fully tracked.
 
 ## local-only mode
 

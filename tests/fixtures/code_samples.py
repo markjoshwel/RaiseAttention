@@ -477,3 +477,291 @@ async def caller_of_result():
 
     file_path.write_text(code)
     return file_path
+
+
+def create_decorator_wrapper_file(base_path: Path) -> Path:
+    """
+    create a file with decorator wrapper patterns.
+
+    tests that decorators are detected and tracked on functions.
+
+    arguments:
+        `base_path: Path`
+            directory to create the file in
+
+    returns: `Path`
+        path to the created file
+    """
+    file_path = base_path / "decorator_wrappers.py"
+
+    code = '''
+from functools import lru_cache, wraps
+
+def my_decorator(func):
+    """a simple decorator."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper
+
+def logging_decorator(level: str):
+    """a decorator with arguments."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            print(f"[{level}] calling {func.__name__}")
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+@my_decorator
+def decorated_risky():
+    """decorated function that raises."""
+    raise ValueError("decorated error")
+
+@lru_cache(maxsize=128)
+def cached_function(x: int) -> int:
+    """cached function that may raise."""
+    if x < 0:
+        raise ValueError("negative input")
+    return x * 2
+
+@logging_decorator("DEBUG")
+@my_decorator
+def multi_decorated():
+    """function with multiple decorators."""
+    raise RuntimeError("multi-decorated error")
+
+class MyClass:
+    @staticmethod
+    def static_risky():
+        """static method that raises."""
+        raise TypeError("static error")
+
+    @classmethod
+    def class_risky(cls):
+        """class method that raises."""
+        raise KeyError("class error")
+
+    @property
+    def risky_property(self):
+        """property that raises."""
+        raise AttributeError("property error")
+'''
+
+    file_path.write_text(code)
+    return file_path
+
+
+def create_hof_callable_file(base_path: Path) -> Path:
+    """
+    create a file with higher-order function patterns.
+
+    tests detection of callables passed to map, filter, sorted, etc.
+
+    arguments:
+        `base_path: Path`
+            directory to create the file in
+
+    returns: `Path`
+        path to the created file
+    """
+    file_path = base_path / "hof_callables.py"
+
+    code = '''
+def risky_transform(x: int) -> int:
+    """transform that may raise."""
+    if x < 0:
+        raise ValueError("negative value")
+    return x * 2
+
+def risky_predicate(x: int) -> bool:
+    """predicate that may raise."""
+    if x == 0:
+        raise ZeroDivisionError("cannot check zero")
+    return x > 0
+
+def risky_key(item: dict) -> str:
+    """key function that may raise."""
+    if "key" not in item:
+        raise KeyError("missing key")
+    return item["key"]
+
+def uses_map_with_risky():
+    """uses map with a function that may raise."""
+    data = [1, -2, 3]
+    result = list(map(risky_transform, data))
+    return result
+
+def uses_filter_with_risky():
+    """uses filter with a predicate that may raise."""
+    data = [1, 0, 3]
+    result = list(filter(risky_predicate, data))
+    return result
+
+def uses_sorted_with_key():
+    """uses sorted with a key function that may raise."""
+    data = [{"key": "b"}, {"no_key": "a"}]
+    result = sorted(data, key=risky_key)
+    return result
+
+def uses_map_with_lambda():
+    """uses map with a lambda - lambda exceptions not tracked."""
+    data = [1, 2, 3]
+    result = list(map(lambda x: x / 0, data))  # lambda that raises
+    return result
+
+def uses_min_with_key():
+    """uses min with a key function that may raise."""
+    data = [{"key": "b"}, {"key": "a"}]
+    result = min(data, key=risky_key)
+    return result
+
+def uses_max_with_key():
+    """uses max with a key function that may raise."""
+    data = [{"key": "b"}, {"key": "a"}]
+    result = max(data, key=risky_key)
+    return result
+
+class Processor:
+    def process_item(self, x: int) -> int:
+        """method that may raise."""
+        if x < 0:
+            raise ValueError("negative")
+        return x
+
+    def process_all(self, items: list[int]) -> list[int]:
+        """uses map with a method reference."""
+        return list(map(self.process_item, items))
+'''
+
+    file_path.write_text(code)
+    return file_path
+
+
+def create_callable_passing_file(base_path: Path) -> Path:
+    """
+    create a file with callable passing patterns.
+
+    tests detection of functions passed as arguments to other functions.
+
+    arguments:
+        `base_path: Path`
+            directory to create the file in
+
+    returns: `Path`
+        path to the created file
+    """
+    file_path = base_path / "callable_passing.py"
+
+    code = '''
+from typing import Callable
+
+def risky_callback() -> None:
+    """callback that raises."""
+    raise RuntimeError("callback error")
+
+def safe_callback() -> None:
+    """callback that doesn't raise."""
+    print("safe")
+
+def invoke_callback(callback: Callable[[], None]) -> None:
+    """invokes a callback function."""
+    callback()
+
+def higher_order_function(func: Callable[[int], int], value: int) -> int:
+    """higher-order function that invokes the passed function."""
+    return func(value)
+
+def caller_with_risky_callback():
+    """passes risky callback to another function."""
+    invoke_callback(risky_callback)
+
+def caller_with_safe_callback():
+    """passes safe callback to another function."""
+    invoke_callback(safe_callback)
+
+def risky_int_func(x: int) -> int:
+    """int function that may raise."""
+    if x < 0:
+        raise ValueError("negative")
+    return x * 2
+
+def caller_with_hof():
+    """uses higher-order function with risky callback."""
+    result = higher_order_function(risky_int_func, -1)
+    return result
+
+def caller_with_lambda_hof():
+    """uses higher-order function with a lambda."""
+    result = higher_order_function(lambda x: x / 0, 1)
+    return result
+
+class EventHandler:
+    def __init__(self, handler: Callable[[], None]):
+        self.handler = handler
+
+    def trigger(self):
+        """triggers the stored handler."""
+        self.handler()
+
+def setup_risky_handler():
+    """sets up an event handler with a risky callback."""
+    handler = EventHandler(risky_callback)
+    handler.trigger()
+'''
+
+    file_path.write_text(code)
+    return file_path
+
+
+def create_native_code_test_file(base_path: Path) -> Path:
+    """
+    create a file that uses native/c extension modules.
+
+    tests detection of calls to c extensions like _json, _csv, etc.
+
+    arguments:
+        `base_path: Path`
+            directory to create the file in
+
+    returns: `Path`
+        path to the created file
+    """
+    file_path = base_path / "native_code_usage.py"
+
+    code = '''
+import json
+import math
+import re
+
+def parse_json(data: str) -> dict:
+    """parses json data - calls into c extension."""
+    return json.loads(data)
+
+def compute_sqrt(x: float) -> float:
+    """computes square root - math module has c parts."""
+    return math.sqrt(x)
+
+def match_pattern(pattern: str, text: str) -> bool:
+    """matches regex pattern - re module has c parts."""
+    return bool(re.match(pattern, text))
+
+def caller_of_json():
+    """calls function that uses json parsing."""
+    result = parse_json('{"key": "value"}')
+    return result
+
+def caller_of_math():
+    """calls function that uses math."""
+    result = compute_sqrt(16.0)
+    return result
+
+def caller_of_regex():
+    """calls function that uses regex."""
+    result = match_pattern(r"\\d+", "123")
+    return result
+'''
+
+    file_path.write_text(code)
+    return file_path

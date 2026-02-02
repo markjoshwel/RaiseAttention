@@ -8,6 +8,7 @@ through call chains with try-except handling detection.
 
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -16,10 +17,16 @@ from typing import TYPE_CHECKING
 from .ast_visitor import parse_file
 from .cache import DependencyCache, FileAnalysis, FileCache
 from .config import Config
-from .external_analyser import ExternalAnalyser
+from .external_analyser import (
+    ExternalAnalyser,
+    _CALLABLE_INVOKING_HOFS,
+    _KEY_CALLABLE_HOFS,
+)
 
 if TYPE_CHECKING:
     from .env_detector import VenvInfo
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -113,7 +120,11 @@ class ExceptionAnalyser:
         self.config = config
         self.file_cache = FileCache(config.cache)
         self.dependency_cache = DependencyCache(config.cache)
-        self.external_analyser = ExternalAnalyser(venv_info, config.cache)
+        self.external_analyser = ExternalAnalyser(
+            venv_info,
+            config.cache,
+            warn_native=config.analysis.warn_native,
+        )
         self._file_analyses: dict[Path, FileAnalysis] = {}
         self._exception_signatures: dict[str, list[str]] = {}
 
@@ -153,10 +164,12 @@ class ExceptionAnalyser:
             analysis results with diagnostics
         """
         file_path = Path(file_path).resolve()
+        logger.debug("analysing file: %s", file_path)
         result = AnalysisResult()
 
         # check cache first
         if cached := self.file_cache.get(file_path):
+            logger.debug("cache hit for file: %s", file_path)
             self._file_analyses[file_path] = cached
             result.files_analysed.append(file_path)
             result.functions_found = len(cached.functions)
@@ -204,11 +217,13 @@ class ExceptionAnalyser:
                             "location": call.location,
                             "is_async": call.is_async,
                             "containing_try_blocks": call.containing_try_blocks,
+                            "callable_args": call.callable_args,
                         }
                         for call in func.calls
                     ],
                     "docstring": func.docstring,
                     "is_async": func.is_async,
+                    "decorators": func.decorators,
                 }
                 for name, func in visitor.functions.items()
             },
@@ -297,6 +312,8 @@ class ExceptionAnalyser:
         returns: `list[str]`
             list of exception types the function may raise
         """
+        logger.debug("computing signature for: %s", qualified_name)
+
         if qualified_name in self._exception_signatures:
             return self._exception_signatures[qualified_name]
 
@@ -337,6 +354,11 @@ class ExceptionAnalyser:
                     qualified_name, imports
                 )
                 if external_exceptions:
+                    logger.debug(
+                        "external function %s may raise: %s",
+                        qualified_name,
+                        external_exceptions,
+                    )
                     # filter out ignored exceptions
                     result = [
                         exc
@@ -375,16 +397,59 @@ class ExceptionAnalyser:
                 qualified_exc = self._qualify_exception_type(exc_type, module_name)
                 exceptions.add(qualified_exc)
 
+        if exceptions:
+            logger.debug("direct raises in '%s': %s", resolved_name, exceptions)
+
         # collect from called functions (transitive)
         for call in func_info.get("calls", []):
             called_func_name = call.get("func_name", "") if isinstance(call, dict) else call
+            call_location = call.get("location", (0, 0)) if isinstance(call, dict) else (0, 0)
+            callable_args = call.get("callable_args", []) if isinstance(call, dict) else []
 
             if called_func_name:
+                logger.debug(
+                    "call to '%s' at line %d",
+                    called_func_name,
+                    call_location[0],
+                )
                 called_exceptions = self.get_function_signature(
                     called_func_name, func_file_path, _recursion_stack
                 )
+                if called_exceptions:
+                    logger.debug(
+                        "called function '%s' may raise: %s",
+                        called_func_name,
+                        called_exceptions,
+                    )
                 # called exceptions are already filtered by their own signature computation
                 exceptions.update(called_exceptions)
+
+                # check if this is a higher-order function that invokes callable args
+                if callable_args and self._is_callable_invoking_hof(called_func_name):
+                    logger.debug(
+                        "HOF '%s' invokes callable args: %s",
+                        called_func_name,
+                        callable_args,
+                    )
+                    for callable_arg in callable_args:
+                        # skip lambdas - we can't easily track their exceptions
+                        # (they're inline and would need separate AST analysis)
+                        if callable_arg == "<lambda>":
+                            logger.debug("skipping lambda in HOF call")
+                            continue
+
+                        # get the exception signature of the callable argument
+                        callable_exceptions = self.get_function_signature(
+                            callable_arg, func_file_path, _recursion_stack
+                        )
+                        if callable_exceptions:
+                            logger.debug(
+                                "callable arg '%s' passed to HOF '%s' may raise: %s",
+                                callable_arg,
+                                called_func_name,
+                                callable_exceptions,
+                            )
+                            exceptions.update(callable_exceptions)
 
         # remove empty strings
         exceptions.discard("")
@@ -392,6 +457,8 @@ class ExceptionAnalyser:
         # cache result
         result = list(exceptions)
         self._exception_signatures[resolved_name] = result
+
+        logger.debug("final signature for '%s': %s", resolved_name, result)
 
         # remove from recursion stack to allow other calls
         _recursion_stack.discard(resolved_name)
@@ -429,6 +496,36 @@ class ExceptionAnalyser:
 
         # get the exceptions for this function
         return self.external_analyser.get_function_exceptions(module_name, function_name)
+
+    def _is_callable_invoking_hof(self, func_name: str) -> bool:
+        """
+        check if a function is a known higher-order function that invokes its callable args.
+
+        this method checks against registries of known HOFs like map, filter, sorted, etc.
+        that invoke the callable arguments passed to them.
+
+        arguments:
+            `func_name: str`
+                function name (may be simple like 'map' or qualified like 'functools.reduce')
+
+        returns: `bool`
+            true if the function is a known callable-invoking HOF
+        """
+        # check direct match in callable-invoking HOFs
+        if func_name in _CALLABLE_INVOKING_HOFS:
+            return True
+
+        # check key-callable HOFs (sorted, min, max, etc.)
+        if func_name in _KEY_CALLABLE_HOFS:
+            return True
+
+        # check for builtins that might be called without qualification
+        # e.g., 'map' instead of 'builtins.map'
+        builtin_hofs = {"map", "filter", "sorted", "min", "max", "reduce"}
+        if func_name in builtin_hofs:
+            return True
+
+        return False
 
     def invalidate_file(self, file_path: str | Path) -> None:
         """

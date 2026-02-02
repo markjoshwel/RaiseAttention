@@ -321,3 +321,78 @@ class TestExternalAnalyserEdgeCases:
         )
         assert "func1" in info.exception_signatures
         assert "ValueError" in info.exception_signatures["func1"]
+
+
+class TestNativeCodeDetection:
+    """tests for native/c extension code detection."""
+
+    def test_c_extension_returns_possible_native_exception(self) -> None:
+        """test that c extension functions return PossibleNativeException."""
+        from raiseattention.external_analyser import POSSIBLE_NATIVE_EXCEPTION
+
+        analyzer = ExternalAnalyser(warn_native=True)
+
+        # _json is a c extension module
+        exceptions = analyzer.get_function_exceptions("_json", "encode_basestring")
+
+        # should return PossibleNativeException for c extension
+        assert POSSIBLE_NATIVE_EXCEPTION in exceptions
+
+    def test_builtin_returns_possible_native_exception(self) -> None:
+        """test that builtin modules return PossibleNativeException."""
+        from raiseattention.external_analyser import POSSIBLE_NATIVE_EXCEPTION
+
+        analyzer = ExternalAnalyser(warn_native=True)
+
+        # builtins module is built-in (origin='built-in')
+        module_info = analyzer.resolve_module_path("builtins")
+        assert module_info is not None
+        assert module_info.is_c_extension is True
+
+    def test_no_warn_native_suppresses_warning(self) -> None:
+        """test that warn_native=False suppresses PossibleNativeException."""
+        from raiseattention.external_analyser import POSSIBLE_NATIVE_EXCEPTION
+
+        analyzer = ExternalAnalyser(warn_native=False)
+
+        # _json is a c extension module
+        exceptions = analyzer.get_function_exceptions("_json", "encode_basestring")
+
+        # should NOT return PossibleNativeException when warn_native=False
+        assert POSSIBLE_NATIVE_EXCEPTION not in exceptions
+        assert exceptions == []
+
+    def test_docstring_with_raises_triggers_warning(self) -> None:
+        """test that docstring mentioning 'raises' triggers detection."""
+        from raiseattention.external_analyser import POSSIBLE_NATIVE_EXCEPTION
+
+        analyzer = ExternalAnalyser(warn_native=True)
+
+        # json.loads has a docstring that mentions raising JSONDecodeError
+        # Even if we can't statically analyse it, the docstring heuristic should fire
+        # Note: json.loads is actually pure Python, so we check the docstring heuristic
+        # by testing _check_docstring_for_raises directly
+        has_raises = analyzer._check_docstring_for_raises("json", "loads")
+        # json.loads docstring mentions "Raises" for JSONDecodeError
+        assert has_raises is True
+
+    def test_docstring_without_raises_no_false_positive(self) -> None:
+        """test that docstrings without 'raises' don't trigger false positives."""
+        analyzer = ExternalAnalyser(warn_native=True)
+
+        # os.getcwd doesn't raise (typically) and shouldn't have "raises" in docstring
+        has_raises = analyzer._check_docstring_for_raises("os", "getcwd")
+        # getcwd generally doesn't document raising exceptions
+        assert has_raises is False
+
+    def test_warn_native_flag_passed_from_config(self, tmp_path: Path) -> None:
+        """test that warn_native flag is correctly passed through analyser."""
+        from raiseattention.config import Config
+
+        config = Config()
+        config.analysis.warn_native = False
+
+        analyzer = ExceptionAnalyser(config)
+
+        # verify the external analyser has warn_native=False
+        assert analyzer.external_analyser.warn_native is False

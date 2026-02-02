@@ -239,3 +239,118 @@ class TestTryExceptInfo:
         assert info.handled_types == ["ValueError", "TypeError"]
         assert info.has_bare_except is False
         assert info.reraises is False
+
+
+class TestCallableArgDetection:
+    """tests for callable argument detection in function calls."""
+
+    def test_detects_function_passed_to_map(self) -> None:
+        """Test that functions passed to map are detected."""
+        source = """
+def risky_transform(x):
+    if x < 0:
+        raise ValueError("negative")
+    return x * 2
+
+def caller():
+    result = list(map(risky_transform, [1, 2, 3]))
+    return result
+"""
+
+        visitor = parse_source(source)
+
+        func = visitor.functions["<string>.caller"]
+        # find the map call
+        map_calls = [c for c in func.calls if c.func_name == "map"]
+        assert len(map_calls) == 1
+        assert "risky_transform" in map_calls[0].callable_args
+
+    def test_detects_lambda_passed_to_filter(self) -> None:
+        """Test that lambdas passed to filter are detected."""
+        source = """
+def caller():
+    result = list(filter(lambda x: x > 0, [1, -2, 3]))
+    return result
+"""
+
+        visitor = parse_source(source)
+
+        func = visitor.functions["<string>.caller"]
+        # find the filter call
+        filter_calls = [c for c in func.calls if c.func_name == "filter"]
+        assert len(filter_calls) == 1
+        assert "<lambda>" in filter_calls[0].callable_args
+
+    def test_detects_key_kwarg_callable(self) -> None:
+        """Test that key keyword argument callables are detected."""
+        source = """
+def key_func(item):
+    return item["key"]
+
+def caller():
+    result = sorted(data, key=key_func)
+    return result
+"""
+
+        visitor = parse_source(source)
+
+        func = visitor.functions["<string>.caller"]
+        # find the sorted call
+        sorted_calls = [c for c in func.calls if c.func_name == "sorted"]
+        assert len(sorted_calls) == 1
+        assert "key_func" in sorted_calls[0].callable_args
+
+    def test_detects_decorators(self) -> None:
+        """Test that decorators are detected on functions."""
+        source = """
+from functools import lru_cache
+
+def my_decorator(func):
+    return func
+
+@my_decorator
+def decorated_simple():
+    pass
+
+@lru_cache(maxsize=128)
+def decorated_with_args():
+    pass
+
+@my_decorator
+@lru_cache
+def multi_decorated():
+    pass
+"""
+
+        visitor = parse_source(source)
+
+        # simple decorator
+        func1 = visitor.functions["<string>.decorated_simple"]
+        assert "my_decorator" in func1.decorators
+
+        # decorator with arguments
+        func2 = visitor.functions["<string>.decorated_with_args"]
+        assert "lru_cache" in func2.decorators
+
+        # multiple decorators
+        func3 = visitor.functions["<string>.multi_decorated"]
+        assert "my_decorator" in func3.decorators
+        assert "lru_cache" in func3.decorators
+
+    def test_detects_method_reference_passed_as_arg(self) -> None:
+        """Test that method references are detected as callable args."""
+        source = """
+class Processor:
+    def process(self, x):
+        return x * 2
+
+    def process_all(self, items):
+        return list(map(self.process, items))
+"""
+
+        visitor = parse_source(source)
+
+        func = visitor.functions["<string>.Processor.process_all"]
+        map_calls = [c for c in func.calls if c.func_name == "map"]
+        assert len(map_calls) == 1
+        assert "self.process" in map_calls[0].callable_args

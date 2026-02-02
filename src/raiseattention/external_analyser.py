@@ -11,7 +11,9 @@ statically analysed.
 
 from __future__ import annotations
 
+import importlib
 import importlib.util
+import logging
 import sys
 import sysconfig
 from dataclasses import dataclass, field
@@ -26,9 +28,52 @@ from .config import CacheConfig
 if TYPE_CHECKING:
     from .env_detector import VenvInfo
 
+logger = logging.getLogger(__name__)
 
 # c extension file suffixes that cannot be parsed
 _C_EXTENSION_SUFFIXES: Final[frozenset[str]] = frozenset({".so", ".pyd", ".dll", ".dylib"})
+
+# sentinel exception type for native/c extension code that cannot be statically analysed
+POSSIBLE_NATIVE_EXCEPTION: Final[str] = "PossibleNativeException"
+
+# higher-order functions where the first positional arg is a callable that gets invoked
+_CALLABLE_INVOKING_HOFS: Final[frozenset[str]] = frozenset(
+    {
+        # builtins
+        "map",
+        "filter",
+        "sorted",
+        "min",
+        "max",
+        "reduce",
+        # functools
+        "functools.reduce",
+        "functools.partial",
+        # itertools
+        "itertools.filterfalse",
+        "itertools.takewhile",
+        "itertools.dropwhile",
+        "itertools.starmap",
+        "itertools.groupby",
+        # concurrent
+        "concurrent.futures.ThreadPoolExecutor.submit",
+        "concurrent.futures.ProcessPoolExecutor.submit",
+        "asyncio.create_task",
+        "asyncio.ensure_future",
+    }
+)
+
+# higher-order functions where the 'key' kwarg is a callable
+_KEY_CALLABLE_HOFS: Final[frozenset[str]] = frozenset(
+    {
+        "sorted",
+        "min",
+        "max",
+        "itertools.groupby",
+        "heapq.nlargest",
+        "heapq.nsmallest",
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,14 +157,24 @@ class ExternalAnalyser:
     attributes:
         `venv_info: VenvInfo | None`
             detected virtual environment information
+        `warn_native: bool`
+            whether to warn about native code exceptions
     """
 
-    __slots__: tuple[str, ...] = ("venv_info", "_cache", "_analysis_cache", "_stdlib_path")
+    __slots__: tuple[str, ...] = (
+        "venv_info",
+        "warn_native",
+        "_cache",
+        "_analysis_cache",
+        "_stdlib_path",
+    )
 
     def __init__(
         self,
         venv_info: VenvInfo | None = None,
         cache_config: CacheConfig | None = None,
+        *,
+        warn_native: bool = True,
     ) -> None:
         """
         initialise the external analyser.
@@ -129,8 +184,11 @@ class ExternalAnalyser:
                 virtual environment info (auto-detected if none)
             `cache_config: CacheConfig | None`
                 caching configuration
+            `warn_native: bool`
+                whether to warn about possible native code exceptions
         """
         self.venv_info: VenvInfo | None = venv_info
+        self.warn_native: bool = warn_native
         self._cache: DependencyCache = DependencyCache(cache_config or CacheConfig())
         self._analysis_cache: dict[str, ModuleAnalysis] = {}
 
@@ -149,6 +207,7 @@ class ExternalAnalyser:
         1. analyse the target module
         2. search for the function by name variants
         3. if not found, follow imports to submodules
+        4. for c extensions, return PossibleNativeException if warn_native
 
         arguments:
             `module_name: str`
@@ -159,13 +218,51 @@ class ExternalAnalyser:
         returns: `list[str]`
             list of exception types the function may raise
         """
+        logger.debug("resolving exceptions for: %s.%s", module_name, function_name)
+
+        # check if module is a c extension
+        location = self._resolve_module(module_name)
+        if location is not None and location.is_c_extension:
+            logger.debug(
+                "detected native code in: %s (path=%s)",
+                module_name,
+                location.file_path,
+            )
+            if self.warn_native:
+                # check if docstring mentions raising exceptions
+                if self._check_docstring_for_raises(module_name, function_name):
+                    return [POSSIBLE_NATIVE_EXCEPTION]
+                # still return PossibleNativeException for c extensions
+                return [POSSIBLE_NATIVE_EXCEPTION]
+            return []
+
         # try direct module first
         exceptions = self._lookup_function(module_name, function_name)
         if exceptions:
+            logger.debug("found exceptions for %s.%s: %s", module_name, function_name, exceptions)
             return list(exceptions)
 
         # follow imports to find re-exported functions
-        return list(self._resolve_through_imports(module_name, function_name))
+        exceptions = self._resolve_through_imports(module_name, function_name)
+        if exceptions:
+            logger.debug(
+                "resolved exceptions through imports for %s.%s: %s",
+                module_name,
+                function_name,
+                exceptions,
+            )
+            return list(exceptions)
+
+        # no exceptions found - if warn_native and docstring mentions raises, return sentinel
+        if self.warn_native and self._check_docstring_for_raises(module_name, function_name):
+            logger.debug(
+                "docstring heuristic triggered for: %s.%s",
+                module_name,
+                function_name,
+            )
+            return [POSSIBLE_NATIVE_EXCEPTION]
+
+        return []
 
     def _lookup_function(
         self,
@@ -234,6 +331,7 @@ class ExternalAnalyser:
         # check if function is imported from another module
         if function_name in analysis.imports:
             import_path = analysis.imports[function_name]
+            logger.debug("following import: %s -> %s", function_name, import_path)
             parts = import_path.rsplit(".", 1)
             if len(parts) == 2:
                 submod, func = parts
@@ -266,14 +364,24 @@ class ExternalAnalyser:
         returns: `ModuleAnalysis | None`
             analysis result, or none if module not found
         """
+        logger.debug("resolving module: %s", module_name)
+
         # check in-memory cache
         if module_name in self._analysis_cache:
+            logger.debug("cache hit for: %s", module_name)
             return self._analysis_cache[module_name]
 
         # resolve module location
         location = self._resolve_module(module_name)
         if location is None:
             return None
+
+        logger.debug(
+            "module location: path=%s, stdlib=%s, c_ext=%s",
+            location.file_path,
+            location.is_stdlib,
+            location.is_c_extension,
+        )
 
         # c extensions cannot be analysed
         if location.is_c_extension:
@@ -285,6 +393,7 @@ class ExternalAnalyser:
         cache_version = "stdlib" if location.is_stdlib else "external"
         cached_sigs = self._cache.get(module_name, cache_version)
         if cached_sigs is not None:
+            logger.debug("disk cache hit for: %s", module_name)
             # convert back to frozensets - cached_sigs is dict[str, list[str]]
             sigs: dict[str, frozenset[str]] = {
                 str(k): frozenset(
@@ -532,6 +641,41 @@ class ExternalAnalyser:
             return True
         except ValueError:
             return False
+
+    def _check_docstring_for_raises(self, module_name: str, function_name: str) -> bool:
+        """
+        check if a function's docstring mentions raising exceptions.
+
+        this is a heuristic for functions we can't statically analyse.
+
+        arguments:
+            `module_name: str`
+                the module containing the function
+            `function_name: str`
+                the function name (may be dotted for methods)
+
+        returns: `bool`
+            true if the docstring mentions raising exceptions
+        """
+        logger.debug("checking docstring for: %s.%s", module_name, function_name)
+        try:
+            module = importlib.import_module(module_name)
+            obj = module
+            # handle dotted function names (e.g., "JSONDecoder.decode")
+            for part in function_name.split("."):
+                obj = getattr(obj, part, None)  # pyright: ignore[reportAny]
+                if obj is None:
+                    return False
+
+            if obj is not None and hasattr(obj, "__doc__") and obj.__doc__:
+                doc_lower: str = obj.__doc__.lower()  # pyright: ignore[reportAny]
+                has_raises = "raise" in doc_lower or "raises" in doc_lower
+                if has_raises:
+                    logger.debug("docstring mentions raises for: %s.%s", module_name, function_name)
+                return has_raises
+        except (ImportError, AttributeError, TypeError):
+            pass
+        return False
 
     def resolve_import_to_module(
         self,

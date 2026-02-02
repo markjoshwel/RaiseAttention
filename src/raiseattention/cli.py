@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -103,6 +104,16 @@ examples:
             "'tomlantic.TOMLValidationError')"
         ),
     )
+    check_parser.add_argument(
+        "--no-warn-native",
+        action="store_true",
+        help="disable warnings about possible native code exceptions",
+    )
+    check_parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="enable debug logging for troubleshooting",
+    )
 
     # lsp command
     lsp_parser = subparsers.add_parser(
@@ -169,6 +180,13 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
     returns: `int`
         exit code (0 = no issues, 1 = issues found, 2 = error)
     """
+    # enable debug logging if requested
+    if args.debug:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="[%(name)s] %(message)s",
+        )
+
     # apply cli overrides
     if args.local:
         config.analysis.local_only = True
@@ -178,6 +196,8 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
         config.analysis.full_module_path = True
     if args.include_ignored:
         config.respect_gitignore = False
+    if args.no_warn_native:
+        config.analysis.warn_native = False
 
     analyzer = ExceptionAnalyser(config)
     all_results = []

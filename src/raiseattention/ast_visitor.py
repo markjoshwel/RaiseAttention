@@ -10,6 +10,7 @@ propagation analysis.
 from __future__ import annotations
 
 import ast
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -18,6 +19,8 @@ from typing_extensions import override
 
 if TYPE_CHECKING:
     pass
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -84,12 +87,15 @@ class CallInfo:
             whether this is an await expression
         `containing_try_blocks: list[int]`
             indices into try_except_blocks that contain this call
+        `callable_args: list[str]`
+            names of callables passed as arguments (for HOF tracking)
     """
 
     func_name: str
     location: tuple[int, int]
     is_async: bool = False
     containing_try_blocks: list[int] = field(default_factory=list)
+    callable_args: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -112,6 +118,8 @@ class FunctionInfo:
             function docstring if present
         `is_async: bool`
             whether this is an async function
+        `decorators: list[str]`
+            names of decorators applied to this function
     """
 
     name: str
@@ -121,6 +129,7 @@ class FunctionInfo:
     calls: list[CallInfo] = field(default_factory=list)
     docstring: str | None = None
     is_async: bool = False
+    decorators: list[str] = field(default_factory=list)
 
 
 class ExceptionVisitor(ast.NodeVisitor):
@@ -219,6 +228,14 @@ class ExceptionVisitor(ast.NodeVisitor):
         # extract docstring
         docstring = ast.get_docstring(node)
 
+        # extract decorators
+        decorators = [self._get_decorator_name(dec) for dec in node.decorator_list]
+        decorators = [d for d in decorators if d]  # filter out empty strings
+
+        logger.debug("visiting function: %s", qualified_name)
+        if decorators:
+            logger.debug("function has decorators: %s", decorators)
+
         # create function info
         func_info = FunctionInfo(
             name=node.name,
@@ -226,6 +243,7 @@ class ExceptionVisitor(ast.NodeVisitor):
             location=(node.lineno, node.col_offset),
             docstring=docstring,
             is_async=is_async,
+            decorators=decorators,
         )
 
         # store and set as current
@@ -270,6 +288,7 @@ class ExceptionVisitor(ast.NodeVisitor):
                 location=(node.lineno, node.col_offset),
                 is_re_raise=True,
             )
+            logger.debug("found bare raise (re-raise) at line %d", node.lineno)
         else:
             # get exception type
             exc_type = self._get_exception_type(node.exc)
@@ -289,6 +308,7 @@ class ExceptionVisitor(ast.NodeVisitor):
                 message=message,
                 is_re_raise=False,
             )
+            logger.debug("found raise statement: %s at line %d", exc_type, node.lineno)
 
         # add to current function if inside one
         if self.current_function:
@@ -305,6 +325,8 @@ class ExceptionVisitor(ast.NodeVisitor):
             `node: ast.Try`
                 the try statement node
         """
+        logger.debug("entering try-block at line %d", node.lineno)
+
         try_info = TryExceptInfo(
             location=(node.lineno, node.col_offset),
         )
@@ -387,13 +409,19 @@ class ExceptionVisitor(ast.NodeVisitor):
         if self.current_function:
             func_name = self._get_call_name(node.func)
             if func_name:
+                callable_args = self._extract_callable_args(node)
                 call_info = CallInfo(
                     func_name=func_name,
                     location=(node.lineno, node.col_offset),
                     is_async=False,
                     containing_try_blocks=list(self.active_try_blocks),
+                    callable_args=callable_args,
                 )
                 self.current_function.calls.append(call_info)
+
+                logger.debug("found call to '%s' at line %d", func_name, node.lineno)
+                if callable_args:
+                    logger.debug("call has callable args: %s", callable_args)
 
         self.generic_visit(node)
 
@@ -410,13 +438,19 @@ class ExceptionVisitor(ast.NodeVisitor):
             call_node = node.value
             func_name = self._get_call_name(call_node.func)
             if func_name:
+                callable_args = self._extract_callable_args(call_node)
                 call_info = CallInfo(
                     func_name=func_name,
                     location=(node.lineno, node.col_offset),
                     is_async=True,
                     containing_try_blocks=list(self.active_try_blocks),
+                    callable_args=callable_args,
                 )
                 self.current_function.calls.append(call_info)
+
+                logger.debug("found async call to '%s' at line %d", func_name, node.lineno)
+                if callable_args:
+                    logger.debug("call has callable args: %s", callable_args)
 
         self.generic_visit(node)
 
@@ -491,6 +525,62 @@ class ExceptionVisitor(ast.NodeVisitor):
         elif isinstance(node, ast.Attribute):
             return self._get_attribute_string(node)
         return None
+
+    def _get_decorator_name(self, node: ast.expr) -> str:
+        """
+        get the name of a decorator from its ast node.
+
+        arguments:
+            `node: ast.expr`
+                the decorator expression node
+
+        returns: `str`
+            decorator name (empty string if cannot be determined)
+        """
+        if isinstance(node, ast.Name):
+            return node.id
+        elif isinstance(node, ast.Attribute):
+            return self._get_attribute_string(node)
+        elif isinstance(node, ast.Call):
+            # decorator with arguments, e.g., @lru_cache(maxsize=128)
+            return self._get_decorator_name(node.func)
+        return ""
+
+    def _extract_callable_args(self, call: ast.Call) -> list[str]:
+        """
+        extract names of callables passed as arguments to a function call.
+
+        detects function references, method references, and lambdas passed
+        as positional or keyword arguments.
+
+        arguments:
+            `call: ast.Call`
+                the call expression node
+
+        returns: `list[str]`
+            names of callable arguments (lambdas represented as '<lambda>')
+        """
+        callables: list[str] = []
+
+        # check positional arguments
+        for arg in call.args:
+            if isinstance(arg, ast.Name):
+                callables.append(arg.id)
+            elif isinstance(arg, ast.Attribute):
+                callables.append(self._get_attribute_string(arg))
+            elif isinstance(arg, ast.Lambda):
+                callables.append("<lambda>")
+
+        # check keyword arguments
+        for kw in call.keywords:
+            if isinstance(kw.value, ast.Name):
+                callables.append(kw.value.id)
+            elif isinstance(kw.value, ast.Attribute):
+                callables.append(self._get_attribute_string(kw.value))
+            elif isinstance(kw.value, ast.Lambda):
+                callables.append("<lambda>")
+
+        return callables
 
 
 def parse_file(file_path: str | Path) -> ExceptionVisitor:
