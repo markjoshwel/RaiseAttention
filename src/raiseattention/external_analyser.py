@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Final
 from .ast_visitor import ExceptionVisitor, FunctionInfo, parse_file
 from .cache import DependencyCache
 from .config import CacheConfig
+from .stub_resolver import StubResolver, create_stub_resolver
 
 if TYPE_CHECKING:
     from .env_detector import VenvInfo
@@ -167,6 +168,7 @@ class ExternalAnalyser:
         "_cache",
         "_analysis_cache",
         "_stdlib_path",
+        "_stub_resolver",
     )
 
     def __init__(
@@ -175,6 +177,9 @@ class ExternalAnalyser:
         cache_config: CacheConfig | None = None,
         *,
         warn_native: bool = True,
+        stub_resolver: StubResolver | None = None,
+        project_root: Path | None = None,
+        python_version: str = "3.12",
     ) -> None:
         """
         initialise the external analyser.
@@ -186,11 +191,21 @@ class ExternalAnalyser:
                 caching configuration
             `warn_native: bool`
                 whether to warn about possible native code exceptions
+            `stub_resolver: StubResolver | None`
+                custom stub resolver (auto-created if none)
+            `project_root: Path | None`
+                project root for local stub overrides
+            `python_version: str`
+                python version for stub resolution
         """
         self.venv_info: VenvInfo | None = venv_info
         self.warn_native: bool = warn_native
         self._cache: DependencyCache = DependencyCache(cache_config or CacheConfig())
         self._analysis_cache: dict[str, ModuleAnalysis] = {}
+        self._stub_resolver: StubResolver = stub_resolver or create_stub_resolver(
+            project_root=project_root,
+            python_version=python_version,
+        )
 
         stdlib_str = sysconfig.get_path("stdlib")
         self._stdlib_path: Path | None = Path(stdlib_str) if stdlib_str else None
@@ -204,10 +219,11 @@ class ExternalAnalyser:
         get exception signature for a function in an external module.
 
         uses a multi-step resolution strategy:
-        1. analyse the target module
-        2. search for the function by name variants
-        3. if not found, follow imports to submodules
-        4. for c extensions, return PossibleNativeException if warn_native
+        1. check .pyras stub files first (for c extensions and pre-computed signatures)
+        2. analyse the target module
+        3. search for the function by name variants
+        4. if not found, follow imports to submodules
+        5. for c extensions, return PossibleNativeException if warn_native
 
         arguments:
             `module_name: str`
@@ -219,6 +235,19 @@ class ExternalAnalyser:
             list of exception types the function may raise
         """
         logger.debug("resolving exceptions for: %s.%s", module_name, function_name)
+
+        # check stub files first (covers c extensions and pre-computed signatures)
+        qualname = f"{module_name}.{function_name}"
+        stub_result = self._stub_resolver.get_raises(qualname)
+        if stub_result is not None:
+            logger.debug(
+                "found stub for %s: %s (confidence=%s, source=%s)",
+                qualname,
+                stub_result.raises,
+                stub_result.confidence,
+                stub_result.source,
+            )
+            return list(stub_result.raises)
 
         # check if module is a c extension
         location = self._resolve_module(module_name)

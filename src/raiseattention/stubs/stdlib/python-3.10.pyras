@@ -1,0 +1,6190 @@
+[metadata]
+name = "stdlib"
+version = ">=3.10,<3.11"
+format_version = "1.0"
+generator = "standardstubber@0.1.0"
+generated_at = "2026-02-02T21:51:50.558623+00:00"
+
+["_abc._abc_init"]
+raises = ['TypeError']
+
+["_abc._abc_instancecheck"]
+raises = ['TypeError']
+
+["_abc._abc_register"]
+raises = ['TypeError']
+
+["_abc._abc_subclasscheck"]
+raises = ['TypeError']
+
+["_abc._get_dump"]
+raises = ['TypeError']
+
+["_abc._reset_caches"]
+raises = ['TypeError']
+
+["_abc._reset_registry"]
+raises = ['TypeError']
+
+["_abc.get_cache_token"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.__class_getitem__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio._enter_task"]
+raises = ['TypeError']
+
+["_asyncio._get_event_loop"]
+raises = ['TypeError']
+
+["_asyncio._get_running_loop"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio._leave_task"]
+raises = ['TypeError']
+
+["_asyncio._make_cancelled_error"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio._register_task"]
+raises = ['TypeError']
+
+["_asyncio._repr_info"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio._set_running_loop"]
+raises = ['TypeError']
+
+["_asyncio._unregister_task"]
+raises = ['TypeError']
+
+["_asyncio.add_done_callback"]
+raises = ['TypeError']
+
+["_asyncio.cancel"]
+raises = ['TypeError']
+
+["_asyncio.cancelled"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.done"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.exception"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.get_coro"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.get_event_loop"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.get_loop"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.get_name"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.get_running_loop"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.get_stack"]
+raises = ['TypeError']
+
+["_asyncio.print_stack"]
+raises = ['TypeError']
+
+["_asyncio.remove_done_callback"]
+raises = ['TypeError']
+
+["_asyncio.result"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.send"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_asyncio.set_exception"]
+raises = ['RuntimeError', 'TypeError']
+
+["_asyncio.set_name"]
+raises = ['TypeError']
+
+["_asyncio.set_result"]
+raises = ['RuntimeError', 'TypeError']
+
+["_asyncio.throw"]
+raises = ['TypeError']
+
+["_bisect.bisect_left"]
+raises = ['TypeError']
+
+["_bisect.bisect_right"]
+raises = ['TypeError']
+
+["_bisect.insort_left"]
+raises = ['TypeError']
+
+["_bisect.insort_right"]
+raises = ['TypeError']
+
+["_blake2.copy"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_blake2.copy"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_blake2.digest"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_blake2.digest"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_blake2.hexdigest"]
+raises = ['TypeError']
+
+["_blake2.hexdigest"]
+raises = ['TypeError']
+
+["_blake2.update"]
+raises = ['BufferError', 'TypeError']
+
+["_blake2.update"]
+raises = ['BufferError', 'TypeError']
+
+["_bz2.compress"]
+raises = ['TypeError']
+
+["_bz2.decompress"]
+raises = ['TypeError']
+
+["_bz2.flush"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_codecs.ascii_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.ascii_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.charmap_build"]
+raises = ['TypeError']
+
+["_codecs.charmap_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.charmap_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.code_page_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.code_page_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.escape_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.escape_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.latin_1_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.latin_1_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.lookup"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.lookup_error"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.mbcs_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.mbcs_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.oem_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.oem_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.raw_unicode_escape_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.raw_unicode_escape_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.readbuffer_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.register"]
+raises = ['TypeError']
+
+["_codecs.register_error"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.unicode_escape_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.unicode_escape_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.unregister"]
+raises = ['TypeError']
+
+["_codecs.utf_16_be_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_16_be_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_16_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_16_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_16_ex_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_16_le_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_16_le_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_32_be_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_32_be_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_32_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_32_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_32_ex_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_32_le_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_32_le_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_7_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_7_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_8_decode"]
+raises = ['TypeError', 'ValueError']
+
+["_codecs.utf_8_encode"]
+raises = ['TypeError', 'ValueError']
+
+["_collections.__class_getitem__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.__copy__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.__length_hint__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.__missing__"]
+raises = ['KeyError']
+
+["_collections.__reduce__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.__reversed__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.__sizeof__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections._count_elements"]
+raises = ['TypeError']
+
+["_collections.append"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.appendleft"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.clear"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.copy"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.count"]
+raises = ['RuntimeError']
+
+["_collections.extend"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.extendleft"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.index"]
+raises = ['RuntimeError', 'TypeError', 'ValueError']
+
+["_collections.insert"]
+raises = ['IndexError', 'TypeError']
+
+["_collections.pop"]
+raises = ['IndexError']
+
+["_collections.popleft"]
+raises = ['IndexError']
+
+["_collections.remove"]
+raises = ['IndexError', 'ValueError']
+
+["_collections.reverse"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_collections.rotate"]
+raises = ['TypeError']
+
+["_contextvars.copy_context"]
+raises = ['TypeError']
+
+["_crypt.crypt"]
+raises = ['TypeError', 'ValueError']
+
+["_csv.__reduce__"]
+raises = ['TypeError']
+
+["_csv.__reduce_ex__"]
+raises = ['TypeError']
+
+["_csv.field_size_limit"]
+raises = ['TypeError']
+
+["_csv.get_dialect"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_csv.list_dialects"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_csv.reader"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_csv.register_dialect"]
+raises = ['TypeError']
+
+["_csv.unregister_dialect"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_csv.writer"]
+raises = ['TypeError']
+
+["_csv.writerow"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_csv.writerows"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes.CopyComPointer"]
+raises = ['TypeError']
+
+["_ctypes.FormatError"]
+raises = ['TypeError']
+
+["_ctypes.FreeLibrary"]
+raises = ['OSError', 'TypeError']
+
+["_ctypes.LoadLibrary"]
+raises = ['FileNotFoundError', 'OSError', 'TypeError']
+
+["_ctypes.POINTER"]
+raises = ['MemoryError', 'TypeError']
+
+["_ctypes.PyObj_FromPtr"]
+raises = ['TypeError']
+
+["_ctypes.Py_DECREF"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes.Py_INCREF"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes.__class_getitem__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes.__ctypes_from_outparam__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes.__reduce__"]
+raises = ['ValueError']
+
+["_ctypes.__setstate__"]
+raises = ['TypeError']
+
+["_ctypes.__sizeof__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes._check_HRESULT"]
+raises = ['OSError', 'TypeError']
+
+["_ctypes._unpickle"]
+raises = ['TypeError']
+
+["_ctypes.addressof"]
+raises = ['TypeError']
+
+["_ctypes.alignment"]
+raises = ['TypeError']
+
+["_ctypes.buffer_info"]
+raises = ['TypeError']
+
+["_ctypes.byref"]
+raises = ['TypeError']
+
+["_ctypes.call_cdeclfunction"]
+raises = ['TypeError']
+
+["_ctypes.call_function"]
+raises = ['TypeError']
+
+["_ctypes.from_address"]
+raises = ['TypeError']
+
+["_ctypes.from_buffer"]
+raises = ['TypeError', 'ValueError']
+
+["_ctypes.from_buffer_copy"]
+raises = ['TypeError', 'ValueError']
+
+["_ctypes.from_param"]
+raises = ['TypeError']
+
+["_ctypes.func"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes.func_si"]
+raises = ['TypeError']
+
+["_ctypes.get_errno"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes.get_last_error"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes.in_dll"]
+raises = ['TypeError', 'ValueError']
+
+["_ctypes.pointer"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes.resize"]
+raises = ['MemoryError', 'TypeError', 'ValueError']
+
+["_ctypes.set_errno"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes.set_last_error"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ctypes.set_type"]
+raises = ['TypeError']
+
+["_ctypes.sizeof"]
+raises = ['TypeError']
+
+["_curses.addch"]
+raises = ['TypeError']
+
+["_curses.addnstr"]
+raises = ['TypeError']
+
+["_curses.addstr"]
+raises = ['TypeError']
+
+["_curses.attroff"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.attron"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.attrset"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.baudrate"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.beep"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.bkgd"]
+raises = ['TypeError']
+
+["_curses.bkgdset"]
+raises = ['TypeError']
+
+["_curses.border"]
+raises = ['TypeError']
+
+["_curses.box"]
+raises = ['TypeError']
+
+["_curses.can_change_color"]
+raises = ['TypeError']
+
+["_curses.cbreak"]
+raises = ['TypeError']
+
+["_curses.clear"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.clearok"]
+raises = ['TypeError']
+
+["_curses.clrtobot"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.clrtoeol"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.color_content"]
+raises = ['TypeError']
+
+["_curses.color_pair"]
+raises = ['TypeError']
+
+["_curses.curs_set"]
+raises = ['TypeError']
+
+["_curses.cursyncup"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.def_prog_mode"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.def_shell_mode"]
+raises = ['TypeError']
+
+["_curses.delay_output"]
+raises = ['TypeError']
+
+["_curses.delch"]
+raises = ['TypeError']
+
+["_curses.deleteln"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.derwin"]
+raises = ['TypeError']
+
+["_curses.doupdate"]
+raises = ['TypeError']
+
+["_curses.echo"]
+raises = ['TypeError']
+
+["_curses.echochar"]
+raises = ['TypeError']
+
+["_curses.endwin"]
+raises = ['TypeError']
+
+["_curses.erase"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.erasechar"]
+raises = ['TypeError']
+
+["_curses.flash"]
+raises = ['TypeError']
+
+["_curses.flushinp"]
+raises = ['TypeError']
+
+["_curses.getbegyx"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.getbkgd"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.getch"]
+raises = ['TypeError']
+
+["_curses.getkey"]
+raises = ['TypeError']
+
+["_curses.getmaxyx"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.getparyx"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.getstr"]
+raises = ['TypeError', 'ValueError']
+
+["_curses.getwin"]
+raises = ['OSError', 'TypeError']
+
+["_curses.getyx"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.halfdelay"]
+raises = ['OverflowError', 'TypeError']
+
+["_curses.has_colors"]
+raises = ['TypeError']
+
+["_curses.has_extended_color_support"]
+raises = ['TypeError']
+
+["_curses.has_ic"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.has_il"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.hline"]
+raises = ['TypeError']
+
+["_curses.idcok"]
+raises = ['TypeError']
+
+["_curses.idlok"]
+raises = ['TypeError']
+
+["_curses.inch"]
+raises = ['TypeError']
+
+["_curses.init_color"]
+raises = ['TypeError']
+
+["_curses.init_pair"]
+raises = ['TypeError']
+
+["_curses.initscr"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.insch"]
+raises = ['TypeError']
+
+["_curses.insdelln"]
+raises = ['TypeError']
+
+["_curses.insertln"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.insnstr"]
+raises = ['TypeError']
+
+["_curses.insstr"]
+raises = ['TypeError']
+
+["_curses.instr"]
+raises = ['TypeError', 'ValueError']
+
+["_curses.intrflush"]
+raises = ['TypeError']
+
+["_curses.is_linetouched"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.is_wintouched"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.isendwin"]
+raises = ['TypeError']
+
+["_curses.keyname"]
+raises = ['TypeError']
+
+["_curses.keypad"]
+raises = ['TypeError']
+
+["_curses.killchar"]
+raises = ['TypeError']
+
+["_curses.leaveok"]
+raises = ['TypeError']
+
+["_curses.longname"]
+raises = ['TypeError']
+
+["_curses.meta"]
+raises = ['TypeError']
+
+["_curses.move"]
+raises = ['TypeError']
+
+["_curses.mvderwin"]
+raises = ['TypeError']
+
+["_curses.mvwin"]
+raises = ['TypeError']
+
+["_curses.napms"]
+raises = ['TypeError']
+
+["_curses.newpad"]
+raises = ['TypeError']
+
+["_curses.newwin"]
+raises = ['TypeError']
+
+["_curses.nl"]
+raises = ['TypeError']
+
+["_curses.nocbreak"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.nodelay"]
+raises = ['TypeError']
+
+["_curses.noecho"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.nonl"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.noqiflush"]
+raises = ['TypeError']
+
+["_curses.noraw"]
+raises = ['TypeError']
+
+["_curses.notimeout"]
+raises = ['TypeError']
+
+["_curses.noutrefresh"]
+raises = ['TypeError']
+
+["_curses.overlay"]
+raises = ['TypeError']
+
+["_curses.overwrite"]
+raises = ['TypeError']
+
+["_curses.pair_content"]
+raises = ['TypeError']
+
+["_curses.pair_number"]
+raises = ['TypeError']
+
+["_curses.putp"]
+raises = ['TypeError']
+
+["_curses.putwin"]
+raises = ['OSError', 'TypeError']
+
+["_curses.qiflush"]
+raises = ['TypeError']
+
+["_curses.raw"]
+raises = ['TypeError']
+
+["_curses.redrawln"]
+raises = ['TypeError']
+
+["_curses.redrawwin"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.refresh"]
+raises = ['TypeError']
+
+["_curses.reset_prog_mode"]
+raises = ['TypeError']
+
+["_curses.reset_shell_mode"]
+raises = ['TypeError']
+
+["_curses.resetty"]
+raises = ['TypeError']
+
+["_curses.resize"]
+raises = ['TypeError']
+
+["_curses.savetty"]
+raises = ['TypeError']
+
+["_curses.scroll"]
+raises = ['TypeError']
+
+["_curses.scrollok"]
+raises = ['TypeError']
+
+["_curses.setscrreg"]
+raises = ['TypeError']
+
+["_curses.setupterm"]
+raises = ['TypeError', 'ValueError']
+
+["_curses.standend"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.standout"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.start_color"]
+raises = ['TypeError']
+
+["_curses.subpad"]
+raises = ['TypeError']
+
+["_curses.subwin"]
+raises = ['TypeError']
+
+["_curses.syncdown"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.syncup"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.termattrs"]
+raises = ['TypeError']
+
+["_curses.termname"]
+raises = ['TypeError']
+
+["_curses.tigetflag"]
+raises = ['TypeError', 'ValueError']
+
+["_curses.tigetnum"]
+raises = ['TypeError', 'ValueError']
+
+["_curses.tigetstr"]
+raises = ['TypeError', 'ValueError']
+
+["_curses.timeout"]
+raises = ['TypeError']
+
+["_curses.touchline"]
+raises = ['TypeError']
+
+["_curses.touchwin"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.tparm"]
+raises = ['TypeError']
+
+["_curses.unctrl"]
+raises = ['TypeError']
+
+["_curses.ungetch"]
+raises = ['TypeError']
+
+["_curses.untouchwin"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses.use_default_colors"]
+raises = ['TypeError']
+
+["_curses.vline"]
+raises = ['TypeError']
+
+["_curses_panel.above"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses_panel.below"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses_panel.bottom"]
+raises = ['TypeError']
+
+["_curses_panel.bottom_panel"]
+raises = ['TypeError']
+
+["_curses_panel.hidden"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_curses_panel.hide"]
+raises = ['TypeError']
+
+["_curses_panel.move"]
+raises = ['TypeError']
+
+["_curses_panel.new_panel"]
+raises = ['TypeError']
+
+["_curses_panel.replace"]
+raises = ['TypeError']
+
+["_curses_panel.set_userptr"]
+raises = ['TypeError']
+
+["_curses_panel.show"]
+raises = ['TypeError']
+
+["_curses_panel.top"]
+raises = ['TypeError']
+
+["_curses_panel.top_panel"]
+raises = ['TypeError']
+
+["_curses_panel.update_panels"]
+raises = ['TypeError']
+
+["_curses_panel.userptr"]
+raises = ['TypeError']
+
+["_curses_panel.window"]
+raises = ['TypeError']
+
+["_datetime.__format__"]
+raises = ['TypeError']
+
+["_datetime.__getinitargs__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.__reduce__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.__reduce_ex__"]
+raises = ['TypeError']
+
+["_datetime.astimezone"]
+raises = ['TypeError']
+
+["_datetime.combine"]
+raises = ['TypeError']
+
+["_datetime.ctime"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.date"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.dst"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.fromisocalendar"]
+raises = ['TypeError', 'ValueError']
+
+["_datetime.fromisoformat"]
+raises = ['TypeError', 'ValueError']
+
+["_datetime.fromordinal"]
+raises = ['TypeError', 'ValueError']
+
+["_datetime.fromtimestamp"]
+raises = ['TypeError']
+
+["_datetime.fromutc"]
+raises = ['TypeError', 'ValueError']
+
+["_datetime.isocalendar"]
+raises = ['TypeError']
+
+["_datetime.isoformat"]
+raises = ['TypeError', 'ValueError']
+
+["_datetime.isoweekday"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.now"]
+raises = ['TypeError']
+
+["_datetime.replace"]
+raises = ['TypeError', 'ValueError']
+
+["_datetime.strftime"]
+raises = ['TypeError']
+
+["_datetime.strptime"]
+raises = ['TypeError']
+
+["_datetime.time"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.timestamp"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.timetuple"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.timetz"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.today"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.toordinal"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.total_seconds"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.tzname"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.utcfromtimestamp"]
+raises = ['TypeError']
+
+["_datetime.utcnow"]
+raises = ['TypeError']
+
+["_datetime.utcoffset"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.utctimetuple"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_datetime.weekday"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_dbm.__enter__"]
+raises = ['TypeError']
+
+["_dbm.__exit__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_dbm.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_dbm.get"]
+raises = ['TypeError']
+
+["_dbm.keys"]
+raises = ['TypeError']
+
+["_dbm.open"]
+raises = ['TypeError', 'ValueError']
+
+["_dbm.setdefault"]
+raises = ['TypeError']
+
+["_decimal.Etiny"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.Etop"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.__ceil__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.__complex__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.__copy__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.__deepcopy__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.__enter__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.__exit__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.__floor__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.__format__"]
+raises = ['MemoryError', 'TypeError', 'ValueError']
+
+["_decimal.__reduce__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.__round__"]
+raises = ['TypeError']
+
+["_decimal.__sizeof__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.__trunc__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal._apply"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.abs"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.add"]
+raises = ['TypeError']
+
+["_decimal.adjusted"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.as_integer_ratio"]
+raises = ['MemoryError', 'OverflowError', 'ValueError']
+
+["_decimal.as_tuple"]
+raises = ['MemoryError']
+
+["_decimal.canonical"]
+raises = ['TypeError']
+
+["_decimal.clear_flags"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.clear_traps"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.compare"]
+raises = ['TypeError']
+
+["_decimal.compare_signal"]
+raises = ['TypeError']
+
+["_decimal.compare_total"]
+raises = ['TypeError']
+
+["_decimal.compare_total_mag"]
+raises = ['TypeError']
+
+["_decimal.conjugate"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.copy"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.copy_abs"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.copy_decimal"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.copy_negate"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.copy_sign"]
+raises = ['TypeError']
+
+["_decimal.create_decimal"]
+raises = ['TypeError']
+
+["_decimal.create_decimal_from_float"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.divide"]
+raises = ['TypeError']
+
+["_decimal.divide_int"]
+raises = ['TypeError']
+
+["_decimal.divmod"]
+raises = ['TypeError']
+
+["_decimal.exp"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.fma"]
+raises = ['TypeError']
+
+["_decimal.from_float"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.getcontext"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.is_canonical"]
+raises = ['TypeError']
+
+["_decimal.is_finite"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.is_infinite"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.is_nan"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.is_normal"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.is_qnan"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.is_signed"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.is_snan"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.is_subnormal"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.is_zero"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.ln"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.localcontext"]
+raises = ['TypeError']
+
+["_decimal.log10"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.logb"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.logical_and"]
+raises = ['TypeError']
+
+["_decimal.logical_invert"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.logical_or"]
+raises = ['TypeError']
+
+["_decimal.logical_xor"]
+raises = ['TypeError']
+
+["_decimal.max"]
+raises = ['TypeError']
+
+["_decimal.max_mag"]
+raises = ['TypeError']
+
+["_decimal.min"]
+raises = ['TypeError']
+
+["_decimal.min_mag"]
+raises = ['TypeError']
+
+["_decimal.minus"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.multiply"]
+raises = ['TypeError']
+
+["_decimal.next_minus"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.next_plus"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.next_toward"]
+raises = ['TypeError']
+
+["_decimal.normalize"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.number_class"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.plus"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.power"]
+raises = ['TypeError']
+
+["_decimal.quantize"]
+raises = ['TypeError']
+
+["_decimal.radix"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.remainder"]
+raises = ['TypeError']
+
+["_decimal.remainder_near"]
+raises = ['TypeError']
+
+["_decimal.rotate"]
+raises = ['TypeError']
+
+["_decimal.same_quantum"]
+raises = ['TypeError']
+
+["_decimal.scaleb"]
+raises = ['TypeError']
+
+["_decimal.setcontext"]
+raises = ['TypeError']
+
+["_decimal.shift"]
+raises = ['TypeError']
+
+["_decimal.sqrt"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.subtract"]
+raises = ['TypeError']
+
+["_decimal.to_eng_string"]
+raises = ['MemoryError']
+
+["_decimal.to_integral"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.to_integral_exact"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.to_integral_value"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_decimal.to_sci_string"]
+raises = ['MemoryError']
+
+["_elementtree.SubElement"]
+raises = ['TypeError']
+
+["_elementtree.__copy__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_elementtree.__deepcopy__"]
+raises = ['TypeError']
+
+["_elementtree.__getstate__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_elementtree.__setstate__"]
+raises = ['TypeError']
+
+["_elementtree.__sizeof__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_elementtree._parse_whole"]
+raises = ['OverflowError', 'TypeError']
+
+["_elementtree._set_factories"]
+raises = ['TypeError']
+
+["_elementtree._setevents"]
+raises = ['TypeError']
+
+["_elementtree.append"]
+raises = ['TypeError']
+
+["_elementtree.clear"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_elementtree.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_elementtree.comment"]
+raises = ['TypeError']
+
+["_elementtree.data"]
+raises = ['TypeError']
+
+["_elementtree.end"]
+raises = ['TypeError']
+
+["_elementtree.extend"]
+raises = ['TypeError']
+
+["_elementtree.feed"]
+raises = ['OverflowError', 'TypeError']
+
+["_elementtree.find"]
+raises = ['TypeError']
+
+["_elementtree.findall"]
+raises = ['TypeError']
+
+["_elementtree.findtext"]
+raises = ['TypeError']
+
+["_elementtree.flush"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_elementtree.get"]
+raises = ['TypeError']
+
+["_elementtree.insert"]
+raises = ['TypeError']
+
+["_elementtree.items"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_elementtree.iter"]
+raises = ['TypeError']
+
+["_elementtree.iterfind"]
+raises = ['TypeError']
+
+["_elementtree.itertext"]
+raises = ['TypeError']
+
+["_elementtree.keys"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_elementtree.makeelement"]
+raises = ['TypeError']
+
+["_elementtree.pi"]
+raises = ['TypeError']
+
+["_elementtree.remove"]
+raises = ['TypeError']
+
+["_elementtree.set"]
+raises = ['TypeError']
+
+["_elementtree.start"]
+raises = ['TypeError']
+
+["_functools.__class_getitem__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_functools.__copy__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_functools.__deepcopy__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_functools.__reduce__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_functools.__setstate__"]
+raises = ['TypeError']
+
+["_functools.cache_clear"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_functools.cache_info"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_functools.cmp_to_key"]
+raises = ['TypeError']
+
+["_functools.reduce"]
+raises = ['TypeError']
+
+["_gdbm.__enter__"]
+raises = ['TypeError']
+
+["_gdbm.__exit__"]
+raises = ['TypeError']
+
+["_gdbm.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_gdbm.firstkey"]
+raises = ['TypeError']
+
+["_gdbm.get"]
+raises = ['TypeError']
+
+["_gdbm.keys"]
+raises = ['TypeError']
+
+["_gdbm.nextkey"]
+raises = ['TypeError']
+
+["_gdbm.open"]
+raises = ['TypeError', 'ValueError']
+
+["_gdbm.reorganize"]
+raises = ['TypeError']
+
+["_gdbm.setdefault"]
+raises = ['TypeError']
+
+["_gdbm.sync"]
+raises = ['TypeError']
+
+["_hashopenssl.compare_digest"]
+raises = ['TypeError']
+
+["_hashopenssl.copy"]
+raises = ['TypeError']
+
+["_hashopenssl.digest"]
+raises = ['TypeError']
+
+["_hashopenssl.get_fips_mode"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_hashopenssl.hexdigest"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_hashopenssl.hmac_digest"]
+raises = ['TypeError']
+
+["_hashopenssl.hmac_new"]
+raises = ['TypeError']
+
+["_hashopenssl.new"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_md5"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_sha1"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_sha224"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_sha256"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_sha384"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_sha3_224"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_sha3_256"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_sha3_384"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_sha3_512"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_sha512"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_shake_128"]
+raises = ['TypeError']
+
+["_hashopenssl.openssl_shake_256"]
+raises = ['TypeError']
+
+["_hashopenssl.pbkdf2_hmac"]
+raises = ['TypeError', 'ValueError']
+
+["_hashopenssl.scrypt"]
+raises = ['TypeError']
+
+["_hashopenssl.update"]
+raises = ['TypeError']
+
+["_heapq._heapify_max"]
+raises = ['TypeError']
+
+["_heapq._heappop_max"]
+raises = ['TypeError']
+
+["_heapq._heapreplace_max"]
+raises = ['TypeError']
+
+["_heapq.heapify"]
+raises = ['TypeError']
+
+["_heapq.heappop"]
+raises = ['TypeError']
+
+["_heapq.heappush"]
+raises = ['TypeError']
+
+["_heapq.heappushpop"]
+raises = ['TypeError']
+
+["_heapq.heapreplace"]
+raises = ['TypeError']
+
+["_io.__enter__"]
+raises = ['TypeError']
+
+["_io.__exit__"]
+raises = ['TypeError']
+
+["_io.__getstate__"]
+raises = ['TypeError']
+
+["_io.__getstate__"]
+raises = ['TypeError']
+
+["_io.__setstate__"]
+raises = ['TypeError', 'ValueError']
+
+["_io.__setstate__"]
+raises = ['TypeError', 'ValueError']
+
+["_io.__sizeof__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.__sizeof__"]
+raises = ['TypeError']
+
+["_io._checkClosed"]
+raises = ['TypeError']
+
+["_io._checkReadable"]
+raises = ['TypeError']
+
+["_io._checkSeekable"]
+raises = ['TypeError']
+
+["_io._checkWritable"]
+raises = ['TypeError']
+
+["_io._dealloc_warn"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io._dealloc_warn"]
+raises = ['TypeError']
+
+["_io.close"]
+raises = ['ValueError']
+
+["_io.close"]
+raises = ['TypeError']
+
+["_io.close"]
+raises = ['TypeError']
+
+["_io.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.decode"]
+raises = ['TypeError']
+
+["_io.detach"]
+raises = ['ValueError']
+
+["_io.detach"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.fileno"]
+raises = ['ValueError']
+
+["_io.fileno"]
+raises = ['TypeError']
+
+["_io.fileno"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.fileno"]
+raises = ['TypeError']
+
+["_io.fileno"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.flush"]
+raises = ['ValueError']
+
+["_io.flush"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.flush"]
+raises = ['TypeError']
+
+["_io.flush"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.getbuffer"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.getstate"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.getvalue"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.getvalue"]
+raises = ['TypeError']
+
+["_io.isatty"]
+raises = ['ValueError']
+
+["_io.isatty"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.isatty"]
+raises = ['TypeError']
+
+["_io.isatty"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.isatty"]
+raises = ['TypeError']
+
+["_io.isatty"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.open"]
+raises = ['TypeError', 'ValueError']
+
+["_io.open_code"]
+raises = ['TypeError']
+
+["_io.peek"]
+raises = ['TypeError']
+
+["_io.read"]
+raises = ['TypeError']
+
+["_io.read"]
+raises = ['TypeError']
+
+["_io.read"]
+raises = ['TypeError']
+
+["_io.read"]
+raises = ['TypeError']
+
+["_io.read"]
+raises = ['TypeError']
+
+["_io.read"]
+raises = ['TypeError']
+
+["_io.read"]
+raises = ['TypeError']
+
+["_io.read1"]
+raises = ['TypeError']
+
+["_io.read1"]
+raises = ['TypeError']
+
+["_io.readable"]
+raises = ['ValueError']
+
+["_io.readable"]
+raises = ['TypeError']
+
+["_io.readable"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.readable"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.readable"]
+raises = ['TypeError']
+
+["_io.readable"]
+raises = ['TypeError']
+
+["_io.readable"]
+raises = ['TypeError']
+
+["_io.readall"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.readall"]
+raises = ['TypeError']
+
+["_io.readall"]
+raises = ['TypeError']
+
+["_io.readinto"]
+raises = ['TypeError']
+
+["_io.readinto"]
+raises = ['TypeError']
+
+["_io.readinto"]
+raises = ['NotImplementedError']
+
+["_io.readinto"]
+raises = ['TypeError']
+
+["_io.readinto"]
+raises = ['TypeError']
+
+["_io.readinto1"]
+raises = ['TypeError']
+
+["_io.readline"]
+raises = ['TypeError']
+
+["_io.readline"]
+raises = ['TypeError']
+
+["_io.readline"]
+raises = ['TypeError']
+
+["_io.readline"]
+raises = ['TypeError']
+
+["_io.readline"]
+raises = ['TypeError']
+
+["_io.readlines"]
+raises = ['TypeError']
+
+["_io.readlines"]
+raises = ['TypeError']
+
+["_io.reconfigure"]
+raises = ['TypeError']
+
+["_io.reset"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.seek"]
+raises = ['TypeError']
+
+["_io.seek"]
+raises = ['TypeError']
+
+["_io.seek"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.seek"]
+raises = ['TypeError']
+
+["_io.seek"]
+raises = ['TypeError']
+
+["_io.seek"]
+raises = ['TypeError']
+
+["_io.seekable"]
+raises = ['ValueError']
+
+["_io.seekable"]
+raises = ['TypeError']
+
+["_io.seekable"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.seekable"]
+raises = ['TypeError']
+
+["_io.seekable"]
+raises = ['TypeError']
+
+["_io.seekable"]
+raises = ['TypeError']
+
+["_io.setstate"]
+raises = ['TypeError', 'ValueError']
+
+["_io.tell"]
+raises = ['TypeError', 'ValueError']
+
+["_io.tell"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.tell"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.tell"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_io.tell"]
+raises = ['TypeError']
+
+["_io.tell"]
+raises = ['TypeError']
+
+["_io.text_encoding"]
+raises = ['TypeError']
+
+["_io.truncate"]
+raises = ['TypeError']
+
+["_io.truncate"]
+raises = ['TypeError']
+
+["_io.truncate"]
+raises = ['TypeError']
+
+["_io.truncate"]
+raises = ['TypeError']
+
+["_io.truncate"]
+raises = ['TypeError']
+
+["_io.truncate"]
+raises = ['TypeError']
+
+["_io.writable"]
+raises = ['ValueError']
+
+["_io.writable"]
+raises = ['TypeError']
+
+["_io.writable"]
+raises = ['TypeError']
+
+["_io.writable"]
+raises = ['TypeError']
+
+["_io.writable"]
+raises = ['TypeError']
+
+["_io.writable"]
+raises = ['TypeError']
+
+["_io.writable"]
+raises = ['TypeError']
+
+["_io.write"]
+raises = ['TypeError']
+
+["_io.write"]
+raises = ['TypeError']
+
+["_io.write"]
+raises = ['NotImplementedError']
+
+["_io.write"]
+raises = ['TypeError']
+
+["_io.write"]
+raises = ['TypeError', 'ValueError']
+
+["_io.write"]
+raises = ['TypeError']
+
+["_io.write"]
+raises = ['TypeError']
+
+["_io.writelines"]
+raises = ['TypeError']
+
+["_io.writelines"]
+raises = ['TypeError']
+
+["_json.encode_basestring"]
+raises = ['TypeError']
+
+["_json.encode_basestring_ascii"]
+raises = ['TypeError']
+
+["_json.scanstring"]
+raises = ['TypeError']
+
+["_locale._get_locale_encoding"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_locale._getdefaultlocale"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_locale.localeconv"]
+raises = ['TypeError']
+
+["_locale.setlocale"]
+raises = ['TypeError', 'ValueError']
+
+["_locale.strcoll"]
+raises = ['TypeError']
+
+["_locale.strxfrm"]
+raises = ['TypeError']
+
+["_lsprof.clear"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_lsprof.disable"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_lsprof.enable"]
+raises = ['TypeError']
+
+["_lsprof.getstats"]
+raises = ['TypeError']
+
+["_lzma._decode_filter_properties"]
+raises = ['TypeError']
+
+["_lzma._encode_filter_properties"]
+raises = ['TypeError']
+
+["_lzma.compress"]
+raises = ['TypeError']
+
+["_lzma.decompress"]
+raises = ['TypeError']
+
+["_lzma.flush"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_lzma.is_check_supported"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_multiprocessing.__enter__"]
+raises = ['TypeError']
+
+["_multiprocessing.__exit__"]
+raises = ['TypeError']
+
+["_multiprocessing._after_fork"]
+raises = ['TypeError']
+
+["_multiprocessing._count"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_multiprocessing._get_value"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_multiprocessing._is_mine"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_multiprocessing._is_zero"]
+raises = ['TypeError']
+
+["_multiprocessing._rebuild"]
+raises = ['TypeError']
+
+["_multiprocessing.acquire"]
+raises = ['TypeError']
+
+["_multiprocessing.closesocket"]
+raises = ['TypeError']
+
+["_multiprocessing.recv"]
+raises = ['TypeError']
+
+["_multiprocessing.release"]
+raises = ['TypeError']
+
+["_multiprocessing.sem_unlink"]
+raises = ['TypeError', 'ValueError']
+
+["_multiprocessing.send"]
+raises = ['TypeError']
+
+["_opcode.stack_effect"]
+raises = ['TypeError']
+
+["_operator.__reduce__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_operator._compare_digest"]
+raises = ['TypeError']
+
+["_operator.abs"]
+raises = ['TypeError']
+
+["_operator.add"]
+raises = ['TypeError']
+
+["_operator.and_"]
+raises = ['TypeError']
+
+["_operator.concat"]
+raises = ['TypeError']
+
+["_operator.contains"]
+raises = ['TypeError']
+
+["_operator.countOf"]
+raises = ['TypeError']
+
+["_operator.delitem"]
+raises = ['TypeError']
+
+["_operator.eq"]
+raises = ['TypeError']
+
+["_operator.floordiv"]
+raises = ['TypeError']
+
+["_operator.ge"]
+raises = ['TypeError']
+
+["_operator.getitem"]
+raises = ['TypeError']
+
+["_operator.gt"]
+raises = ['TypeError']
+
+["_operator.iadd"]
+raises = ['TypeError']
+
+["_operator.iand"]
+raises = ['TypeError']
+
+["_operator.iconcat"]
+raises = ['TypeError']
+
+["_operator.ifloordiv"]
+raises = ['TypeError']
+
+["_operator.ilshift"]
+raises = ['TypeError']
+
+["_operator.imatmul"]
+raises = ['TypeError']
+
+["_operator.imod"]
+raises = ['TypeError']
+
+["_operator.imul"]
+raises = ['TypeError']
+
+["_operator.index"]
+raises = ['TypeError']
+
+["_operator.indexOf"]
+raises = ['TypeError']
+
+["_operator.inv"]
+raises = ['TypeError']
+
+["_operator.invert"]
+raises = ['TypeError']
+
+["_operator.ior"]
+raises = ['TypeError']
+
+["_operator.ipow"]
+raises = ['TypeError']
+
+["_operator.irshift"]
+raises = ['TypeError']
+
+["_operator.is_"]
+raises = ['TypeError']
+
+["_operator.is_not"]
+raises = ['TypeError']
+
+["_operator.isub"]
+raises = ['TypeError']
+
+["_operator.itruediv"]
+raises = ['TypeError']
+
+["_operator.ixor"]
+raises = ['TypeError']
+
+["_operator.le"]
+raises = ['TypeError']
+
+["_operator.length_hint"]
+raises = ['TypeError']
+
+["_operator.lshift"]
+raises = ['TypeError']
+
+["_operator.lt"]
+raises = ['TypeError']
+
+["_operator.matmul"]
+raises = ['TypeError']
+
+["_operator.mod"]
+raises = ['TypeError']
+
+["_operator.mul"]
+raises = ['TypeError']
+
+["_operator.ne"]
+raises = ['TypeError']
+
+["_operator.neg"]
+raises = ['TypeError']
+
+["_operator.not_"]
+raises = ['TypeError']
+
+["_operator.or_"]
+raises = ['TypeError']
+
+["_operator.pos"]
+raises = ['TypeError']
+
+["_operator.pow"]
+raises = ['TypeError']
+
+["_operator.rshift"]
+raises = ['TypeError']
+
+["_operator.setitem"]
+raises = ['TypeError']
+
+["_operator.sub"]
+raises = ['TypeError']
+
+["_operator.truediv"]
+raises = ['TypeError']
+
+["_operator.truth"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_operator.xor"]
+raises = ['TypeError']
+
+["_pickle.__reduce__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_pickle.__sizeof__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_pickle.clear"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_pickle.clear_memo"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_pickle.copy"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_pickle.dump"]
+raises = ['TypeError']
+
+["_pickle.dumps"]
+raises = ['TypeError']
+
+["_pickle.find_class"]
+raises = ['TypeError']
+
+["_pickle.load"]
+raises = ['TypeError', 'ValueError']
+
+["_pickle.loads"]
+raises = ['TypeError', 'ValueError']
+
+["_posixsubprocess.fork_exec"]
+raises = ['OSError', 'RuntimeError', 'TypeError', 'ValueError']
+
+["_queue.__class_getitem__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_queue.empty"]
+raises = ['TypeError']
+
+["_queue.get"]
+raises = ['TypeError']
+
+["_queue.get_nowait"]
+raises = ['TypeError']
+
+["_queue.put"]
+raises = ['TypeError']
+
+["_queue.put_nowait"]
+raises = ['TypeError']
+
+["_queue.qsize"]
+raises = ['TypeError']
+
+["_random.getrandbits"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_random.getstate"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_random.random"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_random.seed"]
+raises = ['TypeError']
+
+["_random.setstate"]
+raises = ['TypeError', 'ValueError']
+
+["_scproxy._get_proxies"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_scproxy._get_proxy_settings"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sha3.copy"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sha3.digest"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sha3.hexdigest"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sha3.update"]
+raises = ['BufferError', 'RuntimeError', 'TypeError']
+
+["_sqlite.__enter__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sqlite.__exit__"]
+raises = ['TypeError']
+
+["_sqlite.adapt"]
+raises = ['TypeError']
+
+["_sqlite.backup"]
+raises = ['TypeError', 'ValueError']
+
+["_sqlite.close"]
+raises = ['TypeError']
+
+["_sqlite.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sqlite.commit"]
+raises = ['TypeError']
+
+["_sqlite.complete_statement"]
+raises = ['TypeError', 'ValueError']
+
+["_sqlite.connect"]
+raises = ['TypeError']
+
+["_sqlite.create_aggregate"]
+raises = ['TypeError', 'ValueError']
+
+["_sqlite.create_collation"]
+raises = ['TypeError']
+
+["_sqlite.create_function"]
+raises = ['TypeError', 'ValueError']
+
+["_sqlite.cursor"]
+raises = ['TypeError']
+
+["_sqlite.display"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sqlite.enable_callback_tracebacks"]
+raises = ['TypeError']
+
+["_sqlite.enable_load_extension"]
+raises = ['TypeError']
+
+["_sqlite.enable_shared_cache"]
+raises = ['TypeError']
+
+["_sqlite.execute"]
+raises = ['TypeError']
+
+["_sqlite.execute"]
+raises = ['TypeError']
+
+["_sqlite.executemany"]
+raises = ['TypeError']
+
+["_sqlite.executemany"]
+raises = ['TypeError']
+
+["_sqlite.executescript"]
+raises = ['TypeError']
+
+["_sqlite.executescript"]
+raises = ['TypeError', 'ValueError']
+
+["_sqlite.fetchall"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sqlite.fetchmany"]
+raises = ['TypeError']
+
+["_sqlite.fetchone"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sqlite.get"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sqlite.interrupt"]
+raises = ['TypeError']
+
+["_sqlite.iterdump"]
+raises = ['TypeError']
+
+["_sqlite.keys"]
+raises = ['TypeError']
+
+["_sqlite.load_extension"]
+raises = ['TypeError', 'ValueError']
+
+["_sqlite.register_adapter"]
+raises = ['TypeError']
+
+["_sqlite.register_converter"]
+raises = ['TypeError']
+
+["_sqlite.rollback"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sqlite.set_authorizer"]
+raises = ['TypeError']
+
+["_sqlite.set_progress_handler"]
+raises = ['TypeError']
+
+["_sqlite.set_trace_callback"]
+raises = ['TypeError']
+
+["_sqlite.setinputsizes"]
+raises = ['TypeError']
+
+["_sqlite.setoutputsize"]
+raises = ['TypeError']
+
+["_sre.__class_getitem__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sre.__copy__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sre.__deepcopy__"]
+raises = ['TypeError']
+
+["_sre.ascii_iscased"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sre.ascii_tolower"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sre.compile"]
+raises = ['TypeError']
+
+["_sre.end"]
+raises = ['TypeError']
+
+["_sre.expand"]
+raises = ['TypeError']
+
+["_sre.findall"]
+raises = ['TypeError']
+
+["_sre.finditer"]
+raises = ['TypeError']
+
+["_sre.fullmatch"]
+raises = ['TypeError']
+
+["_sre.getcodesize"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sre.group"]
+raises = ['TypeError']
+
+["_sre.groupdict"]
+raises = ['TypeError']
+
+["_sre.groups"]
+raises = ['TypeError']
+
+["_sre.match"]
+raises = ['TypeError']
+
+["_sre.scanner"]
+raises = ['TypeError']
+
+["_sre.search"]
+raises = ['TypeError']
+
+["_sre.span"]
+raises = ['TypeError']
+
+["_sre.split"]
+raises = ['TypeError']
+
+["_sre.start"]
+raises = ['TypeError']
+
+["_sre.sub"]
+raises = ['TypeError']
+
+["_sre.subn"]
+raises = ['TypeError']
+
+["_sre.unicode_iscased"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_sre.unicode_tolower"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.RAND_add"]
+raises = ['TypeError']
+
+["_ssl.RAND_bytes"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.RAND_pseudo_bytes"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.RAND_status"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl._set_alpn_protocols"]
+raises = ['TypeError']
+
+["_ssl._test_decode_cert"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl._wrap_bio"]
+raises = ['TypeError']
+
+["_ssl._wrap_socket"]
+raises = ['TypeError']
+
+["_ssl.cert_store_stats"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.cipher"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.compression"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.do_handshake"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.enum_certificates"]
+raises = ['TypeError', 'ValueError']
+
+["_ssl.enum_crls"]
+raises = ['TypeError', 'ValueError']
+
+["_ssl.get_ca_certs"]
+raises = ['TypeError']
+
+["_ssl.get_channel_binding"]
+raises = ['TypeError', 'ValueError']
+
+["_ssl.get_ciphers"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.get_default_verify_paths"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.get_info"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.get_info"]
+raises = ['TypeError']
+
+["_ssl.get_unverified_chain"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.get_verified_chain"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.getpeercert"]
+raises = ['TypeError']
+
+["_ssl.load_cert_chain"]
+raises = ['TypeError']
+
+["_ssl.load_dh_params"]
+raises = ['OSError', 'TypeError']
+
+["_ssl.load_verify_locations"]
+raises = ['TypeError']
+
+["_ssl.nid2obj"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.pending"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.public_bytes"]
+raises = ['TypeError']
+
+["_ssl.public_bytes"]
+raises = ['TypeError']
+
+["_ssl.read"]
+raises = ['TypeError']
+
+["_ssl.selected_alpn_protocol"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.session_stats"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.set_ciphers"]
+raises = ['TypeError', 'ValueError']
+
+["_ssl.set_default_verify_paths"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.set_ecdh_curve"]
+raises = ['TypeError', 'ValueError']
+
+["_ssl.shared_ciphers"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.shutdown"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.txt2obj"]
+raises = ['TypeError', 'ValueError']
+
+["_ssl.verify_client_post_handshake"]
+raises = ['TypeError']
+
+["_ssl.version"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.write"]
+raises = ['TypeError']
+
+["_ssl.write_eof"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_IFMT"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_IMODE"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_ISBLK"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_ISCHR"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_ISDIR"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_ISDOOR"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_ISFIFO"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_ISLNK"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_ISPORT"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_ISREG"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_ISSOCK"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.S_ISWHT"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_stat.filemode"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_statistics._normal_dist_inv_cdf"]
+raises = ['TypeError']
+
+["_struct.__length_hint__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_struct.__sizeof__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_struct._clearcache"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_struct.calcsize"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_struct.iter_unpack"]
+raises = ['TypeError']
+
+["_struct.pack"]
+raises = ['TypeError']
+
+["_struct.pack_into"]
+raises = ['TypeError']
+
+["_struct.unpack"]
+raises = ['TypeError']
+
+["_struct.unpack_from"]
+raises = ['TypeError']
+
+["_testbuffer.add_suboffsets"]
+raises = ['MemoryError', 'TypeError']
+
+["_testbuffer.cmp_contig"]
+raises = ['TypeError']
+
+["_testbuffer.get_contiguous"]
+raises = ['TypeError', 'ValueError']
+
+["_testbuffer.get_pointer"]
+raises = ['TypeError', 'ValueError']
+
+["_testbuffer.get_sizeof_void_p"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testbuffer.is_contiguous"]
+raises = ['TypeError']
+
+["_testbuffer.memoryview_from_buffer"]
+raises = ['MemoryError', 'TypeError']
+
+["_testbuffer.pop"]
+raises = ['BufferError']
+
+["_testbuffer.push"]
+raises = ['BufferError', 'TypeError', 'ValueError']
+
+["_testbuffer.py_buffer_to_contiguous"]
+raises = ['MemoryError', 'TypeError']
+
+["_testbuffer.slice_indices"]
+raises = ['TypeError']
+
+["_testbuffer.tobytes"]
+raises = ['MemoryError']
+
+["_testbuffer.tolist"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.DecodeLocaleEx"]
+raises = ['MemoryError', 'RuntimeError', 'TypeError', 'ValueError']
+
+["_testcapi.EncodeLocaleEx"]
+raises = ['MemoryError', 'RuntimeError', 'TypeError', 'ValueError']
+
+["_testcapi.PyBuffer_SizeFromFormat"]
+raises = ['TypeError']
+
+["_testcapi.PyDateTime_DATE_GET"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.PyDateTime_DELTA_GET"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.PyDateTime_GET"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.PyDateTime_TIME_GET"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.PyTime_AsMicroseconds"]
+raises = ['TypeError']
+
+["_testcapi.PyTime_AsMilliseconds"]
+raises = ['TypeError']
+
+["_testcapi.PyTime_AsSecondsDouble"]
+raises = ['TypeError']
+
+["_testcapi.PyTime_AsTimeval"]
+raises = ['TypeError']
+
+["_testcapi.PyTime_FromSeconds"]
+raises = ['TypeError']
+
+["_testcapi.PyTime_FromSecondsObject"]
+raises = ['TypeError']
+
+["_testcapi.Py_CompileString"]
+raises = ['ValueError']
+
+["_testcapi.__class_getitem__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.__mro_entries__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi._pending_threadfunc"]
+raises = ['TypeError']
+
+["_testcapi._test_thread_state"]
+raises = ['MemoryError', 'TypeError']
+
+["_testcapi.argparsing"]
+raises = ['TypeError']
+
+["_testcapi.bad_get"]
+raises = ['TypeError']
+
+["_testcapi.call_in_temporary_c_thread"]
+raises = ['RuntimeError', 'TypeError']
+
+["_testcapi.check_pyobject_forbidden_bytes_is_freed"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.check_pyobject_freed_is_freed"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.check_pyobject_null_is_freed"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.check_pyobject_uninitialized_is_freed"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.code_newempty"]
+raises = ['TypeError']
+
+["_testcapi.codec_incrementaldecoder"]
+raises = ['TypeError']
+
+["_testcapi.codec_incrementalencoder"]
+raises = ['TypeError']
+
+["_testcapi.crash_no_current_thread"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.create_cfunction"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.datetime_check_date"]
+raises = ['TypeError']
+
+["_testcapi.datetime_check_datetime"]
+raises = ['TypeError']
+
+["_testcapi.datetime_check_delta"]
+raises = ['TypeError']
+
+["_testcapi.datetime_check_time"]
+raises = ['TypeError']
+
+["_testcapi.datetime_check_tzinfo"]
+raises = ['TypeError']
+
+["_testcapi.dict_get_version"]
+raises = ['TypeError']
+
+["_testcapi.dict_getitem_knownhash"]
+raises = ['TypeError']
+
+["_testcapi.dict_hassplittable"]
+raises = ['TypeError']
+
+["_testcapi.docstring_empty"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.docstring_no_signature"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.docstring_with_invalid_signature"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.docstring_with_invalid_signature2"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.docstring_with_signature"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.docstring_with_signature_and_extra_newlines"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.docstring_with_signature_but_no_doc"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.docstring_with_signature_with_defaults"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.exception_print"]
+raises = ['TypeError']
+
+["_testcapi.fatal_error"]
+raises = ['TypeError']
+
+["_testcapi.get_args"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.get_date_fromdate"]
+raises = ['TypeError']
+
+["_testcapi.get_date_fromtimestamp"]
+raises = ['TypeError']
+
+["_testcapi.get_datetime_fromdateandtime"]
+raises = ['TypeError']
+
+["_testcapi.get_datetime_fromdateandtimeandfold"]
+raises = ['TypeError']
+
+["_testcapi.get_datetime_fromtimestamp"]
+raises = ['TypeError']
+
+["_testcapi.get_delta_fromdsu"]
+raises = ['TypeError']
+
+["_testcapi.get_kwargs"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.get_mapping_items"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.get_mapping_keys"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.get_mapping_values"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.get_time_fromtime"]
+raises = ['TypeError']
+
+["_testcapi.get_time_fromtimeandfold"]
+raises = ['TypeError']
+
+["_testcapi.get_timezone_utc_capi"]
+raises = ['TypeError']
+
+["_testcapi.get_timezones_offset_zero"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.getargs_B"]
+raises = ['TypeError']
+
+["_testcapi.getargs_C"]
+raises = ['TypeError']
+
+["_testcapi.getargs_D"]
+raises = ['TypeError']
+
+["_testcapi.getargs_H"]
+raises = ['TypeError']
+
+["_testcapi.getargs_I"]
+raises = ['TypeError']
+
+["_testcapi.getargs_K"]
+raises = ['TypeError']
+
+["_testcapi.getargs_L"]
+raises = ['TypeError']
+
+["_testcapi.getargs_S"]
+raises = ['TypeError']
+
+["_testcapi.getargs_U"]
+raises = ['TypeError']
+
+["_testcapi.getargs_Y"]
+raises = ['TypeError']
+
+["_testcapi.getargs_Z"]
+raises = ['TypeError']
+
+["_testcapi.getargs_Z_hash"]
+raises = ['TypeError']
+
+["_testcapi.getargs_b"]
+raises = ['TypeError']
+
+["_testcapi.getargs_c"]
+raises = ['TypeError']
+
+["_testcapi.getargs_d"]
+raises = ['TypeError']
+
+["_testcapi.getargs_es"]
+raises = ['TypeError']
+
+["_testcapi.getargs_es_hash"]
+raises = ['TypeError']
+
+["_testcapi.getargs_et"]
+raises = ['TypeError']
+
+["_testcapi.getargs_et_hash"]
+raises = ['TypeError']
+
+["_testcapi.getargs_f"]
+raises = ['TypeError']
+
+["_testcapi.getargs_h"]
+raises = ['TypeError']
+
+["_testcapi.getargs_i"]
+raises = ['TypeError']
+
+["_testcapi.getargs_k"]
+raises = ['TypeError']
+
+["_testcapi.getargs_keyword_only"]
+raises = ['TypeError']
+
+["_testcapi.getargs_keywords"]
+raises = ['TypeError']
+
+["_testcapi.getargs_l"]
+raises = ['TypeError']
+
+["_testcapi.getargs_n"]
+raises = ['TypeError']
+
+["_testcapi.getargs_p"]
+raises = ['TypeError']
+
+["_testcapi.getargs_positional_only_and_keywords"]
+raises = ['TypeError']
+
+["_testcapi.getargs_s"]
+raises = ['TypeError']
+
+["_testcapi.getargs_s_hash"]
+raises = ['TypeError']
+
+["_testcapi.getargs_s_hash_int"]
+raises = ['TypeError']
+
+["_testcapi.getargs_s_hash_int2"]
+raises = ['TypeError']
+
+["_testcapi.getargs_s_star"]
+raises = ['TypeError']
+
+["_testcapi.getargs_tuple"]
+raises = ['TypeError']
+
+["_testcapi.getargs_u"]
+raises = ['TypeError']
+
+["_testcapi.getargs_u_hash"]
+raises = ['TypeError']
+
+["_testcapi.getargs_w_star"]
+raises = ['TypeError']
+
+["_testcapi.getargs_y"]
+raises = ['TypeError']
+
+["_testcapi.getargs_y_hash"]
+raises = ['TypeError']
+
+["_testcapi.getargs_y_star"]
+raises = ['TypeError']
+
+["_testcapi.getargs_z"]
+raises = ['TypeError']
+
+["_testcapi.getargs_z_hash"]
+raises = ['TypeError']
+
+["_testcapi.getargs_z_star"]
+raises = ['TypeError']
+
+["_testcapi.getbuffer_with_null_view"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.getitem_with_error"]
+raises = ['TypeError', 'ValueError']
+
+["_testcapi.gh_99240_clear_args"]
+raises = ['AssertionError', 'TypeError']
+
+["_testcapi.hamt"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.join_temporary_c_thread"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.make_exception_with_doc"]
+raises = ['TypeError']
+
+["_testcapi.make_memoryview_from_NULL_pointer"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.make_timezones_capi"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.mapping_has_key"]
+raises = ['TypeError']
+
+["_testcapi.meth_fastcall"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.meth_fastcall_keywords"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.meth_noargs"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.meth_o"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.meth_varargs"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.meth_varargs_keywords"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.no_docstring"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.parse_tuple_and_keywords"]
+raises = ['TypeError', 'ValueError']
+
+["_testcapi.pymarshal_read_last_object_from_file"]
+raises = ['OSError', 'TypeError']
+
+["_testcapi.pymarshal_read_long_from_file"]
+raises = ['OSError', 'TypeError']
+
+["_testcapi.pymarshal_read_object_from_file"]
+raises = ['OSError', 'TypeError']
+
+["_testcapi.pymarshal_read_short_from_file"]
+raises = ['OSError', 'TypeError']
+
+["_testcapi.pymarshal_write_long_to_file"]
+raises = ['OSError', 'TypeError']
+
+["_testcapi.pymarshal_write_object_to_file"]
+raises = ['OSError', 'TypeError']
+
+["_testcapi.pymem_api_misuse"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.pymem_buffer_overflow"]
+raises = ['MemoryError']
+
+["_testcapi.pymem_getallocatorsname"]
+raises = ['RuntimeError']
+
+["_testcapi.pymem_malloc_without_gil"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.pynumber_tobase"]
+raises = ['TypeError']
+
+["_testcapi.pyobject_bytes_from_null"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.pyobject_fastcall"]
+raises = ['TypeError']
+
+["_testcapi.pyobject_fastcalldict"]
+raises = ['TypeError']
+
+["_testcapi.pyobject_malloc_without_gil"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.pyobject_repr_from_null"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.pyobject_str_from_null"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.pyobject_vectorcall"]
+raises = ['TypeError', 'ValueError']
+
+["_testcapi.pytime_object_to_time_t"]
+raises = ['TypeError']
+
+["_testcapi.pytime_object_to_timespec"]
+raises = ['TypeError']
+
+["_testcapi.pytime_object_to_timeval"]
+raises = ['TypeError']
+
+["_testcapi.pyvectorcall_call"]
+raises = ['TypeError']
+
+["_testcapi.raise_SIGINT_then_send_None"]
+raises = ['TypeError']
+
+["_testcapi.raise_exception"]
+raises = ['TypeError']
+
+["_testcapi.raise_memoryerror"]
+raises = ['MemoryError']
+
+["_testcapi.remove_mem_hooks"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.return_null_without_error"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.return_result_with_error"]
+raises = ['ValueError']
+
+["_testcapi.run_in_subinterp"]
+raises = ['RuntimeError', 'TypeError']
+
+["_testcapi.sequence_getitem"]
+raises = ['TypeError']
+
+["_testcapi.sequence_setitem"]
+raises = ['TypeError']
+
+["_testcapi.set_errno"]
+raises = ['TypeError']
+
+["_testcapi.set_exc_info"]
+raises = ['TypeError']
+
+["_testcapi.set_nomemory"]
+raises = ['TypeError']
+
+["_testcapi.stack_pointer"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_L_code"]
+raises = ['TypeError']
+
+["_testcapi.test_Z_code"]
+raises = ['TypeError']
+
+["_testcapi.test_buildvalue_N"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_buildvalue_issue38913"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_capsule"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_config"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_datetime_capi"]
+raises = ['AssertionError']
+
+["_testcapi.test_decref_doesnt_leak"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_dict_iteration"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_empty_argparse"]
+raises = ['TypeError']
+
+["_testcapi.test_from_contiguous"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_gc_control"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_get_statictype_slots"]
+raises = ['AssertionError']
+
+["_testcapi.test_incref_decref_API"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_incref_doesnt_leak"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_k_code"]
+raises = ['TypeError']
+
+["_testcapi.test_lazy_hash_inheritance"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_list_api"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_long_and_overflow"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_long_api"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_long_as_double"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_long_as_size_t"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_long_as_unsigned_long_long_mask"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_long_long_and_overflow"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_long_numbits"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_longlong_api"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_mapping_has_key_string"]
+raises = ['RuntimeError']
+
+["_testcapi.test_py_is_funcs"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_py_is_macros"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_pymem_alloc0"]
+raises = ['RuntimeError']
+
+["_testcapi.test_pymem_setallocators"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_pymem_setrawallocators"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_pyobject_setallocators"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_pythread_tss_key_state"]
+raises = ['RuntimeError']
+
+["_testcapi.test_refcount_funcs"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_refcount_macros"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_s_code"]
+raises = ['TypeError']
+
+["_testcapi.test_set_type_size"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_sizeof_c_types"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_string_from_format"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_string_to_double"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_structseq_newtype_doesnt_leak"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_structseq_newtype_null_descr_doc"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_u_code"]
+raises = ['TypeError']
+
+["_testcapi.test_unicode_compare_with_ascii"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_widechar"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_with_docstring"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_xdecref_doesnt_leak"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.test_xincref_doesnt_leak"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.traceback_print"]
+raises = ['TypeError']
+
+["_testcapi.tracemalloc_get_traceback"]
+raises = ['TypeError']
+
+["_testcapi.tracemalloc_track"]
+raises = ['RuntimeError', 'TypeError']
+
+["_testcapi.tracemalloc_untrack"]
+raises = ['RuntimeError', 'TypeError']
+
+["_testcapi.unicode_asucs4"]
+raises = ['MemoryError', 'TypeError']
+
+["_testcapi.unicode_asutf8"]
+raises = ['TypeError']
+
+["_testcapi.unicode_asutf8andsize"]
+raises = ['TypeError']
+
+["_testcapi.unicode_aswidechar"]
+raises = ['MemoryError', 'TypeError']
+
+["_testcapi.unicode_aswidecharstring"]
+raises = ['TypeError']
+
+["_testcapi.unicode_copycharacters"]
+raises = ['TypeError']
+
+["_testcapi.unicode_decodeutf8"]
+raises = ['TypeError']
+
+["_testcapi.unicode_decodeutf8stateful"]
+raises = ['TypeError']
+
+["_testcapi.unicode_encodedecimal"]
+raises = ['TypeError']
+
+["_testcapi.unicode_findchar"]
+raises = ['TypeError']
+
+["_testcapi.unicode_legacy_string"]
+raises = ['TypeError']
+
+["_testcapi.unicode_transformdecimaltoascii"]
+raises = ['TypeError']
+
+["_testcapi.with_tp_del"]
+raises = ['TypeError']
+
+["_testcapi.without_gc"]
+raises = ['TypeError']
+
+["_testcapi.write_unraisable_exc"]
+raises = ['TypeError']
+
+["_testclinic.bool_converter"]
+raises = ['TypeError']
+
+["_testclinic.byte_array_object_converter"]
+raises = ['TypeError']
+
+["_testclinic.bytes_object_converter"]
+raises = ['TypeError']
+
+["_testclinic.char_converter"]
+raises = ['TypeError']
+
+["_testclinic.double_converter"]
+raises = ['TypeError']
+
+["_testclinic.float_converter"]
+raises = ['TypeError']
+
+["_testclinic.gh_99240_double_free"]
+raises = ['TypeError']
+
+["_testclinic.int_converter"]
+raises = ['TypeError']
+
+["_testclinic.keyword_only_parameter"]
+raises = ['TypeError']
+
+["_testclinic.keywords"]
+raises = ['TypeError']
+
+["_testclinic.keywords_kwonly"]
+raises = ['TypeError']
+
+["_testclinic.keywords_kwonly_opt"]
+raises = ['TypeError']
+
+["_testclinic.keywords_opt"]
+raises = ['TypeError']
+
+["_testclinic.keywords_opt_kwonly"]
+raises = ['TypeError']
+
+["_testclinic.long_converter"]
+raises = ['TypeError']
+
+["_testclinic.long_long_converter"]
+raises = ['TypeError']
+
+["_testclinic.objects_converter"]
+raises = ['TypeError']
+
+["_testclinic.posonly_keywords"]
+raises = ['TypeError']
+
+["_testclinic.posonly_keywords_kwonly"]
+raises = ['TypeError']
+
+["_testclinic.posonly_keywords_kwonly_opt"]
+raises = ['TypeError']
+
+["_testclinic.posonly_keywords_opt"]
+raises = ['TypeError']
+
+["_testclinic.posonly_keywords_opt_kwonly_opt"]
+raises = ['TypeError']
+
+["_testclinic.posonly_kwonly"]
+raises = ['TypeError']
+
+["_testclinic.posonly_kwonly_opt"]
+raises = ['TypeError']
+
+["_testclinic.posonly_opt_keywords_opt"]
+raises = ['TypeError']
+
+["_testclinic.posonly_opt_keywords_opt_kwonly_opt"]
+raises = ['TypeError']
+
+["_testclinic.posonly_opt_kwonly_opt"]
+raises = ['TypeError']
+
+["_testclinic.py_buffer_converter"]
+raises = ['TypeError']
+
+["_testclinic.py_complex_converter"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testclinic.py_ssize_t_converter"]
+raises = ['TypeError']
+
+["_testclinic.short_converter"]
+raises = ['OverflowError', 'TypeError']
+
+["_testclinic.size_t_converter"]
+raises = ['TypeError']
+
+["_testclinic.slice_index_converter"]
+raises = ['TypeError']
+
+["_testclinic.str_converter"]
+raises = ['TypeError']
+
+["_testclinic.str_converter_encoding"]
+raises = ['TypeError']
+
+["_testclinic.test_empty_function"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testclinic.unicode_converter"]
+raises = ['TypeError']
+
+["_testclinic.unsigned_char_converter"]
+raises = ['OverflowError', 'TypeError']
+
+["_testclinic.unsigned_int_converter"]
+raises = ['TypeError']
+
+["_testclinic.unsigned_long_converter"]
+raises = ['TypeError']
+
+["_testclinic.unsigned_long_long_converter"]
+raises = ['TypeError']
+
+["_testclinic.unsigned_short_converter"]
+raises = ['TypeError']
+
+["_testinternalcapi.get_config"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testinternalcapi.get_configs"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testinternalcapi.get_recursion_depth"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testinternalcapi.set_config"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testinternalcapi.test_atomic_funcs"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testinternalcapi.test_bit_length"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testinternalcapi.test_bswap"]
+raises = ['AssertionError']
+
+["_testinternalcapi.test_edit_cost"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testinternalcapi.test_hashtable"]
+raises = ['MemoryError']
+
+["_testinternalcapi.test_popcount"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testmultiphase.bar"]
+raises = ['TypeError']
+
+["_testmultiphase.call_state_registration_func"]
+raises = ['TypeError']
+
+["_testmultiphase.demo"]
+raises = ['TypeError']
+
+["_testmultiphase.foo"]
+raises = ['TypeError']
+
+["_testmultiphase.get_count"]
+raises = ['TypeError']
+
+["_testmultiphase.get_defining_module"]
+raises = ['TypeError']
+
+["_testmultiphase.getmodulebydef_bad_def"]
+raises = ['TypeError']
+
+["_testmultiphase.increment_count_clinic"]
+raises = ['TypeError']
+
+["_testmultiphase.increment_count_noclinic"]
+raises = ['TypeError']
+
+["_thread.__enter__"]
+raises = ['OverflowError']
+
+["_thread.__exit__"]
+raises = ['RuntimeError']
+
+["_thread._acquire_restore"]
+raises = ['RuntimeError', 'TypeError']
+
+["_thread._count"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_thread._excepthook"]
+raises = ['TypeError']
+
+["_thread._is_owned"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_thread._release_save"]
+raises = ['RuntimeError']
+
+["_thread._set_sentinel"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_thread.acquire"]
+raises = ['OverflowError']
+
+["_thread.acquire_lock"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_thread.allocate"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_thread.allocate_lock"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_thread.exit"]
+raises = ['SystemExit']
+
+["_thread.exit_thread"]
+raises = ['SystemExit']
+
+["_thread.get_ident"]
+raises = ['RuntimeError']
+
+["_thread.get_native_id"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_thread.interrupt_main"]
+raises = ['TypeError', 'ValueError']
+
+["_thread.locked"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_thread.locked_lock"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_thread.release"]
+raises = ['RuntimeError']
+
+["_thread.release_lock"]
+raises = ['RuntimeError']
+
+["_thread.stack_size"]
+raises = ['RuntimeError', 'TypeError', 'ValueError']
+
+["_thread.start_new"]
+raises = ['MemoryError', 'RuntimeError', 'TypeError']
+
+["_thread.start_new_thread"]
+raises = ['MemoryError', 'RuntimeError', 'TypeError']
+
+["_tkinter._flatten"]
+raises = ['TypeError']
+
+["_tkinter.adderrorinfo"]
+raises = ['TypeError', 'ValueError']
+
+["_tkinter.call"]
+raises = ['MemoryError']
+
+["_tkinter.create"]
+raises = ['TypeError', 'ValueError']
+
+["_tkinter.createcommand"]
+raises = ['TypeError', 'ValueError']
+
+["_tkinter.createtimerhandler"]
+raises = ['TypeError']
+
+["_tkinter.deletecommand"]
+raises = ['TypeError', 'ValueError']
+
+["_tkinter.deletetimerhandler"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.dooneevent"]
+raises = ['TypeError']
+
+["_tkinter.eval"]
+raises = ['TypeError', 'ValueError']
+
+["_tkinter.evalfile"]
+raises = ['TypeError', 'ValueError']
+
+["_tkinter.exprboolean"]
+raises = ['TypeError', 'ValueError']
+
+["_tkinter.exprdouble"]
+raises = ['TypeError', 'ValueError']
+
+["_tkinter.exprlong"]
+raises = ['TypeError', 'ValueError']
+
+["_tkinter.exprstring"]
+raises = ['TypeError', 'ValueError']
+
+["_tkinter.getboolean"]
+raises = ['OverflowError', 'TypeError']
+
+["_tkinter.getbusywaitinterval"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.getdouble"]
+raises = ['OverflowError', 'TypeError']
+
+["_tkinter.getint"]
+raises = ['OverflowError', 'TypeError']
+
+["_tkinter.getvar"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.globalgetvar"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.globalsetvar"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.globalunsetvar"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.interpaddr"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.loadtk"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.mainloop"]
+raises = ['TypeError']
+
+["_tkinter.quit"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.record"]
+raises = ['TypeError', 'ValueError']
+
+["_tkinter.setbusywaitinterval"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.setvar"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.split"]
+raises = ['OverflowError', 'TypeError']
+
+["_tkinter.splitlist"]
+raises = ['OverflowError', 'TypeError']
+
+["_tkinter.unsetvar"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tkinter.wantobjects"]
+raises = ['TypeError']
+
+["_tkinter.willdispatch"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tracemalloc._get_object_traceback"]
+raises = ['TypeError']
+
+["_tracemalloc._get_traces"]
+raises = ['TypeError']
+
+["_tracemalloc.clear_traces"]
+raises = ['TypeError']
+
+["_tracemalloc.get_traceback_limit"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tracemalloc.get_traced_memory"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tracemalloc.get_tracemalloc_memory"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tracemalloc.is_tracing"]
+raises = ['TypeError']
+
+["_tracemalloc.reset_peak"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_tracemalloc.start"]
+raises = ['TypeError']
+
+["_tracemalloc.stop"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_uuid.UuidCreate"]
+raises = ['OSError']
+
+["_weakref._remove_dead_weakref"]
+raises = ['TypeError']
+
+["_weakref.getweakrefcount"]
+raises = ['TypeError']
+
+["_weakref.getweakrefs"]
+raises = ['TypeError']
+
+["_weakref.proxy"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_winapi.CloseHandle"]
+raises = ['TypeError']
+
+["_winapi.ConnectNamedPipe"]
+raises = ['TypeError']
+
+["_winapi.CreateFile"]
+raises = ['TypeError']
+
+["_winapi.CreateFileMapping"]
+raises = ['TypeError']
+
+["_winapi.CreateJunction"]
+raises = ['TypeError']
+
+["_winapi.CreateNamedPipe"]
+raises = ['TypeError']
+
+["_winapi.CreatePipe"]
+raises = ['TypeError']
+
+["_winapi.CreateProcess"]
+raises = ['TypeError']
+
+["_winapi.DuplicateHandle"]
+raises = ['TypeError']
+
+["_winapi.ExitProcess"]
+raises = ['TypeError']
+
+["_winapi.GetACP"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_winapi.GetCurrentProcess"]
+raises = ['TypeError']
+
+["_winapi.GetExitCodeProcess"]
+raises = ['TypeError']
+
+["_winapi.GetFileType"]
+raises = ['TypeError']
+
+["_winapi.GetLastError"]
+raises = ['TypeError']
+
+["_winapi.GetModuleFileName"]
+raises = ['TypeError']
+
+["_winapi.GetOverlappedResult"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_winapi.GetStdHandle"]
+raises = ['TypeError']
+
+["_winapi.GetVersion"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_winapi.LCMapStringEx"]
+raises = ['TypeError']
+
+["_winapi.MapViewOfFile"]
+raises = ['TypeError']
+
+["_winapi.OpenFileMapping"]
+raises = ['TypeError']
+
+["_winapi.OpenProcess"]
+raises = ['TypeError']
+
+["_winapi.PeekNamedPipe"]
+raises = ['TypeError']
+
+["_winapi.ReadFile"]
+raises = ['TypeError']
+
+["_winapi.SetNamedPipeHandleState"]
+raises = ['TypeError']
+
+["_winapi.TerminateProcess"]
+raises = ['TypeError']
+
+["_winapi.UnmapViewOfFile"]
+raises = ['TypeError']
+
+["_winapi.VirtualQuerySize"]
+raises = ['TypeError']
+
+["_winapi.WaitForMultipleObjects"]
+raises = ['TypeError']
+
+["_winapi.WaitForSingleObject"]
+raises = ['TypeError']
+
+["_winapi.WaitNamedPipe"]
+raises = ['TypeError']
+
+["_winapi.WriteFile"]
+raises = ['TypeError']
+
+["_winapi._mimetypes_read_windows_registry"]
+raises = ['TypeError']
+
+["_winapi.cancel"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_winapi.getbuffer"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_xxsubinterpreters._channel_id"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_xxsubinterpreters.channel_close"]
+raises = ['TypeError']
+
+["_xxsubinterpreters.channel_create"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_xxsubinterpreters.channel_destroy"]
+raises = ['TypeError']
+
+["_xxsubinterpreters.channel_list_all"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_xxsubinterpreters.channel_list_interpreters"]
+raises = ['TypeError']
+
+["_xxsubinterpreters.channel_recv"]
+raises = ['TypeError']
+
+["_xxsubinterpreters.channel_release"]
+raises = ['TypeError']
+
+["_xxsubinterpreters.channel_send"]
+raises = ['TypeError']
+
+["_xxsubinterpreters.create"]
+raises = ['RuntimeError', 'TypeError']
+
+["_xxsubinterpreters.destroy"]
+raises = ['RuntimeError', 'TypeError']
+
+["_xxsubinterpreters.get_current"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_xxsubinterpreters.get_main"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_xxsubinterpreters.is_running"]
+raises = ['TypeError']
+
+["_xxsubinterpreters.is_shareable"]
+raises = ['TypeError']
+
+["_xxsubinterpreters.list_all"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_xxsubinterpreters.run_string"]
+raises = ['TypeError', 'ValueError']
+
+["_xxtestfuzz.run"]
+raises = ['RuntimeError', 'TypeError']
+
+["_zoneinfo.__init_subclass__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_zoneinfo.__reduce__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_zoneinfo._unpickle"]
+raises = ['TypeError']
+
+["_zoneinfo.clear_cache"]
+raises = ['TypeError']
+
+["_zoneinfo.dst"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_zoneinfo.from_file"]
+raises = ['TypeError']
+
+["_zoneinfo.fromutc"]
+raises = ['TypeError', 'ValueError']
+
+["_zoneinfo.no_cache"]
+raises = ['TypeError']
+
+["_zoneinfo.tzname"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_zoneinfo.utcoffset"]
+raises = ['Exception']
+confidence = "conservative"
+
+["array.__copy__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["array.__deepcopy__"]
+raises = ['TypeError']
+
+["array.__reduce__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["array.__reduce_ex__"]
+raises = ['TypeError']
+
+["array.__setstate__"]
+raises = ['TypeError']
+
+["array.__sizeof__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["array._array_reconstructor"]
+raises = ['TypeError']
+
+["array.append"]
+raises = ['TypeError']
+
+["array.buffer_info"]
+raises = ['Exception']
+confidence = "conservative"
+
+["array.byteswap"]
+raises = ['Exception']
+confidence = "conservative"
+
+["array.count"]
+raises = ['TypeError']
+
+["array.extend"]
+raises = ['TypeError']
+
+["array.frombytes"]
+raises = ['TypeError']
+
+["array.fromfile"]
+raises = ['TypeError']
+
+["array.fromlist"]
+raises = ['RuntimeError', 'TypeError']
+
+["array.fromunicode"]
+raises = ['TypeError']
+
+["array.index"]
+raises = ['TypeError']
+
+["array.insert"]
+raises = ['TypeError']
+
+["array.pop"]
+raises = ['TypeError']
+
+["array.remove"]
+raises = ['TypeError', 'ValueError']
+
+["array.reverse"]
+raises = ['Exception']
+confidence = "conservative"
+
+["array.tobytes"]
+raises = ['Exception']
+confidence = "conservative"
+
+["array.tofile"]
+raises = ['TypeError']
+
+["array.tolist"]
+raises = ['Exception']
+confidence = "conservative"
+
+["array.tounicode"]
+raises = ['Exception']
+confidence = "conservative"
+
+["atexit._clear"]
+raises = ['Exception']
+confidence = "conservative"
+
+["atexit._ncallbacks"]
+raises = ['Exception']
+confidence = "conservative"
+
+["atexit._run_exitfuncs"]
+raises = ['Exception']
+confidence = "conservative"
+
+["atexit.register"]
+raises = ['MemoryError', 'TypeError']
+
+["atexit.unregister"]
+raises = ['Exception']
+confidence = "conservative"
+
+["audioop.add"]
+raises = ['TypeError']
+
+["audioop.adpcm2lin"]
+raises = ['TypeError']
+
+["audioop.alaw2lin"]
+raises = ['TypeError']
+
+["audioop.avg"]
+raises = ['TypeError']
+
+["audioop.avgpp"]
+raises = ['TypeError']
+
+["audioop.bias"]
+raises = ['TypeError']
+
+["audioop.byteswap"]
+raises = ['TypeError']
+
+["audioop.cross"]
+raises = ['TypeError']
+
+["audioop.findfactor"]
+raises = ['TypeError']
+
+["audioop.findfit"]
+raises = ['TypeError']
+
+["audioop.findmax"]
+raises = ['TypeError']
+
+["audioop.getsample"]
+raises = ['TypeError']
+
+["audioop.lin2adpcm"]
+raises = ['TypeError']
+
+["audioop.lin2alaw"]
+raises = ['TypeError']
+
+["audioop.lin2lin"]
+raises = ['TypeError']
+
+["audioop.lin2ulaw"]
+raises = ['TypeError']
+
+["audioop.max"]
+raises = ['TypeError']
+
+["audioop.maxpp"]
+raises = ['TypeError']
+
+["audioop.minmax"]
+raises = ['TypeError']
+
+["audioop.mul"]
+raises = ['TypeError']
+
+["audioop.ratecv"]
+raises = ['TypeError']
+
+["audioop.reverse"]
+raises = ['TypeError']
+
+["audioop.rms"]
+raises = ['TypeError']
+
+["audioop.tomono"]
+raises = ['TypeError']
+
+["audioop.tostereo"]
+raises = ['TypeError']
+
+["audioop.ulaw2lin"]
+raises = ['TypeError']
+
+["binascii.a2b_base64"]
+raises = ['Exception']
+confidence = "conservative"
+
+["binascii.a2b_hex"]
+raises = ['TypeError']
+
+["binascii.a2b_hqx"]
+raises = ['Exception']
+confidence = "conservative"
+
+["binascii.a2b_qp"]
+raises = ['TypeError']
+
+["binascii.a2b_uu"]
+raises = ['Exception']
+confidence = "conservative"
+
+["binascii.b2a_base64"]
+raises = ['TypeError']
+
+["binascii.b2a_hex"]
+raises = ['TypeError']
+
+["binascii.b2a_hqx"]
+raises = ['TypeError']
+
+["binascii.b2a_qp"]
+raises = ['TypeError']
+
+["binascii.b2a_uu"]
+raises = ['TypeError']
+
+["binascii.crc32"]
+raises = ['TypeError']
+
+["binascii.crc_hqx"]
+raises = ['TypeError']
+
+["binascii.hexlify"]
+raises = ['TypeError']
+
+["binascii.rlecode_hqx"]
+raises = ['TypeError']
+
+["binascii.rledecode_hqx"]
+raises = ['TypeError']
+
+["binascii.unhexlify"]
+raises = ['Exception']
+confidence = "conservative"
+
+["cmath.acos"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["cmath.acosh"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["cmath.asin"]
+raises = ['OverflowError', 'ValueError']
+
+["cmath.asinh"]
+raises = ['OverflowError', 'ValueError']
+
+["cmath.atan"]
+raises = ['OverflowError', 'ValueError']
+
+["cmath.atanh"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["cmath.cos"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["cmath.cosh"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["cmath.exp"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["cmath.isclose"]
+raises = ['TypeError']
+
+["cmath.isfinite"]
+raises = ['TypeError']
+
+["cmath.isinf"]
+raises = ['Exception']
+confidence = "conservative"
+
+["cmath.isnan"]
+raises = ['TypeError']
+
+["cmath.log"]
+raises = ['TypeError']
+
+["cmath.log10"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["cmath.phase"]
+raises = ['TypeError']
+
+["cmath.polar"]
+raises = ['TypeError']
+
+["cmath.rect"]
+raises = ['TypeError']
+
+["cmath.sin"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["cmath.sinh"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["cmath.sqrt"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["cmath.tan"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["cmath.tanh"]
+raises = ['OverflowError', 'ValueError']
+
+["faulthandler._fatal_error_c_thread"]
+raises = ['MemoryError', 'RuntimeError']
+
+["faulthandler._raise_exception"]
+raises = ['TypeError']
+
+["faulthandler._read_null"]
+raises = ['Exception']
+confidence = "conservative"
+
+["faulthandler._sigabrt"]
+raises = ['Exception']
+confidence = "conservative"
+
+["faulthandler._sigfpe"]
+raises = ['Exception']
+confidence = "conservative"
+
+["faulthandler._sigsegv"]
+raises = ['TypeError']
+
+["faulthandler.cancel_dump_traceback_later"]
+raises = ['Exception']
+confidence = "conservative"
+
+["faulthandler.disable"]
+raises = ['Exception']
+confidence = "conservative"
+
+["faulthandler.dump_traceback"]
+raises = ['RuntimeError', 'TypeError']
+
+["faulthandler.dump_traceback_later"]
+raises = ['MemoryError', 'OverflowError', 'RuntimeError', 'TypeError', 'ValueError']
+
+["faulthandler.enable"]
+raises = ['TypeError']
+
+["faulthandler.is_enabled"]
+raises = ['Exception']
+confidence = "conservative"
+
+["fcntl.fcntl"]
+raises = ['TypeError']
+
+["fcntl.flock"]
+raises = ['TypeError']
+
+["fcntl.ioctl"]
+raises = ['TypeError']
+
+["fcntl.lockf"]
+raises = ['TypeError']
+
+["gc.collect"]
+raises = ['TypeError']
+
+["gc.disable"]
+raises = ['Exception']
+confidence = "conservative"
+
+["gc.enable"]
+raises = ['Exception']
+confidence = "conservative"
+
+["gc.freeze"]
+raises = ['Exception']
+confidence = "conservative"
+
+["gc.get_count"]
+raises = ['Exception']
+confidence = "conservative"
+
+["gc.get_debug"]
+raises = ['Exception']
+confidence = "conservative"
+
+["gc.get_freeze_count"]
+raises = ['Exception']
+confidence = "conservative"
+
+["gc.get_objects"]
+raises = ['TypeError']
+
+["gc.get_referents"]
+raises = ['Exception']
+confidence = "conservative"
+
+["gc.get_referrers"]
+raises = ['TypeError']
+
+["gc.get_stats"]
+raises = ['Exception']
+confidence = "conservative"
+
+["gc.get_threshold"]
+raises = ['Exception']
+confidence = "conservative"
+
+["gc.is_finalized"]
+raises = ['TypeError']
+
+["gc.is_tracked"]
+raises = ['TypeError']
+
+["gc.isenabled"]
+raises = ['TypeError']
+
+["gc.set_debug"]
+raises = ['Exception']
+confidence = "conservative"
+
+["gc.set_threshold"]
+raises = ['TypeError']
+
+["gc.unfreeze"]
+raises = ['Exception']
+confidence = "conservative"
+
+["grp.getgrall"]
+raises = ['Exception']
+confidence = "conservative"
+
+["grp.getgrgid"]
+raises = ['TypeError']
+
+["grp.getgrnam"]
+raises = ['TypeError']
+
+["itertools.__class_getitem__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["itertools.__copy__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["itertools.__length_hint__"]
+raises = ['TypeError']
+
+["itertools.__reduce__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["itertools.__setstate__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["itertools.__sizeof__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["itertools.from_iterable"]
+raises = ['TypeError']
+
+["itertools.tee"]
+raises = ['TypeError']
+
+["math.acos"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.acosh"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.asin"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.asinh"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.atan"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.atan2"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.atanh"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.ceil"]
+raises = ['TypeError']
+
+["math.comb"]
+raises = ['TypeError']
+
+["math.copysign"]
+raises = ['TypeError']
+
+["math.cos"]
+raises = ['TypeError']
+
+["math.cosh"]
+raises = ['TypeError']
+
+["math.degrees"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.dist"]
+raises = ['TypeError']
+
+["math.erf"]
+raises = ['TypeError']
+
+["math.erfc"]
+raises = ['TypeError']
+
+["math.exp"]
+raises = ['TypeError']
+
+["math.expm1"]
+raises = ['TypeError']
+
+["math.fabs"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.factorial"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["math.floor"]
+raises = ['TypeError']
+
+["math.fmod"]
+raises = ['TypeError']
+
+["math.frexp"]
+raises = ['TypeError']
+
+["math.fsum"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["math.gamma"]
+raises = ['TypeError']
+
+["math.gcd"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.hypot"]
+raises = ['MemoryError']
+
+["math.isclose"]
+raises = ['TypeError']
+
+["math.isfinite"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.isinf"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.isnan"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.isqrt"]
+raises = ['TypeError', 'ValueError']
+
+["math.lcm"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.ldexp"]
+raises = ['TypeError']
+
+["math.lgamma"]
+raises = ['TypeError']
+
+["math.log"]
+raises = ['TypeError']
+
+["math.log10"]
+raises = ['TypeError']
+
+["math.log1p"]
+raises = ['TypeError']
+
+["math.log2"]
+raises = ['TypeError']
+
+["math.modf"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.nextafter"]
+raises = ['TypeError']
+
+["math.perm"]
+raises = ['TypeError']
+
+["math.pow"]
+raises = ['TypeError']
+
+["math.prod"]
+raises = ['TypeError']
+
+["math.radians"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.remainder"]
+raises = ['TypeError']
+
+["math.sin"]
+raises = ['TypeError']
+
+["math.sinh"]
+raises = ['TypeError']
+
+["math.sqrt"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.tan"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.tanh"]
+raises = ['Exception']
+confidence = "conservative"
+
+["math.trunc"]
+raises = ['TypeError']
+
+["math.ulp"]
+raises = ['Exception']
+confidence = "conservative"
+
+["md5.copy"]
+raises = ['TypeError']
+
+["md5.digest"]
+raises = ['TypeError']
+
+["md5.hexdigest"]
+raises = ['TypeError']
+
+["md5.md5"]
+raises = ['TypeError']
+
+["md5.update"]
+raises = ['BufferError', 'TypeError']
+
+["mmap.__enter__"]
+raises = ['ValueError']
+
+["mmap.__exit__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["mmap.__sizeof__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["mmap.close"]
+raises = ['BufferError']
+
+["mmap.find"]
+raises = ['Exception']
+confidence = "conservative"
+
+["mmap.flush"]
+raises = ['OSError', 'TypeError', 'ValueError']
+
+["mmap.move"]
+raises = ['TypeError', 'ValueError']
+
+["mmap.read"]
+raises = ['TypeError', 'ValueError']
+
+["mmap.read_byte"]
+raises = ['ValueError']
+
+["mmap.readline"]
+raises = ['ValueError']
+
+["mmap.resize"]
+raises = ['OSError', 'TypeError', 'ValueError']
+
+["mmap.rfind"]
+raises = ['Exception']
+confidence = "conservative"
+
+["mmap.seek"]
+raises = ['TypeError', 'ValueError']
+
+["mmap.size"]
+raises = ['OSError', 'ValueError']
+
+["mmap.tell"]
+raises = ['ValueError']
+
+["mmap.write"]
+raises = ['TypeError', 'ValueError']
+
+["mmap.write_byte"]
+raises = ['TypeError', 'ValueError']
+
+["nis.cat"]
+raises = ['TypeError']
+
+["nis.get_default_domain"]
+raises = ['Exception']
+confidence = "conservative"
+
+["nis.maps"]
+raises = ['TypeError']
+
+["nis.match"]
+raises = ['TypeError']
+
+["ossaudiodev.__enter__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.__exit__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.bufsize"]
+raises = ['OSError']
+
+["ossaudiodev.channels"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.controls"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.fileno"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.flush"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.get"]
+raises = ['OSError', 'TypeError']
+
+["ossaudiodev.get_recsrc"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.getfmts"]
+raises = ['OSError']
+
+["ossaudiodev.getptr"]
+raises = ['OSError']
+
+["ossaudiodev.nonblock"]
+raises = ['OSError']
+
+["ossaudiodev.obufcount"]
+raises = ['OSError']
+
+["ossaudiodev.obuffree"]
+raises = ['OSError']
+
+["ossaudiodev.open"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.openmixer"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.post"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.read"]
+raises = ['TypeError']
+
+["ossaudiodev.reccontrols"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.reset"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.set"]
+raises = ['OSError', 'TypeError']
+
+["ossaudiodev.set_recsrc"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.setfmt"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.setparameters"]
+raises = ['OSError', 'TypeError']
+
+["ossaudiodev.speed"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.stereocontrols"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.sync"]
+raises = ['Exception']
+confidence = "conservative"
+
+["ossaudiodev.write"]
+raises = ['TypeError']
+
+["ossaudiodev.writeall"]
+raises = ['OSError', 'TypeError', 'ValueError']
+
+["overlapped.AcceptEx"]
+raises = ['TypeError']
+
+["overlapped.BindLocal"]
+raises = ['TypeError']
+
+["overlapped.ConnectEx"]
+raises = ['TypeError']
+
+["overlapped.ConnectNamedPipe"]
+raises = ['TypeError']
+
+["overlapped.ConnectPipe"]
+raises = ['TypeError']
+
+["overlapped.CreateEvent"]
+raises = ['TypeError']
+
+["overlapped.CreateIoCompletionPort"]
+raises = ['TypeError']
+
+["overlapped.DisconnectEx"]
+raises = ['TypeError']
+
+["overlapped.FormatMessage"]
+raises = ['TypeError']
+
+["overlapped.GetQueuedCompletionStatus"]
+raises = ['TypeError']
+
+["overlapped.PostQueuedCompletionStatus"]
+raises = ['TypeError']
+
+["overlapped.ReadFile"]
+raises = ['TypeError']
+
+["overlapped.ReadFileInto"]
+raises = ['TypeError']
+
+["overlapped.RegisterWaitWithQueue"]
+raises = ['TypeError']
+
+["overlapped.ResetEvent"]
+raises = ['TypeError']
+
+["overlapped.SetEvent"]
+raises = ['TypeError']
+
+["overlapped.TransmitFile"]
+raises = ['TypeError']
+
+["overlapped.UnregisterWait"]
+raises = ['TypeError']
+
+["overlapped.UnregisterWaitEx"]
+raises = ['TypeError']
+
+["overlapped.WSAConnect"]
+raises = ['TypeError']
+
+["overlapped.WSARecv"]
+raises = ['TypeError']
+
+["overlapped.WSARecvFrom"]
+raises = ['TypeError']
+
+["overlapped.WSARecvInto"]
+raises = ['TypeError']
+
+["overlapped.WSASend"]
+raises = ['TypeError']
+
+["overlapped.WSASendTo"]
+raises = ['TypeError']
+
+["overlapped.WriteFile"]
+raises = ['TypeError']
+
+["overlapped.cancel"]
+raises = ['TypeError']
+
+["overlapped.getresult"]
+raises = ['TypeError']
+
+["posix.__class_getitem__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["posix.__enter__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["posix.__exit__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["posix.__fspath__"]
+raises = ['TypeError']
+
+["posix._add_dll_directory"]
+raises = ['TypeError']
+
+["posix._exit"]
+raises = ['TypeError']
+
+["posix._getdiskusage"]
+raises = ['TypeError']
+
+["posix._getfinalpathname"]
+raises = ['Exception']
+confidence = "conservative"
+
+["posix._getfullpathname"]
+raises = ['Exception']
+confidence = "conservative"
+
+["posix._getvolumepathname"]
+raises = ['TypeError']
+
+["posix._path_splitroot"]
+raises = ['TypeError']
+
+["posix._remove_dll_directory"]
+raises = ['TypeError']
+
+["posix.abort"]
+raises = ['TypeError']
+
+["posix.access"]
+raises = ['TypeError']
+
+["posix.chdir"]
+raises = ['TypeError']
+
+["posix.chmod"]
+raises = ['TypeError']
+
+["posix.close"]
+raises = ['TypeError']
+
+["posix.closerange"]
+raises = ['TypeError']
+
+["posix.cpu_count"]
+raises = ['Exception']
+confidence = "conservative"
+
+["posix.device_encoding"]
+raises = ['TypeError']
+
+["posix.dup"]
+raises = ['TypeError']
+
+["posix.dup2"]
+raises = ['TypeError']
+
+["posix.execv"]
+raises = ['TypeError']
+
+["posix.execve"]
+raises = ['TypeError']
+
+["posix.fspath"]
+raises = ['TypeError']
+
+["posix.fstat"]
+raises = ['TypeError']
+
+["posix.fsync"]
+raises = ['TypeError']
+
+["posix.ftruncate"]
+raises = ['TypeError']
+
+["posix.get_handle_inheritable"]
+raises = ['TypeError']
+
+["posix.get_inheritable"]
+raises = ['TypeError']
+
+["posix.get_terminal_size"]
+raises = ['TypeError']
+
+["posix.getcwd"]
+raises = ['Exception']
+confidence = "conservative"
+
+["posix.getcwdb"]
+raises = ['Exception']
+confidence = "conservative"
+
+["posix.getlogin"]
+raises = ['TypeError']
+
+["posix.getpid"]
+raises = ['TypeError']
+
+["posix.getppid"]
+raises = ['TypeError']
+
+["posix.inode"]
+raises = ['TypeError']
+
+["posix.is_dir"]
+raises = ['TypeError']
+
+["posix.is_file"]
+raises = ['TypeError']
+
+["posix.is_symlink"]
+raises = ['TypeError']
+
+["posix.isatty"]
+raises = ['Exception']
+confidence = "conservative"
+
+["posix.kill"]
+raises = ['TypeError']
+
+["posix.link"]
+raises = ['TypeError']
+
+["posix.listdir"]
+raises = ['TypeError']
+
+["posix.lseek"]
+raises = ['TypeError']
+
+["posix.lstat"]
+raises = ['TypeError']
+
+["posix.mkdir"]
+raises = ['TypeError']
+
+["posix.open"]
+raises = ['TypeError']
+
+["posix.pipe"]
+raises = ['TypeError']
+
+["posix.putenv"]
+raises = ['TypeError']
+
+["posix.read"]
+raises = ['TypeError']
+
+["posix.readlink"]
+raises = ['TypeError']
+
+["posix.remove"]
+raises = ['TypeError']
+
+["posix.rename"]
+raises = ['TypeError']
+
+["posix.replace"]
+raises = ['TypeError']
+
+["posix.rmdir"]
+raises = ['TypeError']
+
+["posix.scandir"]
+raises = ['TypeError']
+
+["posix.set_handle_inheritable"]
+raises = ['TypeError']
+
+["posix.set_inheritable"]
+raises = ['TypeError']
+
+["posix.spawnv"]
+raises = ['TypeError']
+
+["posix.spawnve"]
+raises = ['TypeError']
+
+["posix.startfile"]
+raises = ['TypeError']
+
+["posix.stat"]
+raises = ['TypeError']
+
+["posix.strerror"]
+raises = ['TypeError']
+
+["posix.symlink"]
+raises = ['TypeError']
+
+["posix.system"]
+raises = ['TypeError']
+
+["posix.times"]
+raises = ['TypeError']
+
+["posix.truncate"]
+raises = ['TypeError']
+
+["posix.umask"]
+raises = ['Exception']
+confidence = "conservative"
+
+["posix.unlink"]
+raises = ['TypeError']
+
+["posix.unsetenv"]
+raises = ['TypeError']
+
+["posix.urandom"]
+raises = ['TypeError']
+
+["posix.utime"]
+raises = ['TypeError']
+
+["posix.waitpid"]
+raises = ['TypeError']
+
+["posix.waitstatus_to_exitcode"]
+raises = ['TypeError']
+
+["posix.write"]
+raises = ['TypeError']
+
+["pwd.getpwnam"]
+raises = ['TypeError']
+
+["pwd.getpwuid"]
+raises = ['KeyError', 'MemoryError', 'TypeError']
+
+["pyexpat.ErrorString"]
+raises = ['Exception']
+confidence = "conservative"
+
+["pyexpat.ExternalEntityParserCreate"]
+raises = ['TypeError', 'ValueError']
+
+["pyexpat.GetBase"]
+raises = ['Exception']
+confidence = "conservative"
+
+["pyexpat.GetInputContext"]
+raises = ['Exception']
+confidence = "conservative"
+
+["pyexpat.GetReparseDeferralEnabled"]
+raises = ['TypeError']
+
+["pyexpat.Parse"]
+raises = ['TypeError']
+
+["pyexpat.ParseFile"]
+raises = ['TypeError']
+
+["pyexpat.ParserCreate"]
+raises = ['TypeError', 'ValueError']
+
+["pyexpat.SetBase"]
+raises = ['TypeError', 'ValueError']
+
+["pyexpat.SetParamEntityParsing"]
+raises = ['Exception']
+confidence = "conservative"
+
+["pyexpat.SetReparseDeferralEnabled"]
+raises = ['TypeError']
+
+["readline.add_history"]
+raises = ['TypeError']
+
+["readline.get_begidx"]
+raises = ['TypeError']
+
+["readline.get_completer"]
+raises = ['TypeError']
+
+["readline.get_completer_delims"]
+raises = ['TypeError']
+
+["readline.get_completion_type"]
+raises = ['TypeError']
+
+["readline.get_current_history_length"]
+raises = ['Exception']
+confidence = "conservative"
+
+["readline.get_endidx"]
+raises = ['TypeError']
+
+["readline.get_history_item"]
+raises = ['TypeError']
+
+["readline.get_history_length"]
+raises = ['TypeError']
+
+["readline.get_line_buffer"]
+raises = ['TypeError']
+
+["readline.insert_text"]
+raises = ['TypeError']
+
+["readline.parse_and_bind"]
+raises = ['MemoryError', 'TypeError']
+
+["readline.read_history_file"]
+raises = ['TypeError']
+
+["readline.read_init_file"]
+raises = ['TypeError']
+
+["readline.redisplay"]
+raises = ['TypeError']
+
+["readline.remove_history_item"]
+raises = ['TypeError']
+
+["readline.replace_history_item"]
+raises = ['TypeError']
+
+["readline.set_auto_history"]
+raises = ['TypeError']
+
+["readline.set_completer"]
+raises = ['TypeError']
+
+["readline.set_completer_delims"]
+raises = ['MemoryError', 'TypeError']
+
+["readline.set_completion_display_matches_hook"]
+raises = ['TypeError']
+
+["readline.set_history_length"]
+raises = ['Exception']
+confidence = "conservative"
+
+["readline.set_startup_hook"]
+raises = ['TypeError']
+
+["readline.write_history_file"]
+raises = ['TypeError']
+
+["resource.getpagesize"]
+raises = ['Exception']
+confidence = "conservative"
+
+["resource.getrlimit"]
+raises = ['TypeError']
+
+["resource.getrusage"]
+raises = ['Exception']
+confidence = "conservative"
+
+["resource.setrlimit"]
+raises = ['TypeError']
+
+["select.select"]
+raises = ['TypeError']
+
+["sha1.copy"]
+raises = ['TypeError']
+
+["sha1.digest"]
+raises = ['TypeError']
+
+["sha1.hexdigest"]
+raises = ['TypeError']
+
+["sha1.sha1"]
+raises = ['TypeError']
+
+["sha1.update"]
+raises = ['BufferError', 'TypeError']
+
+["sha256.copy"]
+raises = ['TypeError']
+
+["sha256.digest"]
+raises = ['TypeError']
+
+["sha256.hexdigest"]
+raises = ['TypeError']
+
+["sha256.sha224"]
+raises = ['TypeError']
+
+["sha256.sha256"]
+raises = ['TypeError']
+
+["sha256.update"]
+raises = ['BufferError', 'TypeError']
+
+["sha512.copy"]
+raises = ['TypeError']
+
+["sha512.digest"]
+raises = ['TypeError']
+
+["sha512.hexdigest"]
+raises = ['TypeError']
+
+["sha512.sha384"]
+raises = ['TypeError']
+
+["sha512.sha512"]
+raises = ['TypeError']
+
+["sha512.update"]
+raises = ['BufferError', 'TypeError']
+
+["signal.default_int_handler"]
+raises = ['TypeError']
+
+["signal.getsignal"]
+raises = ['Exception']
+confidence = "conservative"
+
+["signal.raise_signal"]
+raises = ['Exception']
+confidence = "conservative"
+
+["signal.set_wakeup_fd"]
+raises = ['OSError', 'TypeError']
+
+["signal.signal"]
+raises = ['TypeError']
+
+["signal.strsignal"]
+raises = ['Exception']
+confidence = "conservative"
+
+["signal.valid_signals"]
+raises = ['TypeError']
+
+["socket._accept"]
+raises = ['OSError']
+
+["socket.bind"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.connect"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.connect_ex"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.detach"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.dup"]
+raises = ['OSError']
+
+["socket.fileno"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.getaddrinfo"]
+raises = ['OSError', 'TypeError']
+
+["socket.getblocking"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.getdefaulttimeout"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.gethostbyaddr"]
+raises = ['OSError', 'TypeError']
+
+["socket.gethostbyname"]
+raises = ['TypeError']
+
+["socket.gethostbyname_ex"]
+raises = ['TypeError']
+
+["socket.gethostname"]
+raises = ['MemoryError', 'OSError']
+
+["socket.getnameinfo"]
+raises = ['OSError', 'OverflowError', 'TypeError']
+
+["socket.getpeername"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.getprotobyname"]
+raises = ['OSError', 'TypeError']
+
+["socket.getservbyname"]
+raises = ['OSError', 'TypeError']
+
+["socket.getservbyport"]
+raises = ['OSError', 'OverflowError', 'TypeError']
+
+["socket.getsockname"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.getsockopt"]
+raises = ['OSError', 'TypeError']
+
+["socket.gettimeout"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.htonl"]
+raises = ['TypeError']
+
+["socket.htons"]
+raises = ['OverflowError', 'TypeError']
+
+["socket.if_indextoname"]
+raises = ['OSError', 'OverflowError']
+
+["socket.if_nameindex"]
+raises = ['OSError']
+
+["socket.if_nametoindex"]
+raises = ['OSError', 'TypeError']
+
+["socket.inet_aton"]
+raises = ['OSError', 'TypeError']
+
+["socket.inet_ntoa"]
+raises = ['OSError', 'TypeError']
+
+["socket.inet_ntop"]
+raises = ['OSError', 'TypeError', 'ValueError']
+
+["socket.inet_pton"]
+raises = ['OSError', 'TypeError']
+
+["socket.ioctl"]
+raises = ['TypeError', 'ValueError']
+
+["socket.listen"]
+raises = ['TypeError']
+
+["socket.ntohl"]
+raises = ['TypeError']
+
+["socket.ntohs"]
+raises = ['OverflowError', 'TypeError']
+
+["socket.recv"]
+raises = ['TypeError', 'ValueError']
+
+["socket.recv_into"]
+raises = ['TypeError', 'ValueError']
+
+["socket.recvfrom"]
+raises = ['TypeError', 'ValueError']
+
+["socket.recvfrom_into"]
+raises = ['TypeError', 'ValueError']
+
+["socket.send"]
+raises = ['TypeError']
+
+["socket.sendall"]
+raises = ['TimeoutError', 'TypeError']
+
+["socket.sendto"]
+raises = ['TypeError']
+
+["socket.setblocking"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.setdefaulttimeout"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.setsockopt"]
+raises = ['OverflowError', 'TypeError']
+
+["socket.settimeout"]
+raises = ['Exception']
+confidence = "conservative"
+
+["socket.share"]
+raises = ['TypeError']
+
+["socket.shutdown"]
+raises = ['Exception']
+confidence = "conservative"
+
+["symtable.symtable"]
+raises = ['TypeError', 'ValueError']
+
+["syslog.LOG_MASK"]
+raises = ['TypeError']
+
+["syslog.LOG_UPTO"]
+raises = ['TypeError']
+
+["syslog.closelog"]
+raises = ['Exception']
+confidence = "conservative"
+
+["syslog.openlog"]
+raises = ['TypeError']
+
+["syslog.setlogmask"]
+raises = ['TypeError']
+
+["syslog.syslog"]
+raises = ['TypeError']
+
+["termios.tcdrain"]
+raises = ['Exception']
+confidence = "conservative"
+
+["termios.tcflow"]
+raises = ['TypeError']
+
+["termios.tcflush"]
+raises = ['TypeError']
+
+["termios.tcgetattr"]
+raises = ['Exception']
+confidence = "conservative"
+
+["termios.tcsendbreak"]
+raises = ['TypeError']
+
+["termios.tcsetattr"]
+raises = ['TypeError']
+
+["time.asctime"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.ctime"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.get_clock_info"]
+raises = ['TypeError', 'ValueError']
+
+["time.gmtime"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.localtime"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.mktime"]
+raises = ['OverflowError']
+
+["time.monotonic"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.monotonic_ns"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.perf_counter"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.perf_counter_ns"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.process_time"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.process_time_ns"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.sleep"]
+raises = ['ValueError']
+
+["time.strftime"]
+raises = ['MemoryError', 'TypeError', 'ValueError']
+
+["time.strptime"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.thread_time"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.thread_time_ns"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.time"]
+raises = ['Exception']
+confidence = "conservative"
+
+["time.time_ns"]
+raises = ['Exception']
+confidence = "conservative"
+
+["unicodedata.bidirectional"]
+raises = ['TypeError']
+
+["unicodedata.category"]
+raises = ['TypeError']
+
+["unicodedata.combining"]
+raises = ['TypeError']
+
+["unicodedata.decimal"]
+raises = ['TypeError']
+
+["unicodedata.decomposition"]
+raises = ['TypeError']
+
+["unicodedata.digit"]
+raises = ['TypeError']
+
+["unicodedata.east_asian_width"]
+raises = ['TypeError']
+
+["unicodedata.is_normalized"]
+raises = ['TypeError']
+
+["unicodedata.lookup"]
+raises = ['TypeError']
+
+["unicodedata.mirrored"]
+raises = ['TypeError']
+
+["unicodedata.name"]
+raises = ['TypeError']
+
+["unicodedata.normalize"]
+raises = ['TypeError']
+
+["unicodedata.numeric"]
+raises = ['TypeError']
+
+["xx.bug"]
+raises = ['TypeError']
+
+["xx.demo"]
+raises = ['TypeError']
+
+["xx.foo"]
+raises = ['TypeError']
+
+["xx.new"]
+raises = ['TypeError']
+
+["xx.roj"]
+raises = ['TypeError']
+
+["xxlimited.demo"]
+raises = ['TypeError']
+
+["xxlimited.foo"]
+raises = ['TypeError']
+
+["xxlimited.new"]
+raises = ['Exception']
+confidence = "conservative"
+
+["xxlimited_35.demo"]
+raises = ['TypeError']
+
+["xxlimited_35.foo"]
+raises = ['TypeError']
+
+["xxlimited_35.new"]
+raises = ['TypeError']
+
+["xxlimited_35.roj"]
+raises = ['TypeError']
+
+["xxsubtype.bench"]
+raises = ['TypeError']
+
+["xxsubtype.classmeth"]
+raises = ['Exception']
+confidence = "conservative"
+
+["xxsubtype.getstate"]
+raises = ['TypeError']
+
+["xxsubtype.setstate"]
+raises = ['TypeError']
+
+["xxsubtype.staticmeth"]
+raises = ['Exception']
+confidence = "conservative"
+
+["zlib.__copy__"]
+raises = ['TypeError']
+
+["zlib.__deepcopy__"]
+raises = ['TypeError']
+
+["zlib.adler32"]
+raises = ['TypeError']
+
+["zlib.compress"]
+raises = ['TypeError']
+
+["zlib.compressobj"]
+raises = ['TypeError']
+
+["zlib.copy"]
+raises = ['TypeError']
+
+["zlib.crc32"]
+raises = ['TypeError']
+
+["zlib.decompress"]
+raises = ['TypeError']
+
+["zlib.decompressobj"]
+raises = ['TypeError']
+
+["zlib.flush"]
+raises = ['TypeError']
