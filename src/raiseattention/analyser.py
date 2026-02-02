@@ -1013,8 +1013,22 @@ class ExceptionAnalyser:
         if not exc_type:
             return exc_type
 
-        # already qualified (contains a dot)
+        # get the top-level package name if we have a module name
+        top_level_package = module_name.split(".")[0] if module_name else None
+
+        # handle relative references like 'decoder.JSONDecodeError' in module 'json'
+        # these should become 'json.JSONDecodeError' (using top-level package)
         if "." in exc_type:
+            # extract the exception class name (last part after the dot)
+            exc_class_name = exc_type.rsplit(".", 1)[-1]
+            # check if this looks like a relative submodule reference
+            # (first part is lowercase, suggesting a module name not a class)
+            first_part = exc_type.split(".")[0]
+            if first_part[0].islower() and top_level_package:
+                # it's a relative reference like 'decoder.JSONDecodeError'
+                # qualify with the top-level package
+                return f"{top_level_package}.{exc_class_name}"
+            # otherwise it's already fully qualified
             return exc_type
 
         # built-in exceptions don't need qualification
