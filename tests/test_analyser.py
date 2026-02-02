@@ -521,11 +521,12 @@ def uses_safe_map():
 """)
 
         config = Config()
+        config.analysis.warn_native = False  # disable native warnings for this test
         analyzer = ExceptionAnalyser(config)
         analyzer.analyse_file(test_file)
 
         signature = analyzer.get_function_signature("test.uses_safe_map")
-        # should have no exceptions
+        # should have no exceptions (from the callable arg - native warnings disabled)
         assert len(signature) == 0
 
     def test_hof_exception_signature_tracking(self, tmp_path: Path) -> None:

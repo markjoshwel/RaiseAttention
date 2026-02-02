@@ -720,6 +720,20 @@ class ExternalAnalyser:
 
         # handle dotted names (e.g., 'json.loads')
         if "." not in import_name:
+            # only check specific builtins that commonly raise exceptions
+            # we don't want to flag every len(), list(), print() etc.
+            _INTERESTING_BUILTINS: frozenset[str] = frozenset(
+                {
+                    "open",
+                    "exec",
+                    "eval",
+                    "compile",
+                    "input",
+                    "__import__",
+                }
+            )
+            if import_name in _INTERESTING_BUILTINS:
+                return "builtins", import_name
             return None
 
         # try progressively shorter module prefixes
