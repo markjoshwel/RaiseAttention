@@ -110,6 +110,11 @@ examples:
         help="disable warnings about possible native code exceptions",
     )
     check_parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="disable caching (useful for readonly environments or fresh analysis)",
+    )
+    check_parser.add_argument(
         "--debug",
         action="store_true",
         help="enable debug logging for troubleshooting",
@@ -198,6 +203,8 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
         config.respect_gitignore = False
     if args.no_warn_native:
         config.analysis.warn_native = False
+    if args.no_cache:
+        config.cache.enabled = False
 
     analyzer = ExceptionAnalyser(config)
     all_results = []
@@ -286,12 +293,16 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
                 path_str = _format_path(diag.file_path, use_absolute)
                 print(f"{path_str}:{diag.line}:{diag.column}: {diag.severity}: {diag.message}")
 
+        # always print summary line (like basedpyright)
+        issue_count = len(combined_diagnostics)
+        issue_word = "issue" if issue_count == 1 else "issues"
+        print(f"{issue_count} {issue_word} found")
+
         if args.verbose:
-            print("\nsummary:")
+            print("\ndetailed summary:")
             print(f"  files analysed: {len(set(files_analysed))}")
             print(f"  functions found: {total_functions}")
             print(f"  exceptions tracked: {total_exceptions}")
-            print(f"  issues found: {len(combined_diagnostics)}")
 
         if args.output:
             # also write text output to file
@@ -302,13 +313,15 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
                     f"{path_str}:{diag.line}:{diag.column}: {diag.severity}: {diag.message}"
                 )
 
+            # always include summary line
+            lines.append(f"{issue_count} {issue_word} found")
+
             if args.verbose:
                 lines.append("")
-                lines.append("summary:")
+                lines.append("detailed summary:")
                 lines.append(f"  files analysed: {len(set(files_analysed))}")
                 lines.append(f"  functions found: {total_functions}")
                 lines.append(f"  exceptions tracked: {total_exceptions}")
-                lines.append(f"  issues found: {len(combined_diagnostics)}")
 
             Path(args.output).write_text("\n".join(lines))
 

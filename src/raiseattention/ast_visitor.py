@@ -22,6 +22,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# constant for module-level code tracking
+MODULE_LEVEL_NAME = "<module>"
+
 
 @dataclass
 class ExceptionInfo:
@@ -162,6 +165,7 @@ class ExceptionVisitor(ast.NodeVisitor):
     imports: dict[str, str]
     _class_stack: list[str]
     active_try_blocks: list[int]
+    _module_level_func: FunctionInfo
 
     def __init__(self, module_name: str = "") -> None:
         """
@@ -178,6 +182,19 @@ class ExceptionVisitor(ast.NodeVisitor):
         self.imports = {}
         self._class_stack = []
         self.active_try_blocks = []
+
+        # create synthetic function to track module-level code
+        qualified_module_name = (
+            f"{module_name}.{MODULE_LEVEL_NAME}" if module_name else MODULE_LEVEL_NAME
+        )
+        self._module_level_func = FunctionInfo(
+            name=MODULE_LEVEL_NAME,
+            qualified_name=qualified_module_name,
+            location=(1, 0),
+            docstring=None,
+            is_async=False,
+        )
+        self.functions[qualified_module_name] = self._module_level_func
 
     @override
     def visit_Import(self, node: ast.Import) -> None:
@@ -310,9 +327,9 @@ class ExceptionVisitor(ast.NodeVisitor):
             )
             logger.debug("found raise statement: %s at line %d", exc_type, node.lineno)
 
-        # add to current function if inside one
-        if self.current_function:
-            self.current_function.raises.append(exc_info)
+        # add to current function or module-level synthetic function
+        target_func = self.current_function or self._module_level_func
+        target_func.raises.append(exc_info)
 
         self.generic_visit(node)
 
@@ -406,22 +423,23 @@ class ExceptionVisitor(ast.NodeVisitor):
             `node: ast.Call`
                 the call expression node
         """
-        if self.current_function:
-            func_name = self._get_call_name(node.func)
-            if func_name:
-                callable_args = self._extract_callable_args(node)
-                call_info = CallInfo(
-                    func_name=func_name,
-                    location=(node.lineno, node.col_offset),
-                    is_async=False,
-                    containing_try_blocks=list(self.active_try_blocks),
-                    callable_args=callable_args,
-                )
-                self.current_function.calls.append(call_info)
+        # use current function or module-level synthetic function
+        target_func = self.current_function or self._module_level_func
+        func_name = self._get_call_name(node.func)
+        if func_name:
+            callable_args = self._extract_callable_args(node)
+            call_info = CallInfo(
+                func_name=func_name,
+                location=(node.lineno, node.col_offset),
+                is_async=False,
+                containing_try_blocks=list(self.active_try_blocks),
+                callable_args=callable_args,
+            )
+            target_func.calls.append(call_info)
 
-                logger.debug("found call to '%s' at line %d", func_name, node.lineno)
-                if callable_args:
-                    logger.debug("call has callable args: %s", callable_args)
+            logger.debug("found call to '%s' at line %d", func_name, node.lineno)
+            if callable_args:
+                logger.debug("call has callable args: %s", callable_args)
 
         self.generic_visit(node)
 
@@ -434,7 +452,9 @@ class ExceptionVisitor(ast.NodeVisitor):
             `node: ast.Await`
                 the await expression node
         """
-        if self.current_function and isinstance(node.value, ast.Call):
+        # use current function or module-level synthetic function
+        target_func = self.current_function or self._module_level_func
+        if isinstance(node.value, ast.Call):
             call_node = node.value
             func_name = self._get_call_name(call_node.func)
             if func_name:
@@ -446,7 +466,7 @@ class ExceptionVisitor(ast.NodeVisitor):
                     containing_try_blocks=list(self.active_try_blocks),
                     callable_args=callable_args,
                 )
-                self.current_function.calls.append(call_info)
+                target_func.calls.append(call_info)
 
                 logger.debug("found async call to '%s' at line %d", func_name, node.lineno)
                 if callable_args:

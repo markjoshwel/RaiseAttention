@@ -59,7 +59,9 @@ async def async_function():
 
         visitor = parse_source(source)
 
-        assert len(visitor.functions) == 2
+        # +1 for the synthetic <module> function that tracks module-level code
+        assert len(visitor.functions) == 3
+        assert "<string>.<module>" in visitor.functions
         assert "<string>.simple_function" in visitor.functions
         assert "<string>.async_function" in visitor.functions
 

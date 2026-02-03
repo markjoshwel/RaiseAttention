@@ -87,7 +87,8 @@ def simple():
         result = analyzer.analyse_file(test_file)
 
         assert len(result.files_analysed) == 1
-        assert result.functions_found == 1
+        # +1 for the synthetic <module> function that tracks module-level code
+        assert result.functions_found == 2
 
     def test_analyse_file_with_exception(self, tmp_path: Path) -> None:
         """Test analysing a file that raises exceptions."""
@@ -102,7 +103,8 @@ def risky():
 
         result = analyzer.analyse_file(test_file)
 
-        assert result.functions_found == 1
+        # +1 for the synthetic <module> function
+        assert result.functions_found == 2
         assert result.exceptions_tracked == 1
 
     def test_analyse_project(self, tmp_path: Path) -> None:
@@ -128,7 +130,8 @@ def func3():
         result = analyzer.analyse_project(tmp_path)
 
         assert len(result.files_analysed) == 3
-        assert result.functions_found == 3
+        # 3 regular functions + 3 synthetic <module> functions (one per file)
+        assert result.functions_found == 6
 
     def test_get_function_signature(self, tmp_path: Path) -> None:
         """Test getting exception signature for a function."""
