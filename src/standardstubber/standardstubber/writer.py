@@ -96,8 +96,9 @@ def write_stub_file_incremental(
     # use a dict to track: qualname -> (raises_set, confidence, notes)
     merged: dict[str, tuple[set[str], Confidence, str]] = {}
 
-    for qualname, raises, confidence_str, notes in raw_stubs:
+    for qualname, raises_frozen, confidence_str, notes in raw_stubs:
         confidence = Confidence(confidence_str) if confidence_str else Confidence.EXACT
+        raises = set(raises_frozen)
 
         if qualname in merged:
             existing_raises, existing_conf, existing_notes = merged[qualname]
@@ -117,7 +118,7 @@ def write_stub_file_incremental(
             final_notes = existing_notes if existing_notes else notes
             merged[qualname] = (existing_raises, final_conf, final_notes)
         else:
-            merged[qualname] = (set(raises), confidence, notes)
+            merged[qualname] = (raises, confidence, notes)
 
     # step 2: group by module
     by_module: dict[str, list[tuple[str, set[str], Confidence, str]]] = {}

@@ -29,7 +29,11 @@ standardstubber/
 │   ├── models.py            # data models for .pyras files
 │   ├── patterns.py          # error propagation pattern detection
 │   ├── resolver.py          # stub file resolution at check-time
-│   └── writer.py            # incremental toml file writer
+│   ├── writer_json.py       # json v2.0 file writer
+│   └── writer.py            # incremental toml v1.0 file writer (legacy)
+├── typings/                 # type stubs for libclang
+│   └── clang/
+│       └── cindex.pyi       # type annotations for clang bindings
 ├── resources/               # analysis specifications
 │   ├── cpython-analysis.md  # detailed cpython analysis guide
 │   └── Python-*.tar.xz      # cpython source tarballs (for generation)
@@ -68,127 +72,177 @@ generate all stdlib stubs for multiple python versions (used for creating the sh
 python generate_all.py --jobs 16 --verbose
 ```
 
-## the .pyras file format
+## the .pyras file format (v2.0)
 
-`.pyras` (python raiseattention stub) files are TOML-based exception metadata stubs for
-native/unanalysable python functions. they enable raiseattention to track exceptions
-through c extension modules that cannot be statically analysed from python source alone.
+`.pyras` (python raiseattention stub) files are **JSON-based** exception metadata stubs for
+native/unanalysable python functions. v2.0 replaces the old TOML format with a nested JSON
+structure that supports per-exception confidence levels and efficient parsing.
 
 ### design goals
 
-- **human-readable:** deterministic sorting, optional comments supported
-- **machine-parseable:** standard TOML format (parsed with `tomllib`)
+- **fast parsing:** JSON format (parsed with stdlib `json` module)
+- **nested structure:** module → class → method → exception → confidence
 - **version-aware:** PEP 440 specifiers for matching python/package versions
-- **confidence-rated:** tiered trust levels (`conservative` < `likely` < `exact` < `manual`)
+- **per-exception confidence:** each exception can have its own trust level
+- **fuzzy matching:** resolver handles class name mismatches (e.g., `mmap.mmap` vs `mmap.Mmap_object`)
 
 ### file structure
 
-```
-[metadata]                    # required header (exactly one)
-name = "..."
-version = "..."
-
-["module.function"]           # function stub sections (one per function)
-raises = [...]
-confidence = "..."
+```json
+{
+  "metadata": {
+    "name": "stdlib",
+    "version": ">=3.12,<3.13",
+    "format_version": "2.0",
+    "generator": "standardstubber@0.1.0"
+  },
+  "_io": {
+    "BufferedReader": {
+      "peek": {
+        "TypeError": "exact"
+      },
+      "read": {
+        "BufferError": "exact",
+        "ValueError": "likely"
+      }
+    }
+  },
+  "json": {
+    "loads": [
+      "TypeError",
+      "json.JSONDecodeError"
+    ]
+  }
+}
 ```
 
 ### complete example
 
-```toml
-[metadata]
-name = "stdlib"
-version = ">=3.12,<3.13"
-format_version = "1.0"
-generator = "standardstubber@0.1.0"
-generated_at = "2026-02-03T10:30:00"
-
-["builtins.open"]
-raises = ["OSError", "TypeError", "ValueError"]
-confidence = "exact"
-
-["json.loads"]
-raises = ["TypeError", "json.JSONDecodeError"]
-confidence = "exact"
-
-["json.JSONDecoder.decode"]
-raises = ["json.JSONDecodeError"]
-confidence = "exact"
-
-["_json.encode_basestring_ascii"]
-raises = ["ValueError", "TypeError"]
-confidence = "exact"
-
-["zlib.compress"]
-raises = ["TypeError", "OverflowError", "zlib.error"]
-confidence = "exact"
-
-["_pickle.Pickler.dump"]
-raises = ["Exception"]
-confidence = "conservative"
+```json
+{
+  "metadata": {
+    "name": "stdlib",
+    "version": ">=3.12,<3.13",
+    "format_version": "2.0",
+    "generator": "standardstubber@0.2.0",
+    "generated_at": "2026-02-03T10:30:00"
+  },
+  "_abc": {
+    "Abcmodule": {
+      "_abc_init": {
+        "TypeError": "exact"
+      },
+      "_abc_instancecheck": [
+        "TypeError"
+      ],
+      "get_cache_token": {
+        "Exception": "conservative"
+      }
+    }
+  },
+  "_io": {
+    "Bufferedreader": {
+      "peek": {
+        "TypeError": "exact"
+      },
+      "read": [
+        "BufferError",
+        "ValueError"
+      ]
+    }
+  },
+  "mmap": {
+    "Mmap_object": {
+      "read": {
+        "BufferError": "exact"
+      },
+      "readline": [
+        "BufferError"
+      ]
+    }
+  }
+}
 ```
 
-### metadata section `[metadata]` (required)
+### metadata section
 
-must appear first. contains file-level metadata.
+the `"metadata"` object is required and must appear first:
 
 | field | required | type | description |
 |-------|----------|------|-------------|
 | `name` | **yes** | string | package name: `"stdlib"`, `"pydantic-core"`, `"numpy"` |
 | `version` | **yes** | string | PEP 440 version specifier |
-| `format_version` | no | string | format version: `"1.0"` (default) |
-| `generator` | no | string | tool that created the file: `"standardstubber@0.1.0"` |
-| `generated_at` | no | string | ISO8601 timestamp: `"2026-02-03T10:30:00"` |
-| `package` | no | string | import name (for third-party, when different from distribution name) |
+| `format_version` | no | string | format version: `"2.0"` |
+| `generator` | no | string | tool version: `"standardstubber@0.2.0"` |
+| `generated_at` | no | string | ISO8601 timestamp |
+| `package` | no | string | import name for third-party packages |
 
 **version specifiers:**
 
-```toml
-# for stdlib (CPython versions)
-version = ">=3.12,<3.13"     # CPython 3.12.x only
-version = ">=3.10,<3.14"     # CPython 3.10, 3.11, 3.12, 3.13
-version = "==3.12.*"         # only 3.12.x patches
-
-# for third-party packages
-name = "pydantic-core"
-package = "pydantic_core"    # import name
-version = ">=2.0,<3.0"       # pydantic-core 2.x series
+```json
+{
+  "metadata": {
+    "name": "stdlib",
+    "version": ">=3.12,<3.13"
+  }
+}
 ```
 
-### function stub sections `["qualname"]`
+### nested structure
 
-each function gets its own TOML table with the fully qualified name as the key.
+the json structure follows the hierarchy: `module` → `class` → `method` → `exception` → `confidence`
 
-| field | required | type | description |
-|-------|----------|------|-------------|
-| `qualname` (table name) | **yes** | string | fully qualified name: `"json.loads"` |
-| `raises` | **yes** | list[string] | exception types the function may raise |
-| `confidence` | no | string | trust level (see below) |
+**module-level functions:**
+use empty string `""` as class key, merged into module directly in output:
 
-**qualname format:**
-
-```toml
-# module-level functions
-["json.loads"]
-["zlib.compress"]
-["_json.encode_basestring_ascii"]
-
-# class methods (dot notation)
-["json.JSONDecoder.decode"]
-["pickle.Pickler.dump"]
-
-# nested modules
-["xml.etree.ElementTree.parse"]
+```json
+{
+  "json": {
+    "loads": [
+      "TypeError",
+      "json.JSONDecodeError"
+    ]
+  }
+}
 ```
 
-**exception type formats:**
-- built-ins: `"ValueError"`, `"TypeError"`, `"OSError"`, `"MemoryError"`
-- module-specific: `"json.JSONDecodeError"`, `"zlib.error"`, `"pickle.PickleError"`
-- conservative fallback: `["Exception"]`
+**class methods:**
+nested under class name key:
+
+```json
+{
+  "_io": {
+    "Bufferedreader": {
+      "peek": {
+        "TypeError": "exact"
+      }
+    }
+  }
+}
+```
+
+### exception data formats
+
+two formats are supported for exception data:
+
+1. **list format** (compact, all default confidence):
+   ```json
+   "loads": ["TypeError", "ValueError"]
+   ```
+   all exceptions use default confidence (`"likely"`)
+
+2. **dict format** (explicit per-exception confidence):
+   ```json
+   "peek": {
+     "TypeError": "exact",
+     "ValueError": "likely"
+   }
+   ```
+   each exception has its own confidence level
 
 ### confidence levels
 
-confidence is **optional** and defaults to `exact` when omitted. the levels form a hierarchy:
+confidence is **optional** and defaults to `"likely"` when omitted. the levels form a hierarchy:
 
 | level | rank | meaning | when to use |
 |-------|------|---------|-------------|
@@ -197,62 +251,44 @@ confidence is **optional** and defaults to `exact` when omitted. the levels form
 | `exact` | 2 | proven from source | found explicit `PyErr_SetString` with known type |
 | `manual` | 3 (highest) | hand-curated by expert | expert knowledge or documentation-based |
 
-**merging behaviour:** when deduplicating stubs with the same qualname, the more conservative
-confidence is kept. the order is: `conservative` < `likely` < `exact` < `manual`.
+**merging behaviour:** when deduplicating, the more conservative confidence is kept.
+the order is: `conservative` < `likely` < `exact` < `manual`.
 
-### raises list
+### exception type formats
 
-the `raises` field is an array of exception type names:
-
-```toml
-["module.function"]
-raises = ["ValueError", "TypeError", "OSError"]
-```
-
-**exception type formats:**
-- built-in exceptions: `"ValueError"`, `"TypeError"`, `"OSError"`
-- module-specific exceptions: `"json.JSONDecodeError"`, `"zlib.error"`
-- nested exceptions: `"xml.etree.ElementTree.ParseError"`
-- conservative fallback: `["Exception"]` when specific types cannot be determined
-
-**deterministic ordering:**
-standardstubber sorts exception types alphabetically for consistent, diff-friendly output.
+- built-ins: `"ValueError"`, `"TypeError"`, `"OSError"`, `"MemoryError"`
+- module-specific: `"json.JSONDecodeError"`, `"zlib.error"`, `"pickle.PickleError"`
+- conservative fallback: `["Exception"]` or `{"Exception": "conservative"}`
 
 ### output conventions
 
-standardstubber produces `.pyras` files with these conventions:
+standardstubber produces `.pyras` v2.0 files with these conventions:
 
-1. **sorted by module** - all functions from `_json` together, then `_pickle`, etc.
-2. **sorted by qualname** within each module
-3. **deterministic exception ordering** - alphabetically sorted
-4. **blank lines between stubs** for readability
-5. **optional fields omitted** when empty (no `confidence = "exact"` when it's the default)
+1. **sorted by module** - alphabetical order
+2. **sorted by class** within each module
+3. **sorted by method** within each class
+4. **compact format** - list for all-default confidence, dict for mixed/explicit
+5. **test modules filtered** - `_test*`, `xx*`, `_xx*` modules excluded
 
 ### usage in raiseattention
 
 ```python
-from packaging.specifiers import SpecifierSet
-from packaging.version import Version
-from pathlib import Path
-import tomllib
+from stub_resolver import create_stub_resolver
 
-# load and parse a .pyras file
-with open("stubs/stdlib/python-3.12.pyras", "rb") as f:
-    data = tomllib.load(f)
+resolver = create_stub_resolver(python_version="3.12")
 
-# check metadata
-metadata = data["metadata"]
-specifier = SpecifierSet(metadata["version"])
-target = Version("3.12.1")
-if target in specifier:
-    # version matches, use this stub file
-    pass
+# exact match
+result = resolver.get_raises("mmap.Mmap_object.readline")
+print(result.raises)  # frozenset({'BufferError'})
+print(result.confidence)  # 'exact'
 
-# look up a function
-func_data = data.get("json.loads")
-if func_data:
-    raises = func_data.get("raises", [])  # ["TypeError", "json.JSONDecodeError"]
-    confidence = func_data.get("confidence", "exact")
+# fuzzy match (handles class name mismatches)
+result = resolver.get_raises("mmap.mmap.readline")  # finds Mmap_object.readline
+print(result.raises)  # same as above
+
+# per-exception confidence
+print(result.per_exception_confidence)
+# {'BufferError': 'exact'}
 ```
 
 ## architecture
@@ -265,6 +301,7 @@ if func_data:
    - extracts `PyErr_*` function calls to determine exception types
    - detects argument clinic usage (implies `TypeError`/`ValueError`)
    - performs call graph propagation for transitive exception tracking
+   - **filters test modules** (`_test*`, `xx*`, `_xx*`) at discovery phase
 
 2. **patterns.py** - error propagation pattern detection:
    - detects common cpython error handling idioms
@@ -278,40 +315,43 @@ if func_data:
    - `StubFile` - complete .pyras file with metadata
    - `ModuleGraph` - call graph for intra-module propagation
    - `FunctionSummary` - analysis summary for call graph analysis
+   - **default confidence changed to "likely"** (was "exact")
 
 4. **resolver.py** - stub resolution at check-time:
    - `StubResolver` searches multiple stub sources by priority
    - version-aware resolution using `packaging` library
+   - **JSON parsing** (much faster than TOML)
+   - **fuzzy matching** for class name mismatches
    - caching for performance
-   - project-local override support
 
-5. **writer.py** - incremental TOML writer:
-   - `write_stub_file_incremental()` for efficient file generation
-   - explicit deduplication by qualname
+5. **writer_json.py** - JSON v2.0 writer:
+   - `write_stub_file_json_v2()` for efficient file generation
+   - **per-exception confidence** support
+   - **nested structure** (module → class → method → exception)
    - deterministic sorting for reproducible output
-   - proper TOML string escaping
+   - **test module filtering** (excludes `_test*`, `xx*`, `_xx*`)
 
-### how it works
+6. **writer.py** - TOML v1.0 writer (legacy):
+   - `write_stub_file_incremental()` for old format
+   - maintained for backward compatibility if needed
 
-```python
-from standardstubber import CPythonAnalyser
+### v2.0 improvements
 
-# create analyser for cpython source tree
-analyser = CPythonAnalyser(cpython_root=Path("/path/to/cpython"))
+**json format benefits:**
+- **faster parsing** - stdlib `json` vs `tomllib`
+- **nested structure** - better organisation
+- **per-exception confidence** - granular trust levels
+- **smaller file size** - compact list format for default confidence
+- **no test modules** - automatically filtered during generation
 
-# parse and analyse a c module
-tu = analyser.parse_module(Path("/path/to/cpython/Modules/_json.c"))
+**fuzzy matching:**
+- resolves class name mismatches (e.g., `mmap.mmap` → `mmap.Mmap_object`)
+- handles underscore prefix variations (`io` ↔ `_io`)
+- scans all classes in module for method name matches
 
-# find exported functions (PyMethodDef arrays)
-exports = analyser.find_exported_functions(tu)
-# exports: {"loads": "py_loads", "dumps": "py_dumps", ...}
-
-# analyse with propagation
-graph = analyser.analyse_module_with_propagation(c_file, "_json")
-
-# get final stubs with transitive exceptions
-stubs = graph.get_exported_stubs()
-```
+**default confidence "likely":**
+- more honest about uncertainty in static analysis
+- "exact" only when proven from explicit `PyErr_SetString`
 
 ### exception extraction patterns
 
@@ -323,7 +363,7 @@ if (error_condition) {
     return NULL;
 }
 ```
-→ records `ValueError`
+→ records `ValueError` with confidence "exact"
 
 **pattern 2: pyerr_format**
 
@@ -331,7 +371,7 @@ if (error_condition) {
 PyErr_Format(PyExc_TypeError, "expected %.100s", expected);
 return NULL;
 ```
-→ records `TypeError`
+→ records `TypeError` with confidence "exact"
 
 **pattern 3: pyerr_setfromerrno**
 
@@ -341,7 +381,7 @@ if (result < 0) {
     return NULL;
 }
 ```
-→ records `OSError`
+→ records `OSError` with confidence "exact"
 
 **pattern 4: argument parsing**
 
@@ -350,7 +390,7 @@ if (!PyArg_ParseTuple(args, "s#:method", &buffer, &length)) {
     return NULL;
 }
 ```
-→ records `TypeError`
+→ records `TypeError` with confidence "likely"
 
 **pattern 5: error propagation**
 
@@ -360,7 +400,7 @@ if (result == NULL) {
     return NULL;  // propagates whatever exception 'func' raised
 }
 ```
-→ marks as "may raise Exception" or analyses callee transitively
+→ propagates exceptions transitively through call graph
 
 ### call graph propagation
 
@@ -435,38 +475,42 @@ options:
 ### basic usage
 
 ```python
-from standardstubber import (
-    CPythonAnalyser,
-    StubResolver,
-    create_default_resolver,
-    FunctionStub,
-    StubFile,
-)
+from standardstubber import CPythonAnalyser
+from standardstubber.models import StubMetadata
+from standardstubber.writer_json import write_stub_file_json_v2
+from pathlib import Path
 
 # analyse cpython source
 analyser = CPythonAnalyser(cpython_root=Path("/path/to/cpython"))
 c_file = Path("/path/to/cpython/Modules/_json.c")
-graph = analyser.analyse_module_with_propagation(c_file, "_json")
-stubs = graph.get_exported_stubs()
+stubs = analyser.analyse_module_file(c_file, "_json")
 
-# write stub file
+# convert to raw tuples for v2.0
+raw_stubs = [
+    (stub.qualname, stub.raises, stub.confidence.value, stub.notes)
+    for stub in stubs
+]
+
+# write v2.0 json file
 metadata = StubMetadata(
     name="stdlib",
     version=">=3.12,<3.13",
-    generator="standardstubber@0.1.0",
+    generator="standardstubber@0.2.0",
 )
-stub_file = StubFile(metadata=metadata, stubs=stubs)
-stub_file.write(Path("stdlib-3.12.pyras"))
+write_stub_file_json_v2(
+    Path("stdlib-3.12.pyras"),
+    metadata,
+    raw_stubs,
+    skip_test_modules=True,
+)
 ```
 
 ### resolving stubs at check-time
 
 ```python
-from standardstubber import StubResolver, create_default_resolver
-from packaging.version import Version
+from stub_resolver import create_stub_resolver
 
-# create resolver with default sources
-resolver = create_default_resolver(
+resolver = create_stub_resolver(
     project_root=Path("/path/to/project"),
     python_version="3.12",
 )
@@ -476,6 +520,7 @@ result = resolver.get_raises("json.loads")
 if result:
     print(f"raises: {result.raises}")
     print(f"confidence: {result.confidence}")
+    print(f"per-exception: {result.per_exception_confidence}")
     print(f"source: {result.source}")
 ```
 
@@ -494,6 +539,7 @@ uv run pytest tests/ -v
 uv run ruff check standardstubber/
 uv run ruff format standardstubber/
 uv run mypy standardstubber/
+uv run basedpyright standardstubber/  # from standardstubber/ directory
 ```
 
 ### generating all stdlib stubs
@@ -504,8 +550,8 @@ python generate_all.py --jobs 16 --verbose
 
 this will:
 1. extract each cpython tarball in `resources/`
-2. analyse all c modules with parallel workers
-3. generate `.pyras` files in `../raiseattention/stubs/stdlib/`
+2. analyse all c modules with parallel workers (excluding test modules)
+3. generate v2.0 JSON `.pyras` files in `../raiseattention/stubs/stdlib/`
 
 ## dependencies
 
@@ -535,6 +581,10 @@ this will:
 
 5. **macro-based errors** - some cpython error handling uses complex macros that
    may not be fully analysed
+
+6. **class name mapping** - we use C struct names (e.g., `Mmap_object`) rather
+   than Python class names (e.g., `mmap`). the resolver uses fuzzy matching to
+   handle this.
 
 ## docstring format
 

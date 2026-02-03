@@ -1458,15 +1458,21 @@ def find_c_modules(cpython_root: Path) -> list[tuple[Path, str]]:
 
     results: list[tuple[Path, str]] = []
 
+    # test module prefixes to exclude (they're only used by the test suite, not production code)
+    test_prefixes = ("_test", "xx", "_xx")
+
     # common module file patterns
     for c_file in modules_dir.glob("*.c"):
         module_name = _infer_module_name(c_file)
-        if module_name:
+        if module_name and not module_name.startswith(test_prefixes):
             results.append((c_file, module_name))
 
     # subdirectory modules (e.g., _sqlite/)
     for subdir in modules_dir.iterdir():
         if subdir.is_dir() and subdir.name.startswith("_"):
+            # skip test module directories
+            if subdir.name.startswith(test_prefixes):
+                continue
             for c_file in subdir.glob("*.c"):
                 module_name = subdir.name
                 results.append((c_file, module_name))

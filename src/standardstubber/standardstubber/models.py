@@ -463,5 +463,5 @@ class ModuleGraph:
         if func.has_arg_parsing or func.has_clinic:
             return Confidence.LIKELY
 
-        # fallback
-        return Confidence.EXACT
+        # fallback - default to likely since we can't be certain
+        return Confidence.LIKELY

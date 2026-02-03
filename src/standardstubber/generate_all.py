@@ -93,7 +93,7 @@ def generate_stubs_for_version(
     """generate stubs for a single python version with parallel module analysis."""
     from standardstubber.analyser import find_c_modules
     from standardstubber.models import StubMetadata
-    from standardstubber.writer import write_stub_file_incremental
+    from standardstubber.writer_json import write_stub_file_json_v2
 
     version = tarball.stem.split("-")[1].rsplit(".", 1)[0]
     print(f"\n[{version}] starting...")
@@ -127,7 +127,7 @@ def generate_stubs_for_version(
                         f"  [{version}] ({completed}/{len(tasks)}) {module_name}: {len(results)} functions"
                     )
 
-        # create stub file using incremental writer with deduplication
+        # create stub file using json v2 format
         metadata = StubMetadata(
             name="stdlib",
             version=version_spec,
@@ -135,7 +135,9 @@ def generate_stubs_for_version(
             generated_at=datetime.now(timezone.utc),
         )
 
-        num_written = write_stub_file_incremental(output, metadata, all_raw_stubs)
+        num_written = write_stub_file_json_v2(
+            output, metadata, all_raw_stubs, skip_test_modules=True
+        )
 
         print(f"[{version}] done: {num_written} unique stubs written to {output}")
         return version, num_written, ""

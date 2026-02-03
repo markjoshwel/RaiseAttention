@@ -21,7 +21,7 @@ from typing import Final, Generator
 
 from .analyser import CPythonAnalyser, find_c_modules
 from .models import StubMetadata
-from .writer import write_stub_file_incremental
+from .writer_json import write_stub_file_json_v2
 
 logger = logging.getLogger(__name__)
 
@@ -351,7 +351,7 @@ def generate_stubs(
         global_elapsed,
     )
 
-    # create stub file with incremental writer
+    # create stub file with json v2 writer
     metadata = StubMetadata(
         name="stdlib",
         version=version_spec,
@@ -359,8 +359,10 @@ def generate_stubs(
         generated_at=datetime.now(timezone.utc),
     )
 
-    # write stub file using incremental approach (deduplicates and writes directly)
-    num_written = write_stub_file_incremental(output_path, metadata, all_raw_stubs)
+    # write stub file using json v2 format
+    num_written = write_stub_file_json_v2(
+        output_path, metadata, all_raw_stubs, skip_test_modules=True
+    )
     print(f"wrote {num_written} unique stubs to: {output_path} ({global_elapsed:.1f}s)")
 
     return 0
