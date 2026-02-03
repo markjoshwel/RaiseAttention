@@ -114,6 +114,12 @@ when it comes to whether any functions you use may raise exceptions you didn't e
   `sorted`, and other HOFs when you pass callable arguments
 - **native code detection** — reports `PossibleNativeException` for C extensions that
   can't be statically analysed (suppress with `--no-warn-native`)
+- **c extension stubs** — pre-computed exception signatures for stdlib C modules (6531
+  stubs for python 3.12)
+- **type constructor analysis** — detects exceptions from `int()`, `float()`, `str()`,
+  etc. (e.g., `int("not a number")` raises `ValueError`)
+- **smart builtin filtering** — only flags builtins with interesting exceptions, skips
+  noisy ones like `len()`, `abs()`, `print()`
 - **docstring heuristics** — checks `__doc__` for "raises" keywords when static analysis
   isn't possible
 - **lsp server** — real-time feedback in your editor
