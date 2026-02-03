@@ -253,9 +253,8 @@ class StubResolver:
         look up exception signature for a function with fuzzy matching.
 
         resolution order:
-        1. builtin class flattening (e.g., builtins.abs -> builtins.Builtin.abs)
-        2. exact match (O(1) dict lookup)
-        3. fuzzy match (O(n) scan, caches result)
+        1. exact match (O(1) dict lookup)
+        2. fuzzy match (O(n) scan, caches result)
 
         fuzzy matching handles:
         - module underscore prefix: _io.BufferedReader -> io.BufferedReader
@@ -271,16 +270,6 @@ class StubResolver:
         # check function cache
         if qualname in self._function_cache:
             return self._function_cache[qualname]
-
-        # handle builtins module specially - try builtins.Builtin.<func> for builtins.<func>
-        parts = qualname.split(".")
-        if len(parts) == 2 and parts[0] == "builtins":
-            # builtins.abs -> builtins.Builtin.abs
-            builtin_qualname = f"builtins.Builtin.{parts[1]}"
-            result = self._lookup_qualname(builtin_qualname)
-            if result:
-                self._function_cache[qualname] = result
-                return result
 
         result = self._lookup_qualname(qualname)
         self._function_cache[qualname] = result

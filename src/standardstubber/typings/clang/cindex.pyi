@@ -86,6 +86,7 @@ class TranslationUnit:
     """translation unit (parsed file)."""
 
     cursor: Cursor
+    spelling: str
     PARSE_DETAILED_PROCESSING_RECORD: int
 
     def get_children(self) -> list[Cursor]: ...

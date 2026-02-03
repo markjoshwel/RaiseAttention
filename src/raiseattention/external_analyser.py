@@ -34,6 +34,11 @@ logger = logging.getLogger(__name__)
 # c extension file suffixes that cannot be parsed
 _C_EXTENSION_SUFFIXES: Final[frozenset[str]] = frozenset({".so", ".pyd", ".dll", ".dylib"})
 
+# exceptions that are too common to be interesting for builtin filtering
+# builtins that only raise these are not flagged (e.g., len(), abs(), print())
+# MemoryError is included because it can happen on almost any allocation
+_BORING_EXCEPTIONS: Final[frozenset[str]] = frozenset({"TypeError", "Exception", "MemoryError"})
+
 # sentinel exception type for native/c extension code that cannot be statically analysed
 POSSIBLE_NATIVE_EXCEPTION: Final[str] = "PossibleNativeException"
 
@@ -748,6 +753,27 @@ class ExternalAnalyser:
         # fallback to builtins
         return "builtins"
 
+    def _has_interesting_exceptions(self, qualname: str) -> bool:
+        """
+        check if a function has exceptions beyond TypeError and Exception.
+
+        used to filter out builtins that only raise common/boring exceptions
+        which would be too noisy to report (e.g., len(), abs(), print()).
+
+        arguments:
+            `qualname: str`
+                fully qualified function name (e.g., "builtins.int", "_io.open")
+
+        returns: `bool`
+            true if the function can raise interesting exceptions
+        """
+        stub_result = self._stub_resolver.get_raises(qualname)
+        if stub_result is None:
+            return False
+
+        interesting = stub_result.raises - _BORING_EXCEPTIONS
+        return bool(interesting)
+
     def resolve_import_to_module(
         self,
         import_name: str,
@@ -773,26 +799,24 @@ class ExternalAnalyser:
                 return parts[0], parts[1]
             return full_path, ""
 
-        # handle dotted names (e.g., 'json.loads')
+        # handle bare names (builtins like 'open', 'int', 'len')
         if "." not in import_name:
-            # only check specific builtins that commonly raise exceptions
-            # we don't want to flag every len(), list(), print() etc.
-            _INTERESTING_BUILTINS: frozenset[str] = frozenset(
-                {
-                    "open",
-                    "exec",
-                    "eval",
-                    "compile",
-                    "input",
-                    "__import__",
-                }
-            )
-            if import_name in _INTERESTING_BUILTINS:
-                # use introspection to find the canonical module for this builtin
-                # e.g., builtins.open.__module__ == '_io', so we return ('_io', 'open')
-                # this avoids needing to maintain a hardcoded redirect map
-                canonical_module = self._get_builtin_canonical_module(import_name)
+            # dynamically check if this builtin has interesting exceptions
+            # (i.e., can raise something other than just TypeError/Exception)
+            # this avoids flagging every len(), abs(), print() etc.
+            canonical_module = self._get_builtin_canonical_module(import_name)
+
+            # try canonical module first (e.g., _io.open)
+            qualname = f"{canonical_module}.{import_name}"
+            if self._has_interesting_exceptions(qualname):
                 return canonical_module, import_name
+
+            # also check builtins module directly (for type constructors like int, str)
+            if canonical_module != "builtins":
+                qualname = f"builtins.{import_name}"
+                if self._has_interesting_exceptions(qualname):
+                    return "builtins", import_name
+
             return None
 
         # try progressively shorter module prefixes

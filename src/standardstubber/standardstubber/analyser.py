@@ -8,6 +8,7 @@ by parsing c source code and identifying PyErr_* function calls.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
@@ -146,6 +147,19 @@ PYERR_RAISE_ANY: Final[frozenset[str]] = frozenset(
 )
 
 
+# regex to match argument clinic annotations for type constructors
+# matches patterns like:
+#   int.__new__ as long_new
+#   float.__new__ as float_new
+#   list.__init__
+#   str.__new__ as unicode_new
+# the c function name is optional (may be omitted if it follows clinic naming)
+_CLINIC_CONSTRUCTOR_PATTERN: Final[re.Pattern[str]] = re.compile(
+    r"^(\w+)\.(__new__|__init__)(?:\s+as\s+(\w+))?$",
+    re.MULTILINE,
+)
+
+
 @dataclass
 class ParsedFunction:
     """
@@ -275,6 +289,9 @@ class CPythonAnalyser:
         python names are qualified with class names when detected from the
         variable name (e.g., `FileIO_methods` → methods are `FileIO.method`).
 
+        also extracts type constructors (__new__/__init__) from argument clinic
+        annotations.
+
         arguments:
             `tu: TranslationUnit`
                 parsed translation unit
@@ -283,6 +300,14 @@ class CPythonAnalyser:
             mapping from qualified python names to c function names
         """
         exports: dict[str, str] = {}
+
+        # first, find type constructors from argument clinic annotations
+        # this extracts int.__new__, float.__new__, str.__new__, etc.
+        file_path = Path(tu.spelling)
+        file_content = self.get_file_content(file_path)
+        if file_content:
+            clinic_constructors = self._find_clinic_constructors(file_content)
+            exports.update(clinic_constructors)
 
         # iterate over top-level cursors only (much faster than walk_preorder)
         for cursor in tu.cursor.get_children():
@@ -320,6 +345,83 @@ class CPythonAnalyser:
         self._method_defs.update(exports)
         return exports
 
+    def _find_clinic_constructors(self, file_content: str) -> dict[str, str]:
+        """
+        find type constructor mappings from argument clinic annotations.
+
+        parses clinic input blocks in c source files to find type constructor
+        declarations like:
+            /*[clinic input]
+            @classmethod
+            int.__new__ as long_new
+                x: object(c_default="NULL") = 0
+            [clinic start generated code]*/
+
+        these map python type names (e.g., "int", "float", "str") to their
+        c constructor functions. the __new__/__init__ suffixes are stripped
+        since we want to map the type callable itself.
+
+        arguments:
+            `file_content: str`
+                content of the c source file
+
+        returns: `dict[str, str]`
+            mapping from type names (e.g., "int") to c function names
+        """
+        constructors: dict[str, str] = {}
+
+        # find all clinic input blocks
+        # pattern: /*[clinic input] ... [clinic start generated code]*/
+        clinic_blocks = re.findall(
+            r"/\*\[clinic input\](.*?)\[clinic start generated code\]\*/",
+            file_content,
+            re.DOTALL,
+        )
+
+        for block in clinic_blocks:
+            # look for constructor declarations in each block
+            for line in block.split("\n"):
+                line = line.strip()
+                match = _CLINIC_CONSTRUCTOR_PATTERN.match(line)
+                if match:
+                    type_name = match.group(1)  # e.g., "int", "float"
+                    method = match.group(2)  # "__new__" or "__init__"
+                    c_func = match.group(3)  # e.g., "long_new" (may be None)
+
+                    # use just the type name, not type.__new__ or type.__init__
+                    # since calling int(...) invokes the constructor
+                    # if both __new__ and __init__ exist, prefer __new__ (first occurrence)
+                    if type_name in constructors:
+                        logger.debug(
+                            "skipping duplicate constructor for %s (%s)",
+                            type_name,
+                            method,
+                        )
+                        continue
+
+                    if c_func:
+                        # explicit mapping: int.__new__ as long_new
+                        constructors[type_name] = c_func
+                        logger.debug(
+                            "found clinic constructor: %s -> %s (from %s)",
+                            type_name,
+                            c_func,
+                            method,
+                        )
+                    else:
+                        # implicit mapping: list.__init__ -> list___init__
+                        # clinic convention: type_dunder_method -> type___method__
+                        implicit_func = f"{type_name}___{method.strip('_')}__"
+                        constructors[type_name] = implicit_func
+                        logger.debug(
+                            "found clinic constructor (implicit): %s -> %s (from %s)",
+                            type_name,
+                            implicit_func,
+                            method,
+                        )
+
+        return constructors
+
     def _infer_class_from_methods_array(self, var_name: str) -> str:
         """
         infer class name from PyMethodDef array variable name.
@@ -353,6 +455,7 @@ class CPythonAnalyser:
             "mod",
             "",
             # common short module names that use _methods arrays
+            "builtin",  # bltinmodule.c uses builtin_methods for module-level builtins
             "json",
             "socket",
             "gc",
@@ -1110,6 +1213,19 @@ class CPythonAnalyser:
             if goto_site is not None and goto_site.propagates:
                 summary.propagate_callees.add(callee_name)
 
+        # argument clinic heuristic: if function foo calls foo_impl,
+        # add foo_impl to propagate_callees since clinic wrappers
+        # always propagate errors from their implementation functions
+        func_name = func_cursor.spelling
+        impl_name = f"{func_name}_impl"
+        if impl_name in summary.outgoing_calls:
+            summary.propagate_callees.add(impl_name)
+            logger.debug(
+                "clinic heuristic: %s propagates from %s",
+                func_name,
+                impl_name,
+            )
+
         # if function can return null but no exceptions found, be conservative
         if not summary.local_raises and self._can_return_null(func_cursor):
             summary.local_raises.add("Exception")
@@ -1484,6 +1600,20 @@ def find_c_modules(cpython_root: Path) -> list[tuple[Path, str]]:
         bltinmodule = python_dir / "bltinmodule.c"
         if bltinmodule.exists():
             results.append((bltinmodule, "builtins"))
+
+    # special handling for Objects/ directory (built-in type constructors)
+    # these define types like int, float, str, list, etc. that are exposed
+    # via the builtins module
+    objects_dir = cpython_root / "Objects"
+    if objects_dir.exists():
+        # only include files that define type objects (end with "object.c")
+        # these contain __new__/__init__ implementations for built-in types
+        for c_file in objects_dir.glob("*object.c"):
+            # skip generic object.c which doesn't define a user-visible type
+            if c_file.stem == "object":
+                continue
+            # all type objects are exposed via builtins module
+            results.append((c_file, "builtins"))
 
     return results
 
