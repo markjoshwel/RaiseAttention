@@ -15,12 +15,17 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .ast_visitor import parse_file
-from .cache import DependencyCache, FileAnalysis, FileCache
+from .cache import (
+    DependencyCache,
+    FileAnalysis,
+    FileCache,
+    TryExceptDict,
+)
 from .config import Config
 from .external_analyser import (
+    CALLABLE_INVOKING_HOFS,
+    KEY_CALLABLE_HOFS,
     ExternalAnalyser,
-    _CALLABLE_INVOKING_HOFS,
-    _KEY_CALLABLE_HOFS,
 )
 
 if TYPE_CHECKING:
@@ -389,9 +394,9 @@ class ExceptionAnalyser:
 
         # collect directly raised exceptions
         exceptions: set[str] = set()
-        for exc in func_info.get("raises", []):
-            exc_type = exc.get("type", "")
-            is_re_raise = exc.get("is_re_raise", False)
+        for exc in func_info["raises"]:
+            exc_type = exc["type"]
+            is_re_raise = exc["is_re_raise"]
             if exc_type and not is_re_raise and exc_type not in self._get_ignore_exceptions():
                 # qualify local exception types with module name
                 qualified_exc = self._qualify_exception_type(exc_type, module_name)
@@ -401,10 +406,10 @@ class ExceptionAnalyser:
             logger.debug("direct raises in '%s': %s", resolved_name, exceptions)
 
         # collect from called functions (transitive)
-        for call in func_info.get("calls", []):
-            called_func_name = call.get("func_name", "") if isinstance(call, dict) else call
-            call_location = call.get("location", (0, 0)) if isinstance(call, dict) else (0, 0)
-            callable_args = call.get("callable_args", []) if isinstance(call, dict) else []
+        for call in func_info["calls"]:
+            called_func_name = call["func_name"]
+            call_location = call["location"]
+            callable_args = call["callable_args"]
 
             if called_func_name:
                 logger.debug(
@@ -512,20 +517,17 @@ class ExceptionAnalyser:
             true if the function is a known callable-invoking HOF
         """
         # check direct match in callable-invoking HOFs
-        if func_name in _CALLABLE_INVOKING_HOFS:
+        if func_name in CALLABLE_INVOKING_HOFS:
             return True
 
         # check key-callable HOFs (sorted, min, max, etc.)
-        if func_name in _KEY_CALLABLE_HOFS:
+        if func_name in KEY_CALLABLE_HOFS:
             return True
 
         # check for builtins that might be called without qualification
         # e.g., 'map' instead of 'builtins.map'
         builtin_hofs = {"map", "filter", "sorted", "min", "max", "reduce"}
-        if func_name in builtin_hofs:
-            return True
-
-        return False
+        return func_name in builtin_hofs
 
     def invalidate_file(self, file_path: str | Path) -> None:
         """
@@ -575,7 +577,7 @@ class ExceptionAnalyser:
         diagnostics: list[Diagnostic] = []
 
         # get try-except blocks from analysis
-        try_blocks = getattr(analysis, "try_except_blocks", [])
+        try_blocks = analysis.try_except_blocks
 
         # first pass: compute function signatures and find unhandled exceptions at call sites
         # track which functions have unhandled exceptions escaping them
@@ -583,10 +585,10 @@ class ExceptionAnalyser:
         call_diagnostics: list[Diagnostic] = []
 
         for func_name, func_info in analysis.functions.items():
-            func_location = func_info.get("location", (1, 0))
-            func_display_name = func_info.get("name", func_name)
+            func_location = func_info["location"]
+            func_display_name = func_info["name"]
             # note: is_async is available but not used currently
-            # _ = func_info.get("is_async", False)
+            # _ = func_info["is_async"]
 
             # get full exception signature for this function (with file context)
             func_exceptions = self.get_function_signature(func_name, file_path)
@@ -600,19 +602,12 @@ class ExceptionAnalyser:
             func_unhandled_exceptions[func_name] = set()
 
             # check each call in this function
-            calls = func_info.get("calls", [])
-            for call in calls:
-                if isinstance(call, dict):
-                    called_func_name = call.get("func_name", "")
-                    call_location = call.get("location", (1, 0))
-                    containing_tries = call.get("containing_try_blocks", [])
-                    # note: is_async is available but not used currently
-                    # _ = call.get("is_async", False)
-                else:
-                    # backward compatibility with string-only calls
-                    called_func_name = call
-                    call_location = func_location
-                    containing_tries = []
+            for call in func_info["calls"]:
+                called_func_name = call["func_name"]
+                call_location = call["location"]
+                containing_tries = call["containing_try_blocks"]
+                # note: is_async is available but not used currently
+                # _ = call["is_async"]
 
                 if not called_func_name:
                     continue
@@ -657,8 +652,8 @@ class ExceptionAnalyser:
         # only flag functions that have unhandled exceptions escaping them
         if self.config.analysis.strict_mode:
             for func_name, func_info in analysis.functions.items():
-                func_location = func_info.get("location", (1, 0))
-                func_display_name = func_info.get("name", func_name)
+                func_location = func_info["location"]
+                func_display_name = func_info["name"]
 
                 # get this function's exceptions
                 func_exceptions = self.get_function_signature(func_name, file_path)
@@ -673,11 +668,10 @@ class ExceptionAnalyser:
                 has_unhandled_escaping = len(func_unhandled_exceptions.get(func_name, set())) > 0
 
                 # also check if function has no calls (exceptions might escape to external callers)
-                calls = func_info.get("calls", [])
-                has_no_calls = len(calls) == 0
+                has_no_calls = len(func_info["calls"]) == 0
 
                 if has_unhandled_escaping or has_no_calls:
-                    docstring = func_info.get("docstring", "") or ""
+                    docstring = func_info["docstring"] or ""
                     undocumented = [exc for exc in func_exceptions if exc not in docstring]
                     if undocumented:
                         diagnostics.append(
@@ -700,7 +694,7 @@ class ExceptionAnalyser:
         self,
         exception_types: list[str],
         containing_try_blocks: list[int],
-        try_blocks: list[dict],
+        try_blocks: list[TryExceptDict],
     ) -> list[str]:
         """
                 Determine which exceptions are not handled by the given try-except blocks.
@@ -714,7 +708,7 @@ class ExceptionAnalyser:
                         list of exception types to check
                     `containing_try_blocks: list[int]`
                         indices of try-except blocks containing the call
-                    `try_blocks: list[dict]`
+                    `try_blocks: list[TryExceptDict]`
                         all try-except blocks in the file
 
                 returns: `list[str]`
@@ -731,9 +725,9 @@ class ExceptionAnalyser:
                     continue
 
                 try_block = try_blocks[try_index]
-                handled_types = try_block.get("handled_types", [])
-                has_bare_except = try_block.get("has_bare_except", False)
-                reraises = try_block.get("reraises", False)
+                handled_types = try_block["handled_types"]
+                has_bare_except = try_block["has_bare_except"]
+                reraises = try_block["reraises"]
 
                 # bare except catches everything (unless it re-raises)
                 if has_bare_except and not reraises:

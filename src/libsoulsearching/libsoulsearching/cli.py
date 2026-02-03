@@ -8,7 +8,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Sequence
+from collections.abc import Sequence
 
 from .core import find_all_venvs, find_venv
 from .models import ToolType, VenvInfo

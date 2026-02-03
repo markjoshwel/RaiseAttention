@@ -219,9 +219,9 @@
              echo "running ruff format check..."
              ${venv}/bin/python -m ruff format --check src tests
              echo "running basedpyright..."
-             ${venv}/bin/python -m basedpyright src/raiseattention src/libsoulsearching src/libsightseeing
+             ${venv}/bin/python -m basedpyright src/raiseattention src/libsoulsearching/libsoulsearching src/libsightseeing/libsightseeing
              echo "running mypy..."
-             ${venv}/bin/python -m mypy src/raiseattention src/libsoulsearching src/libsightseeing
+             ${venv}/bin/python -m mypy src/raiseattention src/libsoulsearching/libsoulsearching src/libsightseeing/libsightseeing
              echo "lint complete"
            '';
 

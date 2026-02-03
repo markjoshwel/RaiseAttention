@@ -277,7 +277,7 @@ class StubResolver:
 
     def _lookup_qualname(self, qualname: str) -> StubLookupResult | None:
         """
-        internal lookup for a qualname without redirect handling.
+        look up a qualname without redirect handling.
 
         arguments:
             `qualname: str`
@@ -380,24 +380,26 @@ class StubResolver:
             # module.function - check for module-level function
             func_name = parts[1]
             if "" in module_data and func_name in module_data[""]:
-                return self._build_result(cached.path, module_data[""][func_name])
+                exc_data: Any = module_data[""][func_name]  # pyright: ignore[reportUnknownVariableType]
+                if isinstance(exc_data, (list, dict)):
+                    return self._build_result(cached.path, exc_data)  # pyright: ignore[reportUnknownArgumentType]
             # check for module-level function stored directly (not under "")
             if func_name in module_data:
-                val = module_data[func_name]
+                val: Any = module_data[func_name]  # pyright: ignore[reportUnknownVariableType]
                 # accept if it's a list or an exception dict (not a class dict)
-                if isinstance(val, list) or (
-                    isinstance(val, dict) and self._is_exception_dict(val)
-                ):
-                    return self._build_result(cached.path, val)
+                if isinstance(val, list):
+                    return self._build_result(cached.path, val)  # pyright: ignore[reportUnknownArgumentType]
+                if isinstance(val, dict) and self._is_exception_dict(val):  # pyright: ignore[reportUnknownArgumentType]
+                    return self._build_result(cached.path, val)  # pyright: ignore[reportUnknownArgumentType]
         elif len(parts) >= 3:
             # module.class.method
             class_name = parts[1]
             method_name = ".".join(parts[2:])  # handle nested methods
 
             if class_name in module_data and isinstance(module_data[class_name], dict):
-                class_data = module_data[class_name]
+                class_data: Any = module_data[class_name]  # pyright: ignore[reportUnknownVariableType]
                 if method_name in class_data:
-                    return self._build_result(cached.path, class_data[method_name])
+                    return self._build_result(cached.path, class_data[method_name])  # pyright: ignore[reportUnknownArgumentType]
 
         return None
 
@@ -423,15 +425,22 @@ class StubResolver:
             return None
 
         # scan all classes in the module for the method
-        for class_name, class_data in module_data.items():
+        for class_name, class_data in module_data.items():  # pyright: ignore[reportUnknownVariableType]
             if class_name == "metadata" or not isinstance(class_data, dict):
                 continue
 
             if method_name in class_data:
                 logger.debug(
-                    "fuzzy match: %s -> %s.%s.%s", qualname, module, class_name, method_name
+                    "fuzzy match: %s -> %s.%s.%s",
+                    qualname,
+                    module,
+                    str(class_name),  # pyright: ignore[reportUnknownArgumentType]
+                    method_name,
                 )
-                return self._build_result(cached.path, class_data[method_name])
+                return self._build_result(
+                    cached.path,
+                    class_data[method_name],  # pyright: ignore[reportUnknownArgumentType]
+                )
 
         return None
 
@@ -451,13 +460,12 @@ class StubResolver:
             per_exc_conf = dict.fromkeys(exc_data, Confidence.LIKELY)
             # overall confidence is highest (likely)
             overall_conf = Confidence.LIKELY
-        elif isinstance(exc_data, dict):
+        else:
+            # exc_data is dict[str, str]
             raises = frozenset(exc_data.keys())
             per_exc_conf = dict(exc_data)
             # overall confidence is highest
             overall_conf = self._highest_confidence(list(exc_data.values()))
-        else:
-            return None
 
         return StubLookupResult(
             raises=raises,

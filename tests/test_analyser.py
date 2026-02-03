@@ -248,9 +248,7 @@ def func():
 class TestDebugLogging:
     """tests for debug logging functionality."""
 
-    def test_debug_logging_enabled(
-        self, tmp_path: Path, caplog: "pytest.LogCaptureFixture"
-    ) -> None:
+    def test_debug_logging_enabled(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
         """test that debug logging produces output when enabled."""
         import logging
 
@@ -280,7 +278,7 @@ def caller():
         logging.getLogger("raiseattention").setLevel(logging.WARNING)
 
     def test_debug_logging_shows_signature_computation(
-        self, tmp_path: Path, caplog: "pytest.LogCaptureFixture"
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
     ) -> None:
         """test that debug logging shows signature computation."""
         import logging
@@ -305,7 +303,6 @@ def level1():
             _ = analyzer.get_function_signature("test.level1")
 
         # check that signature computation was logged
-        log_text = "\n".join(r.message for r in caplog.records)
         # should have some logging about function analysis
         assert len(caplog.records) > 0
 
@@ -313,7 +310,7 @@ def level1():
         logging.getLogger("raiseattention").setLevel(logging.WARNING)
 
     def test_ast_visitor_logs_function_visits(
-        self, tmp_path: Path, caplog: "pytest.LogCaptureFixture"
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
     ) -> None:
         """test that AST visitor logs function visits."""
         import logging
@@ -506,9 +503,10 @@ class Processor:
         analyzer.analyse_file(test_file)
 
         # process_all should include ValueError from self.process
-        signature = analyzer.get_function_signature("test.Processor.process_all")
+        _signature = analyzer.get_function_signature("test.Processor.process_all")
         # Note: method resolution via self.process may not work perfectly
         # but the callable_args should be captured as "self.process"
+        assert _signature is not None  # ensure signature was computed
 
     def test_safe_hof_no_exceptions(self, tmp_path: Path) -> None:
         """test that HOFs with safe callables don't add spurious exceptions."""

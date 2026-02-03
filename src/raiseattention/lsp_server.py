@@ -54,7 +54,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
             `config: Config | None`
                 configuration settings (default: auto-load from workspace)
         """
-        super().__init__("raiseattention", "0.1.0")
+        super().__init__("raiseattention", "0.1.0")  # pyright: ignore[reportUnknownMemberType]
 
         self.config = config or Config.load()
         self.analyzer = ExceptionAnalyser(self.config)
@@ -72,6 +72,8 @@ class RaiseAttentionLanguageServer(LanguageServer):
             """Handle document open."""
             self._analyse_document(params.text_document.uri)
 
+        _ = on_open  # registered via decorator
+
         @self.feature(types.TEXT_DOCUMENT_DID_CHANGE)
         def on_change(params: types.DidChangeTextDocumentParams) -> None:
             """Handle document change with debouncing."""
@@ -88,10 +90,14 @@ class RaiseAttentionLanguageServer(LanguageServer):
 
             self._debounce_task = asyncio.create_task(self._debounced_analysis(uri))
 
+        _ = on_change  # registered via decorator
+
         @self.feature(types.TEXT_DOCUMENT_DID_SAVE)
         def on_save(params: types.DidSaveTextDocumentParams) -> None:
             """Handle document save."""
             self._analyse_document(params.text_document.uri)
+
+        _ = on_save  # registered via decorator
 
         @self.feature(types.TEXT_DOCUMENT_DID_CLOSE)
         def on_close(params: types.DidCloseTextDocumentParams) -> None:
@@ -100,10 +106,14 @@ class RaiseAttentionLanguageServer(LanguageServer):
             if uri in self._pending_changes:
                 del self._pending_changes[uri]
 
+        _ = on_close  # registered via decorator
+
         @self.feature(types.TEXT_DOCUMENT_HOVER)
         def on_hover(params: types.HoverParams) -> types.Hover | None:
             """Handle hover requests."""
             return self._get_hover_info(params)
+
+        _ = on_hover  # registered via decorator
 
     async def _debounced_analysis(self, uri: str) -> None:
         """

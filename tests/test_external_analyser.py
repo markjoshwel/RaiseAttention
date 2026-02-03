@@ -340,8 +340,6 @@ class TestNativeCodeDetection:
 
     def test_builtin_returns_possible_native_exception(self) -> None:
         """test that builtin modules return PossibleNativeException."""
-        from raiseattention.external_analyser import POSSIBLE_NATIVE_EXCEPTION
-
         analyzer = ExternalAnalyser(warn_native=True)
 
         # builtins module is built-in (origin='built-in')
@@ -364,8 +362,6 @@ class TestNativeCodeDetection:
 
     def test_docstring_with_raises_triggers_warning(self) -> None:
         """test that docstring mentioning 'raises' triggers detection."""
-        from raiseattention.external_analyser import POSSIBLE_NATIVE_EXCEPTION
-
         analyzer = ExternalAnalyser(warn_native=True)
 
         # json.loads has a docstring that mentions raising JSONDecodeError

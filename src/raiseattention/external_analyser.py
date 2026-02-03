@@ -43,7 +43,7 @@ _BORING_EXCEPTIONS: Final[frozenset[str]] = frozenset({"TypeError", "Exception",
 POSSIBLE_NATIVE_EXCEPTION: Final[str] = "PossibleNativeException"
 
 # higher-order functions where the first positional arg is a callable that gets invoked
-_CALLABLE_INVOKING_HOFS: Final[frozenset[str]] = frozenset(
+CALLABLE_INVOKING_HOFS: Final[frozenset[str]] = frozenset(
     {
         # builtins
         "map",
@@ -70,7 +70,7 @@ _CALLABLE_INVOKING_HOFS: Final[frozenset[str]] = frozenset(
 )
 
 # higher-order functions where the 'key' kwarg is a callable
-_KEY_CALLABLE_HOFS: Final[frozenset[str]] = frozenset(
+KEY_CALLABLE_HOFS: Final[frozenset[str]] = frozenset(
     {
         "sorted",
         "min",
@@ -710,7 +710,7 @@ class ExternalAnalyser:
         logger.debug("checking docstring for: %s.%s", module_name, function_name)
         try:
             module = importlib.import_module(module_name)
-            obj = module
+            obj: object = module
             # handle dotted function names (e.g., "JSONDecoder.decode")
             for part in function_name.split("."):
                 obj = getattr(obj, part, None)  # pyright: ignore[reportAny]
@@ -749,7 +749,7 @@ class ExternalAnalyser:
             canonical = getattr(func, "__module__", None)
             if canonical is not None and isinstance(canonical, str):
                 logger.debug("resolved builtin %s to canonical module: %s", func_name, canonical)
-                return canonical
+                return str(canonical)  # explicit str() for type safety
         # fallback to builtins
         return "builtins"
 

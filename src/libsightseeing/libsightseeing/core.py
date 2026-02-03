@@ -8,7 +8,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Final, Generator
+from collections.abc import Generator
+from typing import Final
 
 from .gitignore import GitignoreMatcher
 from .patterns import PatternMatcher

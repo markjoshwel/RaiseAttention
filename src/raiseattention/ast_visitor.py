@@ -517,7 +517,7 @@ class ExceptionVisitor(ast.NodeVisitor):
         returns: `str`
             dot-separated attribute path
         """
-        parts = []
+        parts: list[str] = []
         current: ast.expr = node
 
         while isinstance(current, ast.Attribute):

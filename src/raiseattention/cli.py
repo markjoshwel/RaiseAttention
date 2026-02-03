@@ -16,7 +16,7 @@ from pathlib import Path
 
 from libsightseeing import find_files
 
-from .analyser import ExceptionAnalyser
+from .analyser import AnalysisResult, Diagnostic, ExceptionAnalyser
 from .cache import FileCache
 from .config import Config
 from .lsp_server import run_server_stdio
@@ -207,7 +207,7 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
         config.cache.enabled = False
 
     analyzer = ExceptionAnalyser(config)
-    all_results = []
+    all_results: list[AnalysisResult] = []
     files_to_analyse: list[Path] = []
 
     # collect all files to analyse
@@ -244,8 +244,8 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
         all_results.append(result)
 
     # combine results
-    combined_diagnostics = []
-    files_analysed = []
+    combined_diagnostics: list[Diagnostic] = []
+    files_analysed: list[Path] = []
     total_functions = 0
     total_exceptions = 0
 
@@ -306,7 +306,7 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
 
         if args.output:
             # also write text output to file
-            lines = []
+            lines: list[str] = []
             for diag in combined_diagnostics:
                 path_str = _format_path(diag.file_path, use_absolute)
                 lines.append(

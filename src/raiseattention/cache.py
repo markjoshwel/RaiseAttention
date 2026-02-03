@@ -17,12 +17,56 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, final
 
+from typing_extensions import TypedDict
+
 from .config import CacheConfig
 
 if TYPE_CHECKING:
     pass
 
 T = TypeVar("T")
+
+
+class ExceptionDict(TypedDict):
+    """typed dict for exception info in analysis results."""
+
+    type: str
+    location: tuple[int, int]
+    is_re_raise: bool
+
+
+class CallDict(TypedDict):
+    """typed dict for call info in analysis results."""
+
+    func_name: str
+    location: tuple[int, int]
+    is_async: bool
+    containing_try_blocks: list[int]
+    callable_args: list[str]
+
+
+class FunctionDict(TypedDict):
+    """typed dict for function info in analysis results."""
+
+    name: str
+    qualified_name: str
+    location: tuple[int, int]
+    raises: list[ExceptionDict]
+    calls: list[CallDict]
+    docstring: str | None
+    is_async: bool
+    decorators: list[str]
+
+
+class TryExceptDict(TypedDict):
+    """typed dict for try-except block info in analysis results."""
+
+    location: tuple[int, int]
+    end_location: tuple[int, int]
+    handled_types: list[str]
+    has_bare_except: bool
+    has_except_exception: bool
+    reraises: bool
 
 
 @dataclass
@@ -58,21 +102,21 @@ class FileAnalysis:
     attributes:
         `file_path: Path`
             path to the analysed file
-        `functions: dict`
+        `functions: dict[str, FunctionDict]`
             function information from ast visitor
-        `imports: dict`
+        `imports: dict[str, str]`
             import mappings
         `timestamp: float`
             when analysis was performed
-        `try_except_blocks: list`
+        `try_except_blocks: list[TryExceptDict]`
             try-except block information
     """
 
     file_path: Path
-    functions: dict[str, Any]
+    functions: dict[str, FunctionDict]
     imports: dict[str, str]
     timestamp: float
-    try_except_blocks: list[dict[str, Any]] = field(default_factory=list)
+    try_except_blocks: list[TryExceptDict] = field(default_factory=list)
 
 
 @final
@@ -88,13 +132,12 @@ class FileCache:
             cache configuration
         `cache_dir: Path`
             directory for persistent cache storage
-        `_memory_cache: dict[str, CacheEntry]`
+        `_memory_cache: dict[str, CacheEntry[FileAnalysis]]`
             in-memory cache storage
     """
 
     config: CacheConfig
     cache_dir: Path
-    _memory_cache: dict[str, CacheEntry[FileAnalysis]]
 
     def __init__(self, config: CacheConfig, cache_dir: Path | None = None) -> None:
         """
@@ -246,7 +289,7 @@ class FileCache:
         pruned = 0
 
         # prune memory cache
-        keys_to_remove = []
+        keys_to_remove: list[str] = []
         for cache_key in list(self._memory_cache.keys()):
             if not Path(cache_key).exists():
                 keys_to_remove.append(cache_key)

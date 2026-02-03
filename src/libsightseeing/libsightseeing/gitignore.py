@@ -65,7 +65,7 @@ class GitignoreMatcher:
                 continue
 
             # parse patterns from content
-            patterns = []
+            patterns: list[str] = []
             for line in content.splitlines():
                 line = line.rstrip("\n")
                 # skip empty lines and comments
