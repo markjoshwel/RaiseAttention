@@ -1477,6 +1477,14 @@ def find_c_modules(cpython_root: Path) -> list[tuple[Path, str]]:
                 module_name = subdir.name
                 results.append((c_file, module_name))
 
+    # special handling for Python/ directory (builtins module)
+    # bltinmodule.c contains built-in functions like open(), print(), len(), etc.
+    python_dir = cpython_root / "Python"
+    if python_dir.exists():
+        bltinmodule = python_dir / "bltinmodule.c"
+        if bltinmodule.exists():
+            results.append((bltinmodule, "builtins"))
+
     return results
 
 

@@ -722,6 +722,32 @@ class ExternalAnalyser:
             pass
         return False
 
+    def _get_builtin_canonical_module(self, func_name: str) -> str:
+        """
+        get the canonical module for a builtin function using introspection.
+
+        some builtins like `open` are actually defined in other modules
+        (e.g., `builtins.open` is `_io.open`). this method uses python's
+        `__module__` attribute to find the true origin.
+
+        arguments:
+            `func_name: str`
+                name of the builtin function (e.g., "open", "input")
+
+        returns: `str`
+            the canonical module name (e.g., "_io" for open, "builtins" for input)
+        """
+        import builtins
+
+        func = getattr(builtins, func_name, None)
+        if func is not None:
+            canonical = getattr(func, "__module__", None)
+            if canonical is not None and isinstance(canonical, str):
+                logger.debug("resolved builtin %s to canonical module: %s", func_name, canonical)
+                return canonical
+        # fallback to builtins
+        return "builtins"
+
     def resolve_import_to_module(
         self,
         import_name: str,
@@ -762,7 +788,11 @@ class ExternalAnalyser:
                 }
             )
             if import_name in _INTERESTING_BUILTINS:
-                return "builtins", import_name
+                # use introspection to find the canonical module for this builtin
+                # e.g., builtins.open.__module__ == '_io', so we return ('_io', 'open')
+                # this avoids needing to maintain a hardcoded redirect map
+                canonical_module = self._get_builtin_canonical_module(import_name)
+                return canonical_module, import_name
             return None
 
         # try progressively shorter module prefixes

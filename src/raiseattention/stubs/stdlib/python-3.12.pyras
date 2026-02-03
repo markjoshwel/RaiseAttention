@@ -4,7 +4,7 @@
     "version": ">=3.12,<3.13",
     "format_version": "2.0",
     "generator": "standardstubber@0.1.0",
-    "generated_at": "2026-02-03T05:12:52.700543+00:00"
+    "generated_at": "2026-02-03T06:50:01.164835+00:00"
   },
   "_abc": {
     "Abcmodule": {
@@ -81,8 +81,8 @@
         "Exception": "conservative"
       },
       "throw": {
-        "TypeError": "exact",
-        "Exception": "exact"
+        "Exception": "exact",
+        "TypeError": "exact"
       }
     },
     "FutureType": {
@@ -164,15 +164,15 @@
         "Exception": "conservative"
       },
       "set_exception": {
-        "TypeError": "exact",
-        "RuntimeError": "exact"
+        "RuntimeError": "exact",
+        "TypeError": "exact"
       },
       "set_name": [
         "TypeError"
       ],
       "set_result": {
-        "TypeError": "exact",
-        "RuntimeError": "exact"
+        "RuntimeError": "exact",
+        "TypeError": "exact"
       },
       "uncancel": {
         "Exception": "conservative"
@@ -207,8 +207,8 @@
         "TypeError"
       ],
       "update": {
-        "TypeError": "exact",
-        "BufferError": "exact"
+        "BufferError": "exact",
+        "TypeError": "exact"
       }
     },
     "Py_blake2s": {
@@ -244,187 +244,187 @@
   },
   "_codecs": {
     "ascii_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "ascii_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "charmap_build": [
       "TypeError"
     ],
     "charmap_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "charmap_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "code_page_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "code_page_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "escape_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "escape_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "latin_1_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "latin_1_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "lookup": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "lookup_error": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "mbcs_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "mbcs_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "oem_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "oem_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "raw_unicode_escape_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "raw_unicode_escape_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "readbuffer_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "register": [
       "TypeError"
     ],
     "register_error": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "unicode_escape_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "unicode_escape_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "unregister": [
       "TypeError"
     ],
     "utf_16_be_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_16_be_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_16_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_16_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_16_ex_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_16_le_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_16_le_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_32_be_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_32_be_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_32_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_32_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_32_ex_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_32_le_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_32_le_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_7_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_7_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_8_decode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "utf_8_encode": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     }
   },
   "_collections": {
     "__copy__": {
-      "TypeError": "exact",
-      "Exception": "exact"
+      "Exception": "exact",
+      "TypeError": "exact"
     },
     "__reduce__": {
       "Exception": "conservative"
@@ -445,8 +445,8 @@
       "Exception": "conservative"
     },
     "copy": {
-      "TypeError": "exact",
-      "Exception": "exact"
+      "Exception": "exact",
+      "TypeError": "exact"
     },
     "count": {
       "RuntimeError": "exact"
@@ -458,13 +458,13 @@
       "Exception": "conservative"
     },
     "index": {
-      "TypeError": "exact",
       "RuntimeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "insert": {
-      "TypeError": "exact",
-      "IndexError": "exact"
+      "IndexError": "exact",
+      "TypeError": "exact"
     },
     "pop": {
       "IndexError": "exact"
@@ -524,9 +524,9 @@
   },
   "_crypt": {
     "crypt": {
-      "TypeError": "exact",
       "Exception": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     }
   },
   "_csv": {
@@ -591,19 +591,19 @@
         "TypeError": "exact"
       },
       "from_buffer": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "from_buffer_copy": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "from_param": {
         "TypeError": "exact"
       },
       "in_dll": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     },
     "CPointerType": {
@@ -611,19 +611,19 @@
         "TypeError": "exact"
       },
       "from_buffer": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "from_buffer_copy": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "from_param": {
         "TypeError": "exact"
       },
       "in_dll": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "set_type": {
         "TypeError": "exact"
@@ -634,20 +634,20 @@
         "TypeError": "exact"
       },
       "from_buffer": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "from_buffer_copy": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "from_param": {
-        "TypeError": "exact",
-        "Exception": "exact"
+        "Exception": "exact",
+        "TypeError": "exact"
       },
       "in_dll": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     },
     "CStgDict": {
@@ -664,8 +664,8 @@
         "TypeError"
       ],
       "FreeLibrary": {
-        "TypeError": "exact",
-        "OSError": "exact"
+        "OSError": "exact",
+        "TypeError": "exact"
       },
       "LoadLibrary": {
         "OSError": "exact",
@@ -673,8 +673,8 @@
         "TypeError": "exact"
       },
       "POINTER": {
-        "TypeError": "exact",
-        "Exception": "exact"
+        "Exception": "exact",
+        "TypeError": "exact"
       },
       "PyObj_FromPtr": [
         "TypeError"
@@ -686,8 +686,8 @@
         "Exception": "conservative"
       },
       "_check_HRESULT": {
-        "TypeError": "exact",
-        "OSError": "exact"
+        "OSError": "exact",
+        "TypeError": "exact"
       },
       "_unpickle": [
         "Exception",
@@ -721,9 +721,9 @@
         "Exception": "conservative"
       },
       "resize": {
-        "TypeError": "exact",
         "MemoryError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "set_errno": {
         "Exception": "conservative"
@@ -793,13 +793,13 @@
         "TypeError"
       ],
       "getwin": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "OSError": "exact"
+        "OSError": "exact",
+        "TypeError": "exact"
       },
       "halfdelay": {
-        "TypeError": "exact",
-        "OverflowError": "exact"
+        "OverflowError": "exact",
+        "TypeError": "exact"
       },
       "has_colors": [
         "TypeError"
@@ -898,9 +898,9 @@
         "TypeError"
       ],
       "setupterm": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "start_color": [
         "TypeError"
@@ -912,19 +912,19 @@
         "TypeError"
       ],
       "tigetflag": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "tigetnum": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "tigetstr": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "tparm": [
         "TypeError"
@@ -1020,8 +1020,8 @@
         "Exception": "conservative"
       },
       "getstr": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "getyx": {
         "Exception": "conservative"
@@ -1054,8 +1054,8 @@
         "TypeError": "exact"
       },
       "instr": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "is_linetouched": [
         "TypeError"
@@ -1094,8 +1094,8 @@
         "TypeError": "exact"
       },
       "putwin": {
-        "TypeError": "exact",
-        "OSError": "exact"
+        "OSError": "exact",
+        "TypeError": "exact"
       },
       "redrawln": [
         "TypeError"
@@ -1224,17 +1224,17 @@
       "Exception": "conservative"
     },
     "fromisocalendar": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "fromisoformat": {
-      "TypeError": "exact",
       "Exception": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "fromordinal": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "fromtimestamp": [
       "TypeError"
@@ -1243,15 +1243,15 @@
       "TypeError"
     ],
     "isoformat": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "isoweekday": {
       "Exception": "conservative"
     },
     "replace": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "strftime": [
       "TypeError"
@@ -1300,23 +1300,23 @@
         "Exception": "conservative"
       },
       "fromisoformat": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "fromtimestamp": [
         "TypeError"
       ],
       "isoformat": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "now": [
         "TypeError"
       ],
       "replace": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "strptime": [
         "Exception",
@@ -1363,8 +1363,8 @@
         "Exception": "conservative"
       },
       "fromutc": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "tzname": {
         "Exception": "conservative"
@@ -1381,9 +1381,9 @@
         "Exception": "conservative"
       },
       "fromutc": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "tzname": {
         "Exception": "conservative"
@@ -1414,9 +1414,9 @@
     ],
     "Dbmmodule": {
       "open": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     }
   },
@@ -1437,9 +1437,9 @@
       "Exception": "conservative"
     },
     "__format__": {
-      "TypeError": "exact",
       "MemoryError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "__reduce__": {
       "Exception": "conservative"
@@ -1604,8 +1604,8 @@
       "TypeError": "exact"
     },
     "to_eng_string": {
-      "TypeError": "exact",
-      "MemoryError": "exact"
+      "MemoryError": "exact",
+      "TypeError": "exact"
     },
     "to_integral": {
       "TypeError": "exact"
@@ -1957,8 +1957,8 @@
     },
     "Xmlparser": {
       "_parse_whole": {
-        "TypeError": "exact",
-        "OverflowError": "exact"
+        "OverflowError": "exact",
+        "TypeError": "exact"
       },
       "_setevents": [
         "TypeError"
@@ -1967,8 +1967,8 @@
         "TypeError"
       ],
       "feed": {
-        "TypeError": "exact",
-        "OverflowError": "exact"
+        "OverflowError": "exact",
+        "TypeError": "exact"
       },
       "flush": {
         "Exception": "conservative"
@@ -1981,8 +1981,8 @@
         "TypeError"
       ],
       "reduce": {
-        "TypeError": "exact",
-        "Exception": "exact"
+        "Exception": "exact",
+        "TypeError": "exact"
       }
     },
     "Lru_cache": {
@@ -2044,9 +2044,9 @@
     },
     "Gdbm_module": {
       "open": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     }
   },
@@ -2085,9 +2085,9 @@
       "TypeError"
     ],
     "pbkdf2_hmac": {
-      "TypeError": "exact",
       "Exception": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "scrypt": [
       "Exception",
@@ -2104,8 +2104,8 @@
         "Exception": "conservative"
       },
       "update": {
-        "TypeError": "exact",
-        "BufferError": "exact"
+        "BufferError": "exact",
+        "TypeError": "exact"
       }
     },
     "HMAC": {
@@ -2151,8 +2151,8 @@
   },
   "_io": {
     "open": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "open_code": [
       "TypeError"
@@ -2379,8 +2379,8 @@
         "TypeError"
       ],
       "__setstate__": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "__sizeof__": [
         "TypeError"
@@ -2496,9 +2496,9 @@
         "Exception": "conservative"
       },
       "setstate": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     },
     "Iobase": {
@@ -2580,8 +2580,8 @@
         "TypeError"
       ],
       "__setstate__": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "close": {
         "Exception": "conservative"
@@ -2614,8 +2614,8 @@
         "TypeError"
       ],
       "write": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     },
     "Textiobase": {
@@ -2629,9 +2629,9 @@
         "TypeError"
       ],
       "write": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     },
     "Textiowrapper": {
@@ -2737,9 +2737,9 @@
         "TypeError"
       ],
       "setlocale": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "strcoll": [
         "Exception",
@@ -2769,13 +2769,13 @@
         "RuntimeError": "exact"
       },
       "disable": {
-        "Exception": "exact",
-        "RuntimeError": "exact"
+        "RuntimeError": "exact",
+        "Exception": "exact"
       },
       "enable": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "getstats": {
         "TypeError": "exact"
@@ -2815,9 +2815,9 @@
       "TypeError"
     ],
     "sem_unlink": {
-      "TypeError": "exact",
       "Exception": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "send": [
       "TypeError"
@@ -3053,14 +3053,14 @@
         "TypeError"
       ],
       "load": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "loads": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     },
     "Pickler": {
@@ -3154,8 +3154,8 @@
         "TypeError"
       ],
       "setstate": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     }
   },
@@ -3181,8 +3181,8 @@
       "TypeError"
     ],
     "complete_statement": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "connect": [
       "Exception",
@@ -3220,14 +3220,14 @@
         "TypeError"
       ],
       "backup": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "blobopen": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "close": {
         "Exception": "conservative"
@@ -3236,19 +3236,19 @@
         "Exception": "conservative"
       },
       "create_aggregate": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "create_collation": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "create_function": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "cursor": [
         "TypeError"
@@ -3310,9 +3310,9 @@
         "TypeError"
       ],
       "executescript": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "fetchall": {
         "Exception": "conservative"
@@ -3464,8 +3464,8 @@
         "TypeError"
       ],
       "load_dh_params": {
-        "TypeError": "exact",
-        "OSError": "exact"
+        "OSError": "exact",
+        "TypeError": "exact"
       },
       "load_verify_locations": [
         "TypeError"
@@ -3474,16 +3474,16 @@
         "Exception": "conservative"
       },
       "set_ciphers": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "set_default_verify_paths": {
         "Exception": "conservative"
       },
       "set_ecdh_curve": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     },
     "Memory_bio": {
@@ -3521,19 +3521,19 @@
         "Exception": "conservative"
       },
       "enum_certificates": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "enum_crls": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "get_channel_binding": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "get_default_verify_paths": {
         "Exception": "conservative"
@@ -3566,9 +3566,9 @@
         "Exception": "conservative"
       },
       "txt2obj": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "verify_client_post_handshake": {
         "Exception": "conservative"
@@ -3670,8 +3670,8 @@
       "RuntimeError": "exact"
     },
     "_acquire_restore": {
-      "TypeError": "exact",
-      "RuntimeError": "exact"
+      "RuntimeError": "exact",
+      "TypeError": "exact"
     },
     "_is_owned": {
       "Exception": "conservative"
@@ -3735,23 +3735,23 @@
         "Exception": "conservative"
       },
       "interrupt_main": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "stack_size": {
-        "TypeError": "exact",
         "RuntimeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "start_new": {
+        "RuntimeError": "exact",
         "MemoryError": "exact",
-        "TypeError": "exact",
-        "RuntimeError": "exact"
+        "TypeError": "exact"
       },
       "start_new_thread": {
+        "RuntimeError": "exact",
         "MemoryError": "exact",
-        "TypeError": "exact",
-        "RuntimeError": "exact"
+        "TypeError": "exact"
       }
     }
   },
@@ -3760,9 +3760,9 @@
       "TypeError"
     ],
     "create": {
-      "TypeError": "exact",
       "Exception": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "getbusywaitinterval": [
       "Exception",
@@ -3773,71 +3773,71 @@
     },
     "Tkapp": {
       "adderrorinfo": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "call": {
         "MemoryError": "exact",
         "Exception": "exact"
       },
       "createcommand": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "createtimerhandler": [
         "TypeError"
       ],
       "deletecommand": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "dooneevent": [
         "TypeError"
       ],
       "eval": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "evalfile": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "exprboolean": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "exprdouble": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "exprlong": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "exprstring": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "getboolean": {
-        "TypeError": "exact",
-        "OverflowError": "exact"
+        "OverflowError": "exact",
+        "TypeError": "exact"
       },
       "getdouble": {
-        "TypeError": "exact",
-        "OverflowError": "exact"
+        "OverflowError": "exact",
+        "TypeError": "exact"
       },
       "getint": {
-        "TypeError": "exact",
-        "OverflowError": "exact"
+        "OverflowError": "exact",
+        "TypeError": "exact"
       },
       "gettrace": {
         "Exception": "conservative"
@@ -3867,9 +3867,9 @@
         "Exception": "conservative"
       },
       "record": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "settrace": [
         "TypeError"
@@ -3878,8 +3878,8 @@
         "Exception": "conservative"
       },
       "splitlist": {
-        "TypeError": "exact",
-        "OverflowError": "exact"
+        "OverflowError": "exact",
+        "TypeError": "exact"
       },
       "unsetvar": {
         "Exception": "conservative"
@@ -4113,9 +4113,9 @@
         "TypeError"
       ],
       "fromutc": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "no_cache": [
         "TypeError"
@@ -4167,8 +4167,8 @@
       "TypeError"
     ],
     "fromlist": {
-      "TypeError": "exact",
-      "RuntimeError": "exact"
+      "RuntimeError": "exact",
+      "TypeError": "exact"
     },
     "fromunicode": [
       "Exception",
@@ -4184,8 +4184,8 @@
       "TypeError"
     ],
     "remove": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "reverse": {
       "Exception": "conservative"
@@ -4355,51 +4355,206 @@
       ]
     }
   },
+  "builtins": {
+    "__reduce__": {
+      "Exception": "conservative"
+    },
+    "__setstate__": {
+      "Exception": "conservative"
+    },
+    "Builtin": {
+      "__build_class__": {
+        "RuntimeError": "exact",
+        "Exception": "exact",
+        "TypeError": "exact"
+      },
+      "__import__": [
+        "TypeError"
+      ],
+      "abs": [
+        "TypeError"
+      ],
+      "aiter": [
+        "TypeError"
+      ],
+      "all": [
+        "TypeError"
+      ],
+      "anext": [
+        "TypeError"
+      ],
+      "any": [
+        "TypeError"
+      ],
+      "ascii": [
+        "TypeError"
+      ],
+      "bin": [
+        "TypeError"
+      ],
+      "breakpoint": [
+        "Exception",
+        "TypeError"
+      ],
+      "callable": [
+        "TypeError"
+      ],
+      "chr": {
+        "Exception": "conservative"
+      },
+      "compile": {
+        "Exception": "exact",
+        "ValueError": "exact",
+        "TypeError": "exact"
+      },
+      "delattr": [
+        "TypeError"
+      ],
+      "dir": {
+        "Exception": "conservative"
+      },
+      "divmod": [
+        "TypeError"
+      ],
+      "eval": [
+        "TypeError"
+      ],
+      "exec": [
+        "TypeError"
+      ],
+      "format": [
+        "Exception",
+        "TypeError"
+      ],
+      "getattr": [
+        "TypeError"
+      ],
+      "globals": {
+        "Exception": "conservative"
+      },
+      "hasattr": [
+        "TypeError"
+      ],
+      "hash": [
+        "TypeError"
+      ],
+      "hex": [
+        "TypeError"
+      ],
+      "id": [
+        "TypeError"
+      ],
+      "input": [
+        "TypeError"
+      ],
+      "isinstance": [
+        "TypeError"
+      ],
+      "issubclass": [
+        "TypeError"
+      ],
+      "iter": {
+        "TypeError": "exact"
+      },
+      "len": [
+        "TypeError"
+      ],
+      "locals": [
+        "TypeError"
+      ],
+      "max": {
+        "Exception": "conservative"
+      },
+      "min": {
+        "Exception": "conservative"
+      },
+      "next": {
+        "StopIteration": "exact",
+        "TypeError": "exact"
+      },
+      "oct": [
+        "TypeError"
+      ],
+      "ord": {
+        "TypeError": "exact"
+      },
+      "pow": [
+        "TypeError"
+      ],
+      "print": [
+        "TypeError"
+      ],
+      "repr": [
+        "TypeError"
+      ],
+      "round": [
+        "TypeError"
+      ],
+      "setattr": [
+        "TypeError"
+      ],
+      "sorted": [
+        "Exception",
+        "TypeError"
+      ],
+      "sum": [
+        "TypeError"
+      ],
+      "vars": {
+        "TypeError": "exact"
+      }
+    },
+    "Filter": {
+      "__reduce__": {
+        "Exception": "conservative"
+      }
+    }
+  },
   "cmath": {
     "acos": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "acosh": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "asin": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "asinh": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "atan": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "atanh": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "cos": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "cosh": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "exp": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "isclose": [
       "TypeError",
@@ -4418,9 +4573,9 @@
       "TypeError"
     ],
     "log10": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "phase": [
       "TypeError"
@@ -4432,35 +4587,35 @@
       "TypeError"
     ],
     "sin": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "sinh": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "sqrt": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "tan": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "tanh": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     }
   },
   "faulthandler": {
     "_fatal_error_c_thread": {
-      "MemoryError": "exact",
-      "RuntimeError": "exact"
+      "RuntimeError": "exact",
+      "MemoryError": "exact"
     },
     "_raise_exception": [
       "TypeError"
@@ -4484,15 +4639,15 @@
       "Exception": "conservative"
     },
     "dump_traceback": {
-      "TypeError": "exact",
-      "RuntimeError": "exact"
+      "RuntimeError": "exact",
+      "TypeError": "exact"
     },
     "dump_traceback_later": {
-      "MemoryError": "exact",
-      "TypeError": "exact",
+      "OverflowError": "exact",
       "ValueError": "exact",
       "RuntimeError": "exact",
-      "OverflowError": "exact"
+      "MemoryError": "exact",
+      "TypeError": "exact"
     },
     "enable": [
       "TypeError"
@@ -4666,8 +4821,8 @@
         "Exception": "conservative"
       },
       "__setstate__": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "__sizeof__": {
         "Exception": "conservative"
@@ -4784,9 +4939,9 @@
       "Exception": "conservative"
     },
     "factorial": {
-      "TypeError": "exact",
       "OverflowError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "floor": [
       "TypeError"
@@ -4800,8 +4955,8 @@
     "fsum": {
       "MemoryError": "exact",
       "OverflowError": "exact",
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "gamma": [
       "TypeError"
@@ -4826,8 +4981,8 @@
       "Exception": "conservative"
     },
     "isqrt": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "lcm": {
       "Exception": "conservative"
@@ -4935,17 +5090,17 @@
         "Exception": "conservative"
       },
       "flush": {
-        "TypeError": "exact",
         "OSError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "move": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "read": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "read_byte": {
         "ValueError": "exact"
@@ -4954,16 +5109,16 @@
         "ValueError": "exact"
       },
       "resize": {
-        "TypeError": "exact",
         "OSError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "rfind": {
         "Exception": "conservative"
       },
       "seek": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "size": {
         "OSError": "exact",
@@ -4973,12 +5128,12 @@
         "ValueError": "exact"
       },
       "write": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "write_byte": {
-        "TypeError": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     }
   },
@@ -5046,8 +5201,8 @@
       "Exception": "conservative"
     },
     "setparameters": {
-      "TypeError": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "TypeError": "exact"
     },
     "speed": {
       "Exception": "conservative"
@@ -5059,9 +5214,9 @@
       "TypeError"
     ],
     "writeall": {
-      "TypeError": "exact",
       "OSError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "Oss_mixer": {
       "__enter__": {
@@ -5080,8 +5235,8 @@
         "Exception": "conservative"
       },
       "get": {
-        "TypeError": "exact",
-        "OSError": "exact"
+        "OSError": "exact",
+        "TypeError": "exact"
       },
       "get_recsrc": {
         "Exception": "conservative"
@@ -5090,8 +5245,8 @@
         "Exception": "conservative"
       },
       "set": {
-        "TypeError": "exact",
-        "OSError": "exact"
+        "OSError": "exact",
+        "TypeError": "exact"
       },
       "set_recsrc": {
         "Exception": "conservative"
@@ -5599,9 +5754,9 @@
       "TypeError"
     ],
     "getpwuid": {
-      "TypeError": "exact",
       "MemoryError": "exact",
-      "KeyError": "exact"
+      "KeyError": "exact",
+      "TypeError": "exact"
     }
   },
   "pyexpat": {
@@ -5609,15 +5764,15 @@
       "Exception": "conservative"
     },
     "ParserCreate": {
-      "TypeError": "exact",
       "Exception": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "Xmlparse": {
       "ExternalEntityParserCreate": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "GetBase": {
         "Exception": "conservative"
@@ -5635,9 +5790,9 @@
         "TypeError"
       ],
       "SetBase": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       },
       "SetParamEntityParsing": {
         "Exception": "conservative"
@@ -5682,8 +5837,8 @@
       "TypeError"
     ],
     "parse_and_bind": {
-      "TypeError": "exact",
-      "MemoryError": "exact"
+      "MemoryError": "exact",
+      "TypeError": "exact"
     },
     "read_history_file": [
       "TypeError"
@@ -5707,8 +5862,8 @@
       "TypeError"
     ],
     "set_completer_delims": {
-      "TypeError": "exact",
-      "MemoryError": "exact"
+      "MemoryError": "exact",
+      "TypeError": "exact"
     },
     "set_completion_display_matches_hook": [
       "TypeError"
@@ -5755,8 +5910,8 @@
         "TypeError"
       ],
       "update": {
-        "TypeError": "exact",
-        "BufferError": "exact"
+        "BufferError": "exact",
+        "TypeError": "exact"
       }
     }
   },
@@ -5784,8 +5939,8 @@
         "Exception": "conservative"
       },
       "update": {
-        "TypeError": "exact",
-        "BufferError": "exact"
+        "BufferError": "exact",
+        "TypeError": "exact"
       }
     },
     "SHA512": {
@@ -5799,8 +5954,8 @@
         "Exception": "conservative"
       },
       "update": {
-        "TypeError": "exact",
-        "BufferError": "exact"
+        "BufferError": "exact",
+        "TypeError": "exact"
       }
     }
   },
@@ -5847,8 +6002,8 @@
       "Exception": "conservative"
     },
     "set_wakeup_fd": {
-      "TypeError": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "TypeError": "exact"
     },
     "signal": [
       "TypeError"
@@ -5886,10 +6041,10 @@
       "Exception": "conservative"
     },
     "getaddrinfo": {
-      "TypeError": "exact",
       "Exception": "exact",
       "OSError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "getblocking": {
       "Exception": "conservative"
@@ -5898,8 +6053,8 @@
       "Exception": "conservative"
     },
     "gethostbyaddr": {
-      "TypeError": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "TypeError": "exact"
     },
     "gethostbyname": [
       "TypeError"
@@ -5912,33 +6067,33 @@
       "OSError": "exact"
     },
     "getnameinfo": {
-      "TypeError": "exact",
-      "OverflowError": "exact",
       "Exception": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "OverflowError": "exact",
+      "TypeError": "exact"
     },
     "getpeername": {
       "Exception": "conservative"
     },
     "getprotobyname": {
-      "TypeError": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "TypeError": "exact"
     },
     "getservbyname": {
-      "TypeError": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "TypeError": "exact"
     },
     "getservbyport": {
-      "TypeError": "exact",
+      "OSError": "exact",
       "OverflowError": "exact",
-      "OSError": "exact"
+      "TypeError": "exact"
     },
     "getsockname": {
       "Exception": "conservative"
     },
     "getsockopt": {
-      "TypeError": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "TypeError": "exact"
     },
     "gettimeout": {
       "Exception": "conservative"
@@ -5947,40 +6102,40 @@
       "TypeError": "exact"
     },
     "htons": {
-      "TypeError": "exact",
-      "OverflowError": "exact"
+      "OverflowError": "exact",
+      "TypeError": "exact"
     },
     "if_indextoname": {
-      "OverflowError": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "OverflowError": "exact"
     },
     "if_nameindex": {
       "OSError": "exact"
     },
     "if_nametoindex": {
-      "TypeError": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "TypeError": "exact"
     },
     "inet_aton": {
-      "TypeError": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "TypeError": "exact"
     },
     "inet_ntoa": {
-      "TypeError": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "TypeError": "exact"
     },
     "inet_ntop": {
-      "TypeError": "exact",
       "OSError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "inet_pton": {
-      "TypeError": "exact",
-      "OSError": "exact"
+      "OSError": "exact",
+      "TypeError": "exact"
     },
     "ioctl": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "listen": [
       "TypeError"
@@ -5989,31 +6144,31 @@
       "TypeError": "exact"
     },
     "ntohs": {
-      "TypeError": "exact",
-      "OverflowError": "exact"
+      "OverflowError": "exact",
+      "TypeError": "exact"
     },
     "recv": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "recv_into": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "recvfrom": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "recvfrom_into": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "send": [
       "TypeError"
     ],
     "sendall": {
-      "TypeError": "exact",
-      "TimeoutError": "exact"
+      "TimeoutError": "exact",
+      "TypeError": "exact"
     },
     "sendto": {
       "TypeError": "exact"
@@ -6025,9 +6180,9 @@
       "Exception": "conservative"
     },
     "setsockopt": {
-      "TypeError": "exact",
+      "Exception": "exact",
       "OverflowError": "exact",
-      "Exception": "exact"
+      "TypeError": "exact"
     },
     "settimeout": {
       "Exception": "conservative"
@@ -6042,9 +6197,9 @@
   "symtable": {
     "Symtable": {
       "symtable": {
-        "TypeError": "exact",
         "Exception": "exact",
-        "ValueError": "exact"
+        "ValueError": "exact",
+        "TypeError": "exact"
       }
     }
   },
@@ -6103,8 +6258,8 @@
       "Exception": "conservative"
     },
     "get_clock_info": {
-      "TypeError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "gmtime": {
       "Exception": "conservative"
@@ -6137,9 +6292,9 @@
       "ValueError": "exact"
     },
     "strftime": {
-      "TypeError": "exact",
       "MemoryError": "exact",
-      "ValueError": "exact"
+      "ValueError": "exact",
+      "TypeError": "exact"
     },
     "strptime": {
       "Exception": "conservative"

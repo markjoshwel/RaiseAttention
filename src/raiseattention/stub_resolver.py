@@ -253,8 +253,9 @@ class StubResolver:
         look up exception signature for a function with fuzzy matching.
 
         resolution order:
-        1. exact match (O(1) dict lookup)
-        2. fuzzy match (O(n) scan, caches result)
+        1. builtin class flattening (e.g., builtins.abs -> builtins.Builtin.abs)
+        2. exact match (O(1) dict lookup)
+        3. fuzzy match (O(n) scan, caches result)
 
         fuzzy matching handles:
         - module underscore prefix: _io.BufferedReader -> io.BufferedReader
@@ -271,6 +272,31 @@ class StubResolver:
         if qualname in self._function_cache:
             return self._function_cache[qualname]
 
+        # handle builtins module specially - try builtins.Builtin.<func> for builtins.<func>
+        parts = qualname.split(".")
+        if len(parts) == 2 and parts[0] == "builtins":
+            # builtins.abs -> builtins.Builtin.abs
+            builtin_qualname = f"builtins.Builtin.{parts[1]}"
+            result = self._lookup_qualname(builtin_qualname)
+            if result:
+                self._function_cache[qualname] = result
+                return result
+
+        result = self._lookup_qualname(qualname)
+        self._function_cache[qualname] = result
+        return result
+
+    def _lookup_qualname(self, qualname: str) -> StubLookupResult | None:
+        """
+        internal lookup for a qualname without redirect handling.
+
+        arguments:
+            `qualname: str`
+                fully qualified function name
+
+        returns: `StubLookupResult | None`
+            lookup result or none if not found
+        """
         # extract module from qualname
         parts = qualname.split(".")
         if len(parts) < 1:
@@ -285,30 +311,58 @@ class StubResolver:
             if not module.startswith("_"):
                 stub_file_path = self.find_stub_file(f"_{module}")
             if stub_file_path is None:
-                self._function_cache[qualname] = None
                 return None
 
         # load and cache stub file
         cached = self._load_stub(stub_file_path)
         if cached is None:
-            self._function_cache[qualname] = None
             return None
 
         # 1. try exact match first (O(1))
         result = self._exact_match(cached, qualname)
         if result:
-            self._function_cache[qualname] = result
             return result
 
         # 2. try fuzzy matching (O(n) but cached)
         result = self._fuzzy_match(cached, qualname)
         if result:
-            self._function_cache[qualname] = result
             return result
 
         # function not found in stub file
-        self._function_cache[qualname] = None
         return None
+
+    def _is_exception_dict(self, data: dict[str, Any]) -> bool:
+        """
+        check if dict is exception -> confidence mapping vs class -> methods mapping.
+
+        exception dicts have string confidence values ("exact", "likely", etc.)
+        class dicts have nested dicts or lists as values (methods with their exceptions).
+
+        arguments:
+            `data: dict[str, Any]`
+                dict to check
+
+        returns: `bool`
+            true if this is an exception dict, false if it's a class dict
+        """
+        if not data:
+            return False
+        for val in data.values():
+            # exception dicts have string confidence values
+            if isinstance(val, str) and val in (
+                Confidence.EXACT,
+                Confidence.LIKELY,
+                Confidence.CONSERVATIVE,
+                Confidence.MANUAL,
+            ):
+                return True
+            # if value is a dict, it's likely a class with methods (not exception dict)
+            if isinstance(val, dict):
+                return False
+            # lists are old-style exception lists (still valid)
+            if isinstance(val, list):
+                return True
+        return False
 
     def _exact_match(self, cached: CachedStubFile, qualname: str) -> StubLookupResult | None:
         """
@@ -338,10 +392,14 @@ class StubResolver:
             func_name = parts[1]
             if "" in module_data and func_name in module_data[""]:
                 return self._build_result(cached.path, module_data[""][func_name])
-            # or direct method
-            if func_name in module_data and not isinstance(module_data[func_name], dict):
-                # module_data[func_name] is the exception list/dict directly
-                return self._build_result(cached.path, module_data[func_name])
+            # check for module-level function stored directly (not under "")
+            if func_name in module_data:
+                val = module_data[func_name]
+                # accept if it's a list or an exception dict (not a class dict)
+                if isinstance(val, list) or (
+                    isinstance(val, dict) and self._is_exception_dict(val)
+                ):
+                    return self._build_result(cached.path, val)
         elif len(parts) >= 3:
             # module.class.method
             class_name = parts[1]
