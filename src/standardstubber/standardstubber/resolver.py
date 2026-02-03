@@ -10,14 +10,13 @@ from __future__ import annotations
 import logging
 import tomllib
 from dataclasses import dataclass, field
-from functools import lru_cache
 from pathlib import Path
 from typing import Final
 
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
-from .models import Confidence, FunctionStub, StubFile, StubLookupResult
+from .models import StubFile, StubLookupResult
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +104,6 @@ class StubResolver:
         # check cache first
         cache_key = f"{module}@{self.target_version}"
         if cache_key in self._cache:
-            cached = self._cache[cache_key]
             return None  # we cache StubFile, not Path
 
         for source in self.sources:

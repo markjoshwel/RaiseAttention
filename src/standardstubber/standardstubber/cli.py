@@ -9,19 +9,64 @@ from __future__ import annotations
 import argparse
 import logging
 import lzma
+import shutil
+import signal
 import sys
 import tarfile
+import tempfile
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Final
+from typing import Final, Generator
 
 from .analyser import CPythonAnalyser, find_c_modules
-from .models import Confidence, FunctionStub, StubFile, StubMetadata
+from .models import StubMetadata
+from .writer import write_stub_file_incremental
 
 logger = logging.getLogger(__name__)
 
 # generator identifier
 GENERATOR: Final[str] = "standardstubber@0.1.0"
+
+# global temp dir tracker for signal handler cleanup
+_temp_dirs: list[Path] = []
+
+
+def _cleanup_temp_dirs(signum: int | None = None, frame: object | None = None) -> None:
+    """clean up all tracked temp directories, even on interrupt."""
+    for temp_dir in _temp_dirs:
+        if temp_dir.exists():
+            try:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                logger.debug("cleaned up temp dir: %s", temp_dir)
+            except Exception:
+                pass
+    if signum is not None:
+        # re-raise the signal after cleanup
+        sys.exit(128 + signum)
+
+
+@contextmanager
+def managed_temp_dir(prefix: str = "standardstubber-") -> Generator[Path, None, None]:
+    """
+    create a temp directory that will be cleaned up even on keyboardinterrupt.
+
+    arguments:
+        `prefix: str`
+            prefix for the temp directory name
+
+    yields: `Path`
+        path to the temp directory
+    """
+    temp_dir = Path(tempfile.mkdtemp(prefix=prefix))
+    _temp_dirs.append(temp_dir)
+    try:
+        yield temp_dir
+    finally:
+        if temp_dir in _temp_dirs:
+            _temp_dirs.remove(temp_dir)
+        if temp_dir.exists():
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def main(args: list[str] | None = None) -> int:
@@ -35,6 +80,10 @@ def main(args: list[str] | None = None) -> int:
     returns: `int`
         exit code (0 for success)
     """
+    # set up signal handler for graceful cleanup on interrupt
+    signal.signal(signal.SIGINT, _cleanup_temp_dirs)
+    signal.signal(signal.SIGTERM, _cleanup_temp_dirs)
+
     parser = argparse.ArgumentParser(
         prog="standardstubber",
         description="generate .pyras exception stubs from cpython source",
@@ -69,44 +118,62 @@ def main(args: list[str] | None = None) -> int:
         action="store_true",
         help="enable debug logging",
     )
+    parser.add_argument(
+        "--no-propagation",
+        action="store_true",
+        help="disable call graph propagation analysis (faster but less accurate)",
+    )
+    parser.add_argument(
+        "--jobs",
+        "-j",
+        type=int,
+        default=None,
+        help="number of parallel jobs (default: cpu count)",
+    )
+    parser.add_argument(
+        "--profile",
+        action="store_true",
+        help="output timing breakdown per phase (deprecated, use -v)",
+    )
 
     parsed = parser.parse_args(args)
 
     # configure logging
     if parsed.debug:
         logging.basicConfig(level=logging.DEBUG, format="%(name)s: %(message)s")
-    elif parsed.verbose:
+    elif parsed.verbose or parsed.profile:
         logging.basicConfig(level=logging.INFO, format="%(message)s")
     else:
         logging.basicConfig(level=logging.WARNING, format="%(message)s")
 
     # handle tarball extraction
     cpython_path: Path = parsed.cpython
-    temp_dir: Path | None = None
 
     if cpython_path.suffix in (".xz", ".gz", ".tar"):
-        # extract tarball to temp directory
-        import tempfile
+        # extract tarball to temp directory with automatic cleanup
+        with managed_temp_dir(prefix="standardstubber-") as temp_dir:
+            extracted = extract_tarball(cpython_path, temp_dir)
+            if extracted is None:
+                print(f"error: failed to extract tarball: {parsed.cpython}", file=sys.stderr)
+                return 1
+            cpython_path = extracted
 
-        temp_dir = Path(tempfile.mkdtemp(prefix="standardstubber-"))
-        extracted = extract_tarball(cpython_path, temp_dir)
-        if extracted is None:
-            print(f"error: failed to extract tarball: {parsed.cpython}", file=sys.stderr)
-            return 1
-        cpython_path = extracted
-
-    try:
+            return generate_stubs(
+                cpython_root=cpython_path,
+                version_spec=parsed.version,
+                output_path=parsed.output,
+                use_propagation=not parsed.no_propagation,
+                jobs=parsed.jobs,
+            )
+    else:
+        # direct path to source tree
         return generate_stubs(
             cpython_root=cpython_path,
             version_spec=parsed.version,
             output_path=parsed.output,
+            use_propagation=not parsed.no_propagation,
+            jobs=parsed.jobs,
         )
-    finally:
-        # cleanup temp directory
-        if temp_dir is not None and temp_dir.exists():
-            import shutil
-
-            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def extract_tarball(tarball_path: Path, dest_dir: Path) -> Path | None:
@@ -150,10 +217,49 @@ def extract_tarball(tarball_path: Path, dest_dir: Path) -> Path | None:
         return None
 
 
+def _analyse_worker(
+    c_file: Path,
+    module_name: str,
+    cpython_root: Path,
+    use_propagation: bool,
+) -> tuple[str, list[tuple[str, frozenset[str], str, str]], float]:
+    """
+    worker function for parallel analysis.
+
+    returns (module_name, raw_stubs, elapsed_time) where raw_stubs is a list of
+    (qualname, raises, confidence, notes) tuples for incremental writing.
+    """
+    import time
+
+    # re-instantiate analyser per worker to ensure thread safety with libclang
+    analyser = CPythonAnalyser(cpython_root=cpython_root)
+    start_time = time.perf_counter()
+
+    try:
+        if use_propagation:
+            graph = analyser.analyse_module_with_propagation(c_file, module_name)
+            stubs = graph.get_exported_stubs()
+        else:
+            stubs = analyser.analyse_module_file(c_file, module_name)
+
+        # convert to raw tuples for serialisation and incremental writing
+        raw_stubs = [
+            (stub.qualname, stub.raises, stub.confidence.value, stub.notes) for stub in stubs
+        ]
+    except Exception:
+        # ensure workers don't crash main process
+        return module_name, [], 0.0
+
+    elapsed = time.perf_counter() - start_time
+    return module_name, raw_stubs, elapsed
+
+
 def generate_stubs(
     cpython_root: Path,
     version_spec: str,
     output_path: Path,
+    use_propagation: bool = True,
+    jobs: int | None = None,
 ) -> int:
     """
     generate .pyras stubs from cpython source.
@@ -165,10 +271,18 @@ def generate_stubs(
             pep 440 version specifier
         `output_path: Path`
             output .pyras file path
+        `use_propagation: bool`
+            whether to use call graph propagation analysis (default true)
+        `jobs: int | None`
+            number of parallel jobs (default: cpu count)
 
     returns: `int`
         exit code (0 for success)
     """
+    import time
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    from multiprocessing import cpu_count
+
     if not cpython_root.exists():
         print(f"error: cpython root not found: {cpython_root}", file=sys.stderr)
         return 1
@@ -177,7 +291,11 @@ def generate_stubs(
         print(f"error: invalid cpython source (no Include/): {cpython_root}", file=sys.stderr)
         return 1
 
-    logger.info("analysing cpython source: %s", cpython_root)
+    mode = "with propagation" if use_propagation else "local only"
+    num_jobs = jobs if jobs is not None else (cpu_count() or 1)
+
+    logger.info("analysing cpython source (%s): %s", mode, cpython_root)
+    logger.info("parallelism: %d workers", num_jobs)
 
     # find all c modules
     c_modules = find_c_modules(cpython_root)
@@ -187,22 +305,53 @@ def generate_stubs(
         print("error: no c modules found", file=sys.stderr)
         return 1
 
-    # analyse each module
-    analyser = CPythonAnalyser(cpython_root=cpython_root)
-    all_stubs: list[FunctionStub] = []
-
+    # collect raw stub data as (qualname, raises, confidence, notes) tuples
+    all_raw_stubs: list[tuple[str, frozenset[str], str, str]] = []
     total_modules = len(c_modules)
-    for i, (c_file, module_name) in enumerate(c_modules, 1):
-        stubs = analyser.analyse_module_file(c_file, module_name)
-        all_stubs.extend(stubs)
-        if stubs:
-            logger.info("  [%d/%d] %s: %d functions", i, total_modules, module_name, len(stubs))
-        elif logger.isEnabledFor(logging.DEBUG):
-            logger.debug("  [%d/%d] %s: 0 functions", i, total_modules, module_name)
+    total_time = 0.0
+    start_global = time.perf_counter()
 
-    logger.info("total functions analysed: %d", len(all_stubs))
+    with ProcessPoolExecutor(max_workers=num_jobs) as executor:
+        futures = {
+            executor.submit(_analyse_worker, c_file, module_name, cpython_root, use_propagation): (
+                i,
+                module_name,
+            )
+            for i, (c_file, module_name) in enumerate(c_modules, 1)
+        }
 
-    # create stub file
+        for future in as_completed(futures):
+            i, module_name = futures[future]
+            try:
+                _, raw_stubs, elapsed = future.result()
+                total_time += elapsed
+                all_raw_stubs.extend(raw_stubs)
+
+                if raw_stubs:
+                    logger.info(
+                        "  [%d/%d] %s: %d functions (%.2fs)",
+                        i,
+                        total_modules,
+                        module_name,
+                        len(raw_stubs),
+                        elapsed,
+                    )
+                elif logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(
+                        "  [%d/%d] %s: 0 functions (%.2fs)", i, total_modules, module_name, elapsed
+                    )
+            except Exception as e:
+                logger.error("failed to analyse %s: %s", module_name, e)
+
+    global_elapsed = time.perf_counter() - start_global
+    logger.info(
+        "total functions analysed: %d (%.1fs total time, %.1fs wall time)",
+        len(all_raw_stubs),
+        total_time,
+        global_elapsed,
+    )
+
+    # create stub file with incremental writer
     metadata = StubMetadata(
         name="stdlib",
         version=version_spec,
@@ -210,17 +359,16 @@ def generate_stubs(
         generated_at=datetime.now(timezone.utc),
     )
 
-    stub_file = StubFile(metadata=metadata, stubs=all_stubs)
-
-    # ensure output directory exists
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # write stub file
-    stub_file.write(output_path)
-    print(f"wrote {len(all_stubs)} stubs to: {output_path}")
+    # write stub file using incremental approach (deduplicates and writes directly)
+    num_written = write_stub_file_incremental(output_path, metadata, all_raw_stubs)
+    print(f"wrote {num_written} unique stubs to: {output_path} ({global_elapsed:.1f}s)")
 
     return 0
 
 
 if __name__ == "__main__":
+    import multiprocessing
+
+    # required for windows
+    multiprocessing.freeze_support()
     sys.exit(main())

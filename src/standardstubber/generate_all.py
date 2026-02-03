@@ -21,7 +21,7 @@ GENERATOR = "standardstubber@0.1.0"
 
 def get_cache_dir() -> Path:
     """get the cache directory for extracted tarballs."""
-    cache_dir = Path.home() / ".cache" / "standardstubber"
+    cache_dir = Path.home().joinpath(".cache", "standardstubber")
     cache_dir.mkdir(parents=True, exist_ok=True)
     return cache_dir
 
@@ -37,7 +37,7 @@ def extract_tarball_cached(tarball: Path) -> Path:
     """extract tarball to cache directory if not already extracted."""
     cache_dir = get_cache_dir()
     cache_key = get_tarball_hash(tarball)
-    extract_dir = cache_dir / cache_key
+    extract_dir = cache_dir.joinpath(cache_key)
 
     if extract_dir.exists():
         for item in extract_dir.iterdir():
@@ -61,12 +61,12 @@ def extract_tarball_cached(tarball: Path) -> Path:
 
 def analyse_single_module(
     args: tuple[Path, Path, str],
-) -> tuple[str, list[tuple[str, frozenset[str], str]]]:
+) -> tuple[str, list[tuple[str, frozenset[str], str, str]]]:
     """
-    analyse a single c module file.
+    analyse a single c module file with propagation analysis.
 
     args: (c_file, cpython_root, module_name)
-    returns: (module_name, [(qualname, raises, confidence), ...])
+    returns: (module_name, [(qualname, raises, confidence, notes), ...])
     """
     c_file, cpython_root, module_name = args
 
@@ -74,10 +74,13 @@ def analyse_single_module(
     from standardstubber.analyser import CPythonAnalyser
 
     analyser = CPythonAnalyser(cpython_root=cpython_root)
-    stubs = analyser.analyse_module_file(c_file, module_name)
+
+    # use propagation-aware analysis
+    graph = analyser.analyse_module_with_propagation(c_file, module_name)
+    stubs = graph.get_exported_stubs()
 
     # convert to serialisable format
-    results = [(stub.qualname, stub.raises, stub.confidence.value) for stub in stubs]
+    results = [(stub.qualname, stub.raises, stub.confidence.value, stub.notes) for stub in stubs]
     return module_name, results
 
 
@@ -89,7 +92,8 @@ def generate_stubs_for_version(
 ) -> tuple[str, int, str]:
     """generate stubs for a single python version with parallel module analysis."""
     from standardstubber.analyser import find_c_modules
-    from standardstubber.models import Confidence, FunctionStub, StubFile, StubMetadata
+    from standardstubber.models import StubMetadata
+    from standardstubber.writer import write_stub_file_incremental
 
     version = tarball.stem.split("-")[1].rsplit(".", 1)[0]
     print(f"\n[{version}] starting...")
@@ -104,7 +108,8 @@ def generate_stubs_for_version(
         # prepare tasks: (c_file, cpython_root, module_name)
         tasks = [(c_file, cpython_root, module_name) for c_file, module_name in c_modules]
 
-        all_stubs: list[FunctionStub] = []
+        # collect raw stub tuples (qualname, raises, confidence, notes)
+        all_raw_stubs: list[tuple[str, frozenset[str], str, str]] = []
         completed = 0
 
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
@@ -114,20 +119,15 @@ def generate_stubs_for_version(
                 module_name, results = future.result()
                 completed += 1
 
-                for qualname, raises, confidence_str in results:
-                    stub = FunctionStub(
-                        qualname=qualname,
-                        raises=raises,
-                        confidence=Confidence(confidence_str),
-                    )
-                    all_stubs.append(stub)
+                # collect raw stubs directly (no FunctionStub objects needed)
+                all_raw_stubs.extend(results)
 
                 if results:
                     print(
                         f"  [{version}] ({completed}/{len(tasks)}) {module_name}: {len(results)} functions"
                     )
 
-        # create stub file
+        # create stub file using incremental writer with deduplication
         metadata = StubMetadata(
             name="stdlib",
             version=version_spec,
@@ -135,12 +135,10 @@ def generate_stubs_for_version(
             generated_at=datetime.now(timezone.utc),
         )
 
-        stub_file = StubFile(metadata=metadata, stubs=all_stubs)
-        output.parent.mkdir(parents=True, exist_ok=True)
-        stub_file.write(output)
+        num_written = write_stub_file_incremental(output, metadata, all_raw_stubs)
 
-        print(f"[{version}] done: {len(all_stubs)} stubs written to {output}")
-        return version, len(all_stubs), ""
+        print(f"[{version}] done: {num_written} unique stubs written to {output}")
+        return version, num_written, ""
 
     except Exception as e:
         import traceback
@@ -150,33 +148,79 @@ def generate_stubs_for_version(
 
 def main() -> int:
     """generate stubs for all python versions."""
-    versions = [
-        ("Python-3.10.19", ">=3.10,<3.11"),
-        ("Python-3.11.14", ">=3.11,<3.12"),
-        ("Python-3.12.12", ">=3.12,<3.13"),
-        ("Python-3.13.11", ">=3.13,<3.14"),
-        ("Python-3.14.2", ">=3.14,<3.15"),
-    ]
+    import argparse
+    import logging
 
-    resources_dir = Path("src/standardstubber/resources")
-    output_dir = Path("src/raiseattention/stubs/stdlib")
+    parser = argparse.ArgumentParser(
+        prog="generate_all",
+        description="generate all stdlib pyras stubs for python 3.10-3.14",
+    )
+    parser.add_argument(
+        "--jobs",
+        "-j",
+        type=int,
+        default=None,
+        help="number of parallel jobs (default: cpu count)",
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="enable verbose logging",
+    )
+    parser.add_argument(
+        "--profile",
+        action="store_true",
+        help="enable profiling (implies verbose)",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="enable debug logging",
+    )
+
+    args = parser.parse_args()
+
+    # configure logging
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+    elif args.verbose or args.profile:
+        logging.basicConfig(level=logging.INFO, format="%(message)s")
+    else:
+        logging.basicConfig(level=logging.WARNING, format="%(message)s")
+
+    resources_dir = Path(__file__).parent.joinpath("resources")
+    output_dir = Path(__file__).parent.parent.joinpath("raiseattention", "stubs", "stdlib")
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # dynamically find tarballs
+    tarballs = sorted(resources_dir.glob("Python-*.tar.xz"), key=lambda p: p.name)
+    if not tarballs:
+        print(f"error: no python tarballs found in {resources_dir}")
+        return 1
+
+    print(f"found {len(tarballs)} python versions: {[t.name for t in tarballs]}")
+
     # detect number of cores
-    num_cores = os.cpu_count() or 4
+    num_cores = args.jobs if args.jobs is not None else (os.cpu_count() or 4)
     print(f"using {num_cores} cores for parallel module analysis")
     print()
 
     results: list[tuple[str, int, str]] = []
 
-    for tarball_name, version_spec in versions:
-        tarball = resources_dir / f"{tarball_name}.tar.xz"
-        if not tarball.exists():
-            print(f"warning: tarball not found: {tarball}")
+    for tarball in tarballs:
+        # parse version: Python-3.12.12.tar.xz -> 3.12
+        try:
+            full_version = tarball.name.split("-")[1].replace(".tar.xz", "")
+            major, minor, *_ = full_version.split(".")
+            version_short = f"{major}.{minor}"
+            next_minor = int(minor) + 1
+            version_spec = f">={major}.{minor},<{major}.{next_minor}"
+        except Exception:
+            print(f"warning: ignoring malformed filename: {tarball.name}")
             continue
 
-        version = tarball_name.split("-")[1].rsplit(".", 1)[0]
-        output = output_dir / f"python-{version}.pyras"
+        output = output_dir.joinpath(f"python-{version_short}.pyras")
 
         result = generate_stubs_for_version(tarball, version_spec, output, max_workers=num_cores)
         results.append(result)
@@ -201,4 +245,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    import multiprocessing
+
+    # required for windows
+    multiprocessing.freeze_support()
     sys.exit(main())

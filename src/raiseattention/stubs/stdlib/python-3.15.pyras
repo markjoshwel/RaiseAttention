@@ -1,9 +1,9 @@
 [metadata]
 name = "stdlib"
-version = ">=3.14,<3.15"
+version = ">=3.15,<3.16"
 format_version = "1.0"
 generator = "standardstubber@0.1.0"
-generated_at = "2026-02-03T03:54:07.747991+00:00"
+generated_at = "2026-02-03T04:18:39.620114+00:00"
 
 ["_abc.Abcmodule._abc_init"]
 raises = ['TypeError']
@@ -209,8 +209,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_asyncio.TaskType.set_name"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_asyncio.TaskType.set_result"]
 raises = ['TypeError']
@@ -221,20 +221,16 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_bisect.Bisect.bisect_left"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["_bisect.Bisect.bisect_right"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["_bisect.Bisect.insort_left"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["_bisect.Bisect.insort_right"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["_bz2.BZ2Compressor.compress"]
 raises = ['Exception']
@@ -245,6 +241,10 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_bz2.BZ2Decompressor.decompress"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_codecs._normalize_encoding"]
 raises = ['TypeError']
 confidence = "likely"
 
@@ -548,12 +548,10 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_ctypes.CDataType.from_buffer"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["_ctypes.CDataType.from_buffer_copy"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["_ctypes.CDataType.from_param"]
 raises = ['TypeError']
@@ -567,12 +565,10 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_ctypes.CPointerType.from_buffer"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["_ctypes.CPointerType.from_buffer_copy"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["_ctypes.CPointerType.from_param"]
 raises = ['TypeError']
@@ -590,12 +586,10 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_ctypes.CSimpleType.from_buffer"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["_ctypes.CSimpleType.from_buffer_copy"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["_ctypes.CSimpleType.from_param"]
 raises = ['TypeError']
@@ -617,7 +611,7 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_ctypes.Ctypes_module.CopyComPointer"]
-raises = ['OverflowError', 'TypeError']
+raises = ['Exception', 'OverflowError', 'TypeError']
 confidence = "likely"
 
 ["_ctypes.Ctypes_module.FormatError"]
@@ -642,6 +636,9 @@ confidence = "likely"
 raises = ['TypeError']
 confidence = "likely"
 
+["_ctypes.Ctypes_module.__getattr__"]
+raises = ['AttributeError']
+
 ["_ctypes.Ctypes_module._check_HRESULT"]
 raises = ['OSError', 'TypeError']
 
@@ -650,7 +647,7 @@ raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_ctypes.Ctypes_module.addressof"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_ctypes.Ctypes_module.alignment"]
@@ -660,7 +657,7 @@ raises = ['TypeError']
 raises = ['TypeError']
 
 ["_ctypes.Ctypes_module.byref"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_ctypes.Ctypes_module.call_cdeclfunction"]
@@ -680,7 +677,7 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_ctypes.Ctypes_module.resize"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_ctypes.Ctypes_module.set_errno"]
@@ -798,7 +795,8 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_curses.CursesWindow.getbkgd"]
-raises = ['Exception', 'TypeError']
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.CursesWindow.getch"]
 raises = ['TypeError']
@@ -858,8 +856,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_curses.CursesWindow.is_linetouched"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.CursesWindow.is_wintouched"]
 raises = ['Exception']
@@ -894,8 +892,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_curses.CursesWindow.noutrefresh"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_curses.CursesWindow.overlay"]
 raises = ['Exception', 'TypeError']
@@ -986,8 +984,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_curses.Cursesmodule.can_change_color"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.Cursesmodule.cbreak"]
 raises = ['TypeError']
@@ -1001,8 +999,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_curses.Cursesmodule.curs_set"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_curses.Cursesmodule.def_prog_mode"]
 raises = ['TypeError']
@@ -1013,12 +1011,12 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_curses.Cursesmodule.delay_output"]
-raises = ['Exception']
-confidence = "conservative"
-
-["_curses.Cursesmodule.doupdate"]
 raises = ['TypeError']
 confidence = "likely"
+
+["_curses.Cursesmodule.doupdate"]
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.Cursesmodule.echo"]
 raises = ['TypeError']
@@ -1033,12 +1031,12 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_curses.Cursesmodule.flash"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.Cursesmodule.flushinp"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.Cursesmodule.getwin"]
 raises = ['Exception', 'OSError', 'TypeError']
@@ -1047,8 +1045,8 @@ raises = ['Exception', 'OSError', 'TypeError']
 raises = ['OverflowError', 'TypeError']
 
 ["_curses.Cursesmodule.has_colors"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.Cursesmodule.has_extended_color_support"]
 raises = ['TypeError']
@@ -1071,32 +1069,32 @@ raises = ['TypeError', 'ValueError']
 confidence = "likely"
 
 ["_curses.Cursesmodule.initscr"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_curses.Cursesmodule.intrflush"]
 raises = ['Exception']
 confidence = "conservative"
 
-["_curses.Cursesmodule.intrflush"]
-raises = ['TypeError']
-confidence = "likely"
-
 ["_curses.Cursesmodule.isendwin"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.Cursesmodule.keyname"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.Cursesmodule.killchar"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.Cursesmodule.longname"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.Cursesmodule.meta"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses.Cursesmodule.napms"]
 raises = ['TypeError']
@@ -1138,8 +1136,8 @@ raises = ['TypeError', 'ValueError']
 confidence = "likely"
 
 ["_curses.Cursesmodule.pair_number"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_curses.Cursesmodule.putp"]
 raises = ['TypeError']
@@ -1218,12 +1216,12 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_curses_panel.Curses.top_panel"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses_panel.Curses.update_panels"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses_panel.CursesPanel.above"]
 raises = ['Exception']
@@ -1234,14 +1232,16 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_curses_panel.CursesPanel.bottom"]
-raises = ['TypeError']
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses_panel.CursesPanel.hidden"]
 raises = ['Exception']
 confidence = "conservative"
 
 ["_curses_panel.CursesPanel.hide"]
-raises = ['TypeError']
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses_panel.CursesPanel.move"]
 raises = ['TypeError']
@@ -1252,29 +1252,32 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_curses_panel.CursesPanel.set_userptr"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses_panel.CursesPanel.show"]
-raises = ['TypeError']
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses_panel.CursesPanel.top"]
-raises = ['TypeError']
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses_panel.CursesPanel.userptr"]
-raises = ['TypeError']
+raises = ['Exception']
+confidence = "conservative"
 
 ["_curses_panel.CursesPanel.window"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_datetime.Datetime.__reduce__"]
 raises = ['Exception']
 confidence = "conservative"
 
 ["_datetime.Datetime.__reduce_ex__"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_datetime.Datetime.__replace__"]
 raises = ['TypeError']
@@ -1282,6 +1285,7 @@ confidence = "likely"
 
 ["_datetime.Datetime.astimezone"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_datetime.Datetime.combine"]
 raises = ['TypeError']
@@ -1300,14 +1304,15 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_datetime.Datetime.fromisoformat"]
-raises = ['Exception', 'TypeError', 'ValueError']
+raises = ['Exception', 'TypeError']
+confidence = "likely"
 
 ["_datetime.Datetime.fromtimestamp"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_datetime.Datetime.isoformat"]
-raises = ['TypeError', 'ValueError']
+raises = ['Exception', 'TypeError', 'ValueError']
 
 ["_datetime.Datetime.now"]
 raises = ['TypeError']
@@ -1342,12 +1347,12 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_datetime.Datetime.utcfromtimestamp"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_datetime.Datetime.utcnow"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_datetime.Datetime.utcoffset"]
 raises = ['Exception']
@@ -1400,7 +1405,7 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_datetime.__format__"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_datetime.__reduce__"]
@@ -1408,8 +1413,8 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_datetime.__reduce_ex__"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_datetime.__replace__"]
 raises = ['TypeError']
@@ -1420,17 +1425,20 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_datetime.dst"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_datetime.fromisocalendar"]
-raises = ['TypeError', 'ValueError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["_datetime.fromisoformat"]
-raises = ['Exception', 'TypeError', 'ValueError']
+raises = ['Exception', 'TypeError']
+confidence = "likely"
 
 ["_datetime.fromordinal"]
-raises = ['TypeError', 'ValueError']
+raises = ['Exception']
+confidence = "conservative"
 
 ["_datetime.fromtimestamp"]
 raises = ['Exception']
@@ -1441,18 +1449,18 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_datetime.isoformat"]
-raises = ['TypeError', 'ValueError']
+raises = ['Exception', 'TypeError', 'ValueError']
 
 ["_datetime.isoweekday"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_datetime.replace"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_datetime.strftime"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_datetime.strptime"]
@@ -1480,15 +1488,15 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_datetime.utcoffset"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_datetime.weekday"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_dbm.Dbmmodule.open"]
-raises = ['Exception', 'TypeError', 'ValueError']
+raises = ['TypeError', 'ValueError']
 
 ["_dbm.__enter__"]
 raises = ['TypeError']
@@ -1525,20 +1533,18 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_decimal.Context.__copy__"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
 
 ["_decimal.Context.__reduce__"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
 
 ["_decimal.Context._apply"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.abs"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.add"]
 raises = ['TypeError']
@@ -1546,6 +1552,7 @@ confidence = "likely"
 
 ["_decimal.Context.canonical"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.clear_flags"]
 raises = ['Exception']
@@ -1572,20 +1579,19 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_decimal.Context.copy"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
 
 ["_decimal.Context.copy_abs"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.copy_decimal"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.copy_negate"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.copy_sign"]
 raises = ['TypeError']
@@ -1596,8 +1602,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_decimal.Context.create_decimal_from_float"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.divide"]
 raises = ['TypeError']
@@ -1612,8 +1618,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_decimal.Context.exp"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.fma"]
 raises = ['TypeError']
@@ -1621,62 +1627,63 @@ confidence = "likely"
 
 ["_decimal.Context.is_canonical"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.is_finite"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.is_infinite"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.is_nan"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.is_normal"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.is_qnan"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.is_signed"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.is_snan"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.is_subnormal"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.is_zero"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.ln"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.log10"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.logb"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.logical_and"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_decimal.Context.logical_invert"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.logical_or"]
 raises = ['TypeError']
@@ -1703,36 +1710,36 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_decimal.Context.minus"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.multiply"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_decimal.Context.next_minus"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.next_plus"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.next_toward"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_decimal.Context.normalize"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.number_class"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.plus"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.power"]
 raises = ['TypeError']
@@ -1743,8 +1750,7 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_decimal.Context.radix"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
 
 ["_decimal.Context.remainder"]
 raises = ['TypeError']
@@ -1771,30 +1777,32 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_decimal.Context.sqrt"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.subtract"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_decimal.Context.to_eng_string"]
-raises = ['MemoryError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.to_integral"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.to_integral_exact"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.to_integral_value"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Context.to_sci_string"]
-raises = ['MemoryError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Ctxmanager.__enter__"]
 raises = ['Exception']
@@ -1808,23 +1816,27 @@ confidence = "conservative"
 raises = ['Exception']
 confidence = "conservative"
 
+["_decimal.Decimal.__getattr__"]
+raises = ['AttributeError']
+
 ["_decimal.Decimal.getcontext"]
 raises = ['Exception']
 confidence = "conservative"
 
 ["_decimal.Decimal.localcontext"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Decimal.setcontext"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.Signaldict.copy"]
 raises = ['Exception']
 confidence = "conservative"
 
 ["_decimal.__ceil__"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
 
 ["_decimal.__complex__"]
 raises = ['Exception']
@@ -1835,15 +1847,15 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_decimal.__deepcopy__"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.__floor__"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
 
 ["_decimal.__format__"]
-raises = ['MemoryError', 'TypeError', 'ValueError']
+raises = ['Exception', 'TypeError']
+confidence = "likely"
 
 ["_decimal.__reduce__"]
 raises = ['Exception']
@@ -1851,24 +1863,24 @@ confidence = "conservative"
 
 ["_decimal.__round__"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.__sizeof__"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.__trunc__"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
 
 ["_decimal.adjusted"]
 raises = ['Exception']
 confidence = "conservative"
 
 ["_decimal.as_integer_ratio"]
-raises = ['MemoryError', 'OverflowError', 'ValueError']
+raises = ['TypeError']
 
 ["_decimal.as_tuple"]
-raises = ['Exception', 'MemoryError']
+raises = ['TypeError']
 
 ["_decimal.canonical"]
 raises = ['Exception']
@@ -1876,42 +1888,49 @@ confidence = "conservative"
 
 ["_decimal.compare"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.compare_signal"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.compare_total"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.compare_total_mag"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.conjugate"]
 raises = ['Exception']
 confidence = "conservative"
 
 ["_decimal.copy_abs"]
-raises = ['MemoryError']
+raises = ['TypeError']
 
 ["_decimal.copy_negate"]
-raises = ['MemoryError']
+raises = ['TypeError']
 
 ["_decimal.copy_sign"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.exp"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.fma"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.from_float"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.from_number"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.is_canonical"]
 raises = ['Exception']
@@ -1931,6 +1950,7 @@ confidence = "conservative"
 
 ["_decimal.is_normal"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.is_qnan"]
 raises = ['Exception']
@@ -1946,6 +1966,7 @@ confidence = "conservative"
 
 ["_decimal.is_subnormal"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.is_zero"]
 raises = ['Exception']
@@ -1953,88 +1974,114 @@ confidence = "conservative"
 
 ["_decimal.ln"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.log10"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.logb"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.logical_and"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.logical_invert"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.logical_or"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.logical_xor"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.max"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.max_mag"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.min"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.min_mag"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.next_minus"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.next_plus"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.next_toward"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.normalize"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.number_class"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.quantize"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.radix"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
 
 ["_decimal.remainder_near"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.rotate"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.same_quantum"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.scaleb"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.shift"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.sqrt"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.to_eng_string"]
-raises = ['MemoryError', 'TypeError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.to_integral"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.to_integral_exact"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_decimal.to_integral_value"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_elementtree.Element.__copy__"]
 raises = ['TypeError']
@@ -2209,7 +2256,7 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_gdbm.Gdbm_module.open"]
-raises = ['Exception', 'TypeError', 'ValueError']
+raises = ['TypeError', 'ValueError']
 
 ["_gdbm.__enter__"]
 raises = ['TypeError']
@@ -2250,25 +2297,25 @@ confidence = "likely"
 ["_gdbm.sync"]
 raises = ['TypeError']
 
-["_hashopenssl.EVP.copy"]
+["_hashopenssl.HASH.copy"]
 raises = ['Exception']
 confidence = "conservative"
 
-["_hashopenssl.EVP.digest"]
+["_hashopenssl.HASH.digest"]
 raises = ['Exception']
 confidence = "conservative"
 
-["_hashopenssl.EVP.hexdigest"]
+["_hashopenssl.HASH.hexdigest"]
 raises = ['Exception']
 confidence = "conservative"
 
-["_hashopenssl.EVP.update"]
+["_hashopenssl.HASH.update"]
 raises = ['Exception']
 confidence = "conservative"
 
 ["_hashopenssl.HMAC.copy"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_hashopenssl.HMAC.digest"]
 raises = ['TypeError']
@@ -2332,43 +2379,43 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_heapq.heapify"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_heapq.heapify_max"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_heapq.heappop"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_heapq.heappop_max"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_heapq.heappush"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_heapq.heappush_max"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_heapq.heappushpop"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_heapq.heappushpop_max"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_heapq.heapreplace"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_heapq.heapreplace_max"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_interpchannels._channel_id"]
@@ -2428,13 +2475,14 @@ confidence = "likely"
 
 ["_interpqueues._register_heap_types"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["_interpqueues.bind"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_interpqueues.create"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
 confidence = "likely"
 
 ["_interpqueues.destroy"]
@@ -2474,24 +2522,27 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_interpreters.call"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_interpreters.capture_exception"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["_interpreters.create"]
-raises = ['PyExc_InterpreterError', 'TypeError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["_interpreters.decref"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_interpreters.destroy"]
-raises = ['PyExc_InterpreterError', 'TypeError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["_interpreters.exec"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_interpreters.get_config"]
@@ -2527,15 +2578,16 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_interpreters.run_func"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_interpreters.run_string"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_interpreters.set___main___attrs"]
-raises = ['RuntimeError', 'TypeError', 'ValueError']
+raises = ['Exception', 'TypeError']
+confidence = "likely"
 
 ["_interpreters.whence"]
 raises = ['TypeError']
@@ -2585,8 +2637,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_io.Bufferedrandom.flush"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_io.Bufferedrandom.isatty"]
 raises = ['TypeError']
@@ -2781,8 +2833,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_io.Bufferedwriter.flush"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_io.Bufferedwriter.isatty"]
 raises = ['TypeError']
@@ -2924,7 +2976,6 @@ confidence = "likely"
 
 ["_io.Fileio.readall"]
 raises = ['TypeError']
-confidence = "likely"
 
 ["_io.Fileio.readinto"]
 raises = ['TypeError']
@@ -3123,7 +3174,7 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_io.Textiobase.write"]
-raises = ['TypeError', 'ValueError']
+raises = ['Exception', 'TypeError', 'ValueError']
 
 ["_io.Textiowrapper.close"]
 raises = ['Exception']
@@ -3182,7 +3233,7 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_io.Textiowrapper.write"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_io.Winconsoleio._isatty_open_only"]
@@ -3236,13 +3287,16 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_json.Speedups.encode_basestring"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
+confidence = "likely"
 
 ["_json.Speedups.encode_basestring_ascii"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
+confidence = "likely"
 
 ["_json.Speedups.scanstring"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
+confidence = "likely"
 
 ["_locale.Locale._getdefaultlocale"]
 raises = ['TypeError']
@@ -3257,14 +3311,14 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_locale.Locale.setlocale"]
-raises = ['Exception', 'TypeError', 'ValueError']
+raises = ['TypeError', 'ValueError']
 
 ["_locale.Locale.strcoll"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
 confidence = "likely"
 
 ["_locale.Locale.strxfrm"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
 confidence = "likely"
 
 ["_lsprof.Profiler._ccall_callback"]
@@ -3347,8 +3401,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_multiprocessing.Semlock._is_mine"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_multiprocessing.Semlock._is_zero"]
 raises = ['TypeError']
@@ -3743,6 +3797,10 @@ confidence = "conservative"
 raises = ['Exception', 'TypeError']
 confidence = "likely"
 
+["_queue.Simplequeue.__sizeof__"]
+raises = ['TypeError']
+confidence = "likely"
+
 ["_queue.Simplequeue.empty"]
 raises = ['TypeError']
 confidence = "likely"
@@ -3786,15 +3844,87 @@ confidence = "likely"
 raises = ['Exception']
 confidence = "conservative"
 
-["_remote_debugging_.RemoteUnwinder.get_all_awaited_by"]
-raises = ['Exception']
-confidence = "conservative"
-
-["_remote_debugging_.RemoteUnwinder.get_async_stack_trace"]
+["_remote_debugging.BinaryReader.__enter__"]
 raises = ['TypeError']
 confidence = "likely"
 
-["_remote_debugging_.RemoteUnwinder.get_stack_trace"]
+["_remote_debugging.BinaryReader.__exit__"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.BinaryReader.close"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.BinaryReader.get_info"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.BinaryReader.get_stats"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.BinaryReader.replay"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.BinaryWriter.__enter__"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_remote_debugging.BinaryWriter.__exit__"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.BinaryWriter.close"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_remote_debugging.BinaryWriter.finalize"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_remote_debugging.BinaryWriter.get_stats"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.BinaryWriter.write_sample"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.RemoteUnwinder.get_all_awaited_by"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.RemoteUnwinder.get_async_stack_trace"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_remote_debugging.RemoteUnwinder.get_stack_trace"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.RemoteUnwinder.get_stats"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_remote_debugging.RemoteUnwinder.pause_threads"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_remote_debugging.RemoteUnwinder.resume_threads"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_remote_debugging.Remote_debugging.get_child_pids"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.Remote_debugging.is_python_process"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_remote_debugging.Remote_debugging.zstd_available"]
 raises = ['Exception']
 confidence = "conservative"
 
@@ -3807,8 +3937,8 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_sqlite.Connection.__enter__"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_sqlite.Connection.__exit__"]
 raises = ['TypeError']
@@ -3818,48 +3948,48 @@ confidence = "likely"
 raises = ['Exception', 'TypeError', 'ValueError']
 
 ["_sqlite.Connection.blobopen"]
-raises = ['TypeError', 'ValueError']
+raises = ['Exception', 'TypeError', 'ValueError']
 
 ["_sqlite.Connection.close"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_sqlite.Connection.commit"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_sqlite.Connection.create_aggregate"]
-raises = ['TypeError', 'ValueError']
+raises = ['Exception', 'TypeError', 'ValueError']
 
 ["_sqlite.Connection.create_collation"]
-raises = ['TypeError', 'ValueError']
+raises = ['Exception', 'TypeError', 'ValueError']
 
 ["_sqlite.Connection.create_function"]
-raises = ['TypeError', 'ValueError']
+raises = ['Exception', 'TypeError', 'ValueError']
 
 ["_sqlite.Connection.cursor"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_sqlite.Connection.execute"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_sqlite.Connection.executemany"]
-raises = ['TypeError']
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["_sqlite.Connection.executescript"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_sqlite.Connection.getconfig"]
 raises = ['TypeError', 'ValueError']
 confidence = "likely"
 
 ["_sqlite.Connection.getlimit"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_sqlite.Connection.interrupt"]
 raises = ['Exception']
@@ -3917,8 +4047,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_sqlite.Cursor.fetchone"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_sqlite.Cursor.setinputsizes"]
 raises = ['Exception']
@@ -3949,7 +4079,6 @@ raises = ['Exception', 'TypeError', 'ValueError']
 
 ["_sqlite.connect"]
 raises = ['Exception', 'TypeError']
-confidence = "likely"
 
 ["_sqlite.enable_callback_tracebacks"]
 raises = ['TypeError']
@@ -4113,8 +4242,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_ssl.Context.cert_store_stats"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_ssl.Context.get_ca_certs"]
 raises = ['TypeError']
@@ -4124,32 +4253,45 @@ confidence = "likely"
 raises = ['Exception']
 confidence = "conservative"
 
+["_ssl.Context.get_groups"]
+raises = ['TypeError']
+confidence = "likely"
+
 ["_ssl.Context.load_cert_chain"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_ssl.Context.load_dh_params"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_ssl.Context.load_verify_locations"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_ssl.Context.session_stats"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_ssl.Context.set_ciphers"]
 raises = ['Exception', 'TypeError', 'ValueError']
 
+["_ssl.Context.set_ciphersuites"]
+raises = ['Exception', 'TypeError', 'ValueError']
+
+["_ssl.Context.set_client_sigalgs"]
+raises = ['Exception', 'TypeError', 'ValueError']
+
 ["_ssl.Context.set_default_verify_paths"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_ssl.Context.set_ecdh_curve"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
+
+["_ssl.Context.set_groups"]
+raises = ['Exception', 'TypeError', 'ValueError']
 
 ["_ssl.Context.set_psk_client_callback"]
 raises = ['TypeError']
@@ -4158,17 +4300,20 @@ confidence = "likely"
 ["_ssl.Context.set_psk_server_callback"]
 raises = ['Exception', 'TypeError', 'ValueError']
 
+["_ssl.Context.set_server_sigalgs"]
+raises = ['Exception', 'TypeError', 'ValueError']
+
 ["_ssl.Memory_bio.read"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["_ssl.Memory_bio.write"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_ssl.Memory_bio.write_eof"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_ssl.SSL.RAND_add"]
 raises = ['Exception', 'TypeError']
@@ -4179,14 +4324,18 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_ssl.SSL.RAND_status"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["_ssl.SSL._test_decode_cert"]
 raises = ['Exception']
 confidence = "conservative"
 
 ["_ssl.SSL.cipher"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.SSL.client_sigalg"]
 raises = ['Exception']
 confidence = "conservative"
 
@@ -4208,6 +4357,10 @@ raises = ['Exception', 'TypeError', 'ValueError']
 raises = ['Exception', 'TypeError', 'ValueError']
 
 ["_ssl.SSL.get_default_verify_paths"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.SSL.get_sigalgs"]
 raises = ['TypeError']
 confidence = "likely"
 
@@ -4222,6 +4375,10 @@ confidence = "conservative"
 ["_ssl.SSL.getpeercert"]
 raises = ['TypeError']
 confidence = "likely"
+
+["_ssl.SSL.group"]
+raises = ['Exception']
+confidence = "conservative"
 
 ["_ssl.SSL.nid2obj"]
 raises = ['Exception']
@@ -4238,6 +4395,10 @@ raises = ['TypeError']
 raises = ['Exception']
 confidence = "conservative"
 
+["_ssl.SSL.server_sigalg"]
+raises = ['Exception']
+confidence = "conservative"
+
 ["_ssl.SSL.shared_ciphers"]
 raises = ['Exception']
 confidence = "conservative"
@@ -4248,6 +4409,14 @@ confidence = "conservative"
 
 ["_ssl.SSL.txt2obj"]
 raises = ['Exception', 'TypeError', 'ValueError']
+
+["_ssl.SSL.uses_ktls_for_recv"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_ssl.SSL.uses_ktls_for_send"]
+raises = ['Exception']
+confidence = "conservative"
 
 ["_ssl.SSL.verify_client_post_handshake"]
 raises = ['Exception']
@@ -4627,6 +4796,10 @@ confidence = "conservative"
 raises = ['Exception']
 confidence = "conservative"
 
+["_testcapi.Test.create_managed_weakref_nogc_type"]
+raises = ['Exception']
+confidence = "conservative"
+
 ["_testcapi.Test.create_type_from_repeated_slots"]
 raises = ['ValueError']
 
@@ -4803,6 +4976,10 @@ confidence = "likely"
 raises = ['TypeError']
 confidence = "likely"
 
+["_testcapi.Test.pyabiinfo_check"]
+raises = ['TypeError']
+confidence = "likely"
+
 ["_testcapi.Test.pycfunction_call"]
 raises = ['TypeError']
 confidence = "likely"
@@ -4863,6 +5040,10 @@ confidence = "likely"
 ["_testcapi.Test.pytype_getmodulebydef"]
 raises = ['Exception']
 confidence = "conservative"
+
+["_testcapi.Test.pytype_getmodulebytoken"]
+raises = ['TypeError']
+confidence = "likely"
 
 ["_testcapi.Test.pyvectorcall_call"]
 raises = ['TypeError']
@@ -4980,6 +5161,10 @@ confidence = "conservative"
 raises = ['Exception']
 confidence = "conservative"
 
+["_testcapi.Test.unicode_GET_CACHED_HASH"]
+raises = ['Exception']
+confidence = "conservative"
+
 ["_testcapi.Test.unicode_asucs4"]
 raises = ['MemoryError', 'TypeError']
 
@@ -5018,11 +5203,31 @@ confidence = "likely"
 raises = ['Exception']
 confidence = "conservative"
 
+["_testcapi.Writer.finish_with_size"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_testcapi.Writer.format_i"]
+raises = ['TypeError']
+confidence = "likely"
+
 ["_testcapi.Writer.get_pointer"]
 raises = ['Exception']
 confidence = "conservative"
 
+["_testcapi.Writer.get_size"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.Writer.resize"]
+raises = ['TypeError']
+confidence = "likely"
+
 ["_testcapi.Writer.write_ascii"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_testcapi.Writer.write_bytes"]
 raises = ['TypeError']
 confidence = "likely"
 
@@ -5089,6 +5294,10 @@ confidence = "likely"
 raises = ['TypeError']
 confidence = "likely"
 
+["_testcapi.a_method"]
+raises = ['Exception']
+confidence = "conservative"
+
 ["_testcapi.add_code_watcher"]
 raises = ['ValueError']
 
@@ -5125,6 +5334,18 @@ confidence = "likely"
 ["_testcapi.bytes_resize"]
 raises = ['TypeError']
 confidence = "likely"
+
+["_testcapi.byteswriter_abc"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.byteswriter_highlevel"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.byteswriter_resize"]
+raises = ['Exception']
+confidence = "conservative"
 
 ["_testcapi.call_long_compact_api"]
 raises = ['TypeError']
@@ -5770,6 +5991,62 @@ confidence = "likely"
 raises = ['TypeError']
 confidence = "likely"
 
+["_testcapi.module_from_def_multiple_exec"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_def_slot"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_create"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_doc"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_empty"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_exec"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_gc"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_methods"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_name"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_null"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_null_slot"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_repeat_slot"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_size"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.module_from_slots_token"]
+raises = ['Exception']
+confidence = "conservative"
+
 ["_testcapi.no_docstring"]
 raises = ['Exception']
 confidence = "conservative"
@@ -5942,6 +6219,14 @@ confidence = "likely"
 raises = ['TypeError']
 confidence = "likely"
 
+["_testcapi.object_setattr_null_exc"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_testcapi.object_setattrstring_null_exc"]
+raises = ['TypeError']
+confidence = "likely"
+
 ["_testcapi.parse_tuple_and_keywords"]
 raises = ['Exception', 'TypeError', 'ValueError']
 
@@ -6005,15 +6290,39 @@ raises = ['MemoryError']
 raises = ['Exception']
 confidence = "conservative"
 
+["_testcapi.pymodule_exec"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.pymodule_get_def"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.pymodule_get_state_size"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.pymodule_get_token"]
+raises = ['Exception']
+confidence = "conservative"
+
 ["_testcapi.pyobject_clear_weakrefs_no_callbacks"]
 raises = ['Exception']
 confidence = "conservative"
+
+["_testcapi.pyobject_dump"]
+raises = ['TypeError']
+confidence = "likely"
 
 ["_testcapi.pyobject_enable_deferred_refcount"]
 raises = ['Exception']
 confidence = "conservative"
 
 ["_testcapi.pyobject_is_unique_temporary"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testcapi.pyobject_is_unique_temporary_new_object"]
 raises = ['Exception']
 confidence = "conservative"
 
@@ -6241,6 +6550,9 @@ raises = ['Exception', 'MemoryError', 'RuntimeError']
 
 ["_testcapi.tracemalloc_untrack"]
 raises = ['RuntimeError', 'TypeError']
+
+["_testcapi.tuple_fromarray"]
+raises = ['TypeError']
 
 ["_testcapi.tuple_get_item"]
 raises = ['TypeError']
@@ -6565,6 +6877,21 @@ confidence = "likely"
 raises = ['TypeError']
 confidence = "likely"
 
+["_testclinic.Tester.kwds_with_pos_only"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_testclinic.Tester.kwds_with_pos_only_and_stararg"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_testclinic.Tester.kwds_with_stararg"]
+raises = ['Exception', 'TypeError']
+
+["_testclinic.Tester.lone_kwds"]
+raises = ['TypeError']
+confidence = "likely"
+
 ["_testclinic.Tester.long_converter"]
 raises = ['TypeError']
 confidence = "likely"
@@ -6666,8 +6993,7 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_testclinic.Tester.py_ssize_t_converter"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["_testclinic.Tester.short_converter"]
 raises = ['OverflowError', 'TypeError']
@@ -7006,6 +7332,10 @@ confidence = "likely"
 raises = ['Exception']
 confidence = "conservative"
 
+["_testinternalcapi.module_get_gc_hooks"]
+raises = ['Exception']
+confidence = "conservative"
+
 ["_testinternalcapi.new_instruction_sequence"]
 raises = ['Exception']
 confidence = "conservative"
@@ -7067,6 +7397,10 @@ raises = ['TypeError']
 
 ["_testinternalcapi.set_vectorcall_nop"]
 raises = ['TypeError']
+
+["_testinternalcapi.simple_pending_call"]
+raises = ['Exception']
+confidence = "conservative"
 
 ["_testinternalcapi.test_bit_length"]
 raises = ['Exception']
@@ -8335,7 +8669,23 @@ confidence = "conservative"
 raises = ['Exception']
 confidence = "conservative"
 
+["_testlimitedcapi.sys_getattr"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testlimitedcapi.sys_getattrstring"]
+raises = ['TypeError']
+confidence = "likely"
+
 ["_testlimitedcapi.sys_getobject"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_testlimitedcapi.sys_getoptionalattr"]
+raises = ['Exception']
+confidence = "conservative"
+
+["_testlimitedcapi.sys_getoptionalattrstring"]
 raises = ['TypeError']
 confidence = "likely"
 
@@ -8568,11 +8918,12 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_thread.__exit__"]
-raises = ['RuntimeError']
-
-["_thread._acquire_restore"]
 raises = ['TypeError']
 confidence = "likely"
+
+["_thread._acquire_restore"]
+raises = ['Exception']
+confidence = "conservative"
 
 ["_thread._is_owned"]
 raises = ['Exception']
@@ -8583,15 +8934,16 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_thread._release_save"]
-raises = ['RuntimeError']
+raises = ['Exception']
+confidence = "conservative"
 
 ["_thread.acquire"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_thread.acquire_lock"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_thread.locked"]
 raises = ['Exception']
@@ -8602,10 +8954,12 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_thread.release"]
-raises = ['RuntimeError']
+raises = ['Exception']
+confidence = "conservative"
 
 ["_thread.release_lock"]
-raises = ['RuntimeError']
+raises = ['Exception']
+confidence = "conservative"
 
 ["_tkinter.Tkapp.adderrorinfo"]
 raises = ['Exception', 'TypeError', 'ValueError']
@@ -8721,8 +9075,8 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_tkinter.Tktt.deletetimerhandler"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["_tkinter._flatten"]
 raises = ['TypeError']
@@ -8830,7 +9184,7 @@ raises = ['OSError', 'TypeError']
 confidence = "likely"
 
 ["_winapi.CreateJunction"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
 confidence = "likely"
 
 ["_winapi.CreateMutexW"]
@@ -8846,6 +9200,10 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_winapi.CreateProcess"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_winapi.DeregisterEventSource"]
 raises = ['TypeError']
 confidence = "likely"
 
@@ -8876,10 +9234,14 @@ confidence = "likely"
 raises = ['Exception', 'TypeError']
 
 ["_winapi.GetLongPathName"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
 confidence = "likely"
 
 ["_winapi.GetModuleFileName"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_winapi.GetOEMCP"]
 raises = ['TypeError']
 confidence = "likely"
 
@@ -8888,7 +9250,7 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["_winapi.GetShortPathName"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
 confidence = "likely"
 
 ["_winapi.GetStdHandle"]
@@ -8907,7 +9269,7 @@ raises = ['OSError', 'TypeError']
 confidence = "likely"
 
 ["_winapi.NeedCurrentDirectoryForExePath"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
 confidence = "likely"
 
 ["_winapi.OpenEventW"]
@@ -8934,7 +9296,15 @@ confidence = "likely"
 raises = ['TypeError']
 confidence = "likely"
 
+["_winapi.RegisterEventSource"]
+raises = ['OSError', 'TypeError']
+confidence = "likely"
+
 ["_winapi.ReleaseMutex"]
+raises = ['TypeError']
+confidence = "likely"
+
+["_winapi.ReportEvent"]
 raises = ['TypeError']
 confidence = "likely"
 
@@ -9049,7 +9419,7 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_zstd.finalize_dict"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
 confidence = "likely"
 
 ["_zstd.get_frame_info"]
@@ -9069,7 +9439,7 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["_zstd.train_dict"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
 confidence = "likely"
 
 ["array.Arrayiter.__reduce__"]
@@ -9092,8 +9462,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["array.__sizeof__"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["array._array_reconstructor"]
 raises = ['Exception', 'TypeError']
@@ -9127,8 +9497,7 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["array.fromfile"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["array.fromlist"]
 raises = ['Exception']
@@ -9198,8 +9567,7 @@ raises = ['TypeError', 'ValueError']
 confidence = "likely"
 
 ["binascii.Binascii_module.a2b_hex"]
-raises = ['TypeError', 'ValueError']
-confidence = "likely"
+raises = ['Exception', 'TypeError', 'ValueError']
 
 ["binascii.Binascii_module.a2b_qp"]
 raises = ['TypeError', 'ValueError']
@@ -9237,12 +9605,10 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["binascii.Binascii_module.unhexlify"]
-raises = ['TypeError', 'ValueError']
-confidence = "likely"
+raises = ['Exception', 'TypeError', 'ValueError']
 
 ["blake2.Py_blake2b.copy"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
 
 ["blake2.Py_blake2b.digest"]
 raises = ['Exception']
@@ -9334,19 +9700,16 @@ raises = ['OverflowError', 'TypeError', 'ValueError']
 raises = ['OverflowError', 'TypeError', 'ValueError']
 
 ["faulthandler._fatal_error_c_thread"]
-raises = ['MemoryError', 'RuntimeError']
+raises = ['Exception']
+confidence = "conservative"
 
 ["faulthandler._raise_exception"]
 raises = ['TypeError']
 confidence = "likely"
 
-["faulthandler._read_null"]
-raises = ['Exception']
-confidence = "conservative"
-
 ["faulthandler._sigabrt"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["faulthandler._sigfpe"]
 raises = ['Exception']
@@ -9369,30 +9732,36 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["faulthandler.dump_traceback"]
-raises = ['RuntimeError', 'TypeError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["faulthandler.dump_traceback_later"]
-raises = ['MemoryError', 'OverflowError', 'RuntimeError', 'TypeError', 'ValueError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["faulthandler.enable"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["faulthandler.is_enabled"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["fcntl.fcntl"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["fcntl.flock"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["fcntl.ioctl"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["fcntl.lockf"]
 raises = ['TypeError']
+confidence = "likely"
 
 ["gc.collect"]
 raises = ['TypeError']
@@ -9473,7 +9842,7 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["grp.getgrnam"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
 confidence = "likely"
 
 ["hmac.HMACObject.copy"]
@@ -9575,8 +9944,7 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["itertools.tee"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["math.acos"]
 raises = ['Exception']
@@ -9611,10 +9979,6 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["math.ceil"]
-raises = ['TypeError']
-confidence = "likely"
-
-["math.comb"]
 raises = ['TypeError']
 confidence = "likely"
 
@@ -9662,14 +10026,19 @@ confidence = "conservative"
 raises = ['Exception']
 confidence = "conservative"
 
-["math.factorial"]
-raises = ['OverflowError', 'TypeError', 'ValueError']
-
 ["math.floor"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["math.fma"]
+raises = ['TypeError']
+confidence = "likely"
+
+["math.fmax"]
+raises = ['TypeError']
+confidence = "likely"
+
+["math.fmin"]
 raises = ['TypeError']
 confidence = "likely"
 
@@ -9687,10 +10056,6 @@ raises = ['MemoryError', 'OverflowError', 'TypeError', 'ValueError']
 ["math.gamma"]
 raises = ['TypeError']
 confidence = "likely"
-
-["math.gcd"]
-raises = ['Exception']
-confidence = "conservative"
 
 ["math.hypot"]
 raises = ['Exception']
@@ -9712,10 +10077,11 @@ confidence = "conservative"
 raises = ['Exception']
 confidence = "conservative"
 
-["math.isqrt"]
-raises = ['TypeError', 'ValueError']
+["math.isnormal"]
+raises = ['Exception']
+confidence = "conservative"
 
-["math.lcm"]
+["math.issubnormal"]
 raises = ['Exception']
 confidence = "conservative"
 
@@ -9751,10 +10117,6 @@ confidence = "conservative"
 raises = ['TypeError']
 confidence = "likely"
 
-["math.perm"]
-raises = ['TypeError']
-confidence = "likely"
-
 ["math.pow"]
 raises = ['TypeError']
 confidence = "likely"
@@ -9771,66 +10133,93 @@ confidence = "conservative"
 raises = ['TypeError']
 confidence = "likely"
 
+["math.signbit"]
+raises = ['Exception']
+confidence = "conservative"
+
 ["math.sin"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["math.sinh"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["math.sqrt"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["math.sumprod"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["math.tan"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["math.tanh"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["math.trunc"]
 raises = ['TypeError']
 
 ["math.ulp"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
+confidence = "likely"
+
+["mathinteger.Math_integer.comb"]
+raises = ['TypeError']
+confidence = "likely"
+
+["mathinteger.Math_integer.factorial"]
+raises = ['OverflowError', 'TypeError', 'ValueError']
+
+["mathinteger.Math_integer.gcd"]
+raises = ['TypeError']
+confidence = "likely"
+
+["mathinteger.Math_integer.isqrt"]
+raises = ['TypeError', 'ValueError']
+
+["mathinteger.Math_integer.lcm"]
+raises = ['TypeError']
+confidence = "likely"
+
+["mathinteger.Math_integer.perm"]
+raises = ['TypeError']
+confidence = "likely"
 
 ["md5.MD5.copy"]
 raises = ['TypeError']
 
 ["md5.MD5.digest"]
-raises = ['TypeError']
-confidence = "likely"
-
-["md5.MD5.hexdigest"]
-raises = ['TypeError']
-confidence = "likely"
-
-["md5.MD5.update"]
 raises = ['Exception']
 confidence = "conservative"
+
+["md5.MD5.hexdigest"]
+raises = ['Exception']
+confidence = "conservative"
+
+["md5.MD5.update"]
+raises = ['TypeError']
+confidence = "likely"
 
 ["md5.md5"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["mmap.Mmap_object.__enter__"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["mmap.Mmap_object.__exit__"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["mmap.Mmap_object.__sizeof__"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["mmap.Mmap_object.close"]
 raises = ['Exception']
@@ -9873,8 +10262,11 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["mmap.Mmap_object.seekable"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
+
+["mmap.Mmap_object.set_name"]
+raises = ['Exception', 'TypeError', 'ValueError']
 
 ["mmap.Mmap_object.size"]
 raises = ['Exception']
@@ -9889,7 +10281,7 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["mmap.Mmap_object.write_byte"]
-raises = ['OverflowError', 'TypeError']
+raises = ['OverflowError']
 
 ["overlapped.AcceptEx"]
 raises = ['TypeError']
@@ -10075,12 +10467,12 @@ raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
 confidence = "likely"
 
 ["posix._inputhook"]
-raises = ['Exception']
-confidence = "conservative"
-
-["posix._is_inputhook_installed"]
 raises = ['TypeError']
 confidence = "likely"
+
+["posix._is_inputhook_installed"]
+raises = ['Exception']
+confidence = "conservative"
 
 ["posix._path_exists"]
 raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
@@ -10092,7 +10484,6 @@ confidence = "likely"
 
 ["posix._path_isdir"]
 raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
-confidence = "likely"
 
 ["posix._path_isfile"]
 raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
@@ -10116,11 +10507,9 @@ confidence = "likely"
 
 ["posix._path_splitroot"]
 raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
-confidence = "likely"
 
 ["posix._path_splitroot_ex"]
 raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
-confidence = "likely"
 
 ["posix._remove_dll_directory"]
 raises = ['TypeError']
@@ -10131,8 +10520,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["posix.abort"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["posix.access"]
 raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
@@ -10155,15 +10544,16 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["posix.cpu_count"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["posix.device_encoding"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["posix.dup"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["posix.dup2"]
 raises = ['TypeError']
@@ -10234,8 +10624,7 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["posix.isatty"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception', 'TypeError']
 
 ["posix.kill"]
 raises = ['TypeError']
@@ -10282,8 +10671,8 @@ raises = ['Exception', 'OSError', 'OverflowError', 'TypeError', 'ValueError']
 confidence = "likely"
 
 ["posix.pipe"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["posix.putenv"]
 raises = ['Exception', 'TypeError']
@@ -10350,8 +10739,8 @@ raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
 confidence = "likely"
 
 ["posix.strerror"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["posix.symlink"]
 raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
@@ -10362,16 +10751,16 @@ raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["posix.times"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["posix.truncate"]
 raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
 confidence = "likely"
 
 ["posix.umask"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["posix.unlink"]
 raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
@@ -10382,8 +10771,7 @@ raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["posix.urandom"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["posix.utime"]
 raises = ['Exception', 'OverflowError', 'TypeError', 'ValueError']
@@ -10402,14 +10790,15 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["pwd.getpwnam"]
-raises = ['Exception', 'TypeError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["pwd.getpwuid"]
 raises = ['KeyError', 'MemoryError', 'TypeError']
 
 ["pyexpat.ErrorString"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["pyexpat.ParserCreate"]
 raises = ['Exception', 'TypeError', 'ValueError']
@@ -10525,8 +10914,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["readline.set_completer_delims"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["readline.set_completion_display_matches_hook"]
 raises = ['TypeError']
@@ -10563,16 +10952,16 @@ confidence = "likely"
 raises = ['TypeError']
 
 ["sha1.SHA1.digest"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['Exception']
+confidence = "conservative"
 
 ["sha1.SHA1.hexdigest"]
 raises = ['TypeError']
 confidence = "likely"
 
 ["sha1.SHA1.update"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["sha1.sha1"]
 raises = ['TypeError']
@@ -10582,12 +10971,12 @@ confidence = "likely"
 raises = ['TypeError']
 
 ["sha2.SHA256.digest"]
-raises = ['TypeError']
-confidence = "likely"
-
-["sha2.SHA256.hexdigest"]
 raises = ['Exception']
 confidence = "conservative"
+
+["sha2.SHA256.hexdigest"]
+raises = ['TypeError']
+confidence = "likely"
 
 ["sha2.SHA256.update"]
 raises = ['Exception']
@@ -10597,12 +10986,12 @@ confidence = "conservative"
 raises = ['TypeError']
 
 ["sha2.SHA512.digest"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["sha2.SHA512.hexdigest"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
+confidence = "likely"
 
 ["sha2.SHA512.update"]
 raises = ['Exception']
@@ -10625,8 +11014,7 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["sha3.SHA3.copy"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
 
 ["sha3.SHA3.digest"]
 raises = ['TypeError']
@@ -10641,16 +11029,13 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["sha3.SHAKE.copy"]
-raises = ['Exception']
-confidence = "conservative"
+raises = ['TypeError']
 
 ["sha3.SHAKE.digest"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["sha3.SHAKE.hexdigest"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["sha3.SHAKE.update"]
 raises = ['TypeError']
@@ -10829,7 +11214,8 @@ raises = ['TypeError']
 confidence = "likely"
 
 ["socket.sendall"]
-raises = ['TimeoutError', 'TypeError']
+raises = ['TypeError']
+confidence = "likely"
 
 ["socket.sendto"]
 raises = ['TypeError']
@@ -10843,7 +11229,7 @@ raises = ['Exception']
 confidence = "conservative"
 
 ["socket.setsockopt"]
-raises = ['Exception', 'OverflowError', 'TypeError']
+raises = ['OverflowError', 'TypeError']
 
 ["socket.settimeout"]
 raises = ['Exception']
@@ -11003,7 +11389,26 @@ raises = ['TypeError']
 ["unicodedata.east_asian_width"]
 raises = ['TypeError']
 
+["unicodedata.extended_pictographic"]
+raises = ['TypeError']
+
+["unicodedata.grapheme_cluster_break"]
+raises = ['TypeError']
+
+["unicodedata.indic_conjunct_break"]
+raises = ['TypeError']
+
 ["unicodedata.is_normalized"]
+raises = ['TypeError']
+confidence = "likely"
+
+["unicodedata.isxidcontinue"]
+raises = ['TypeError']
+
+["unicodedata.isxidstart"]
+raises = ['TypeError']
+
+["unicodedata.iter_graphemes"]
 raises = ['TypeError']
 confidence = "likely"
 
@@ -11110,8 +11515,7 @@ confidence = "likely"
 raises = ['TypeError']
 
 ["zlib.Decomp.decompress"]
-raises = ['TypeError']
-confidence = "likely"
+raises = ['TypeError', 'ValueError']
 
 ["zlib.Decomp.flush"]
 raises = ['TypeError']
@@ -11128,8 +11532,15 @@ raises = ['TypeError']
 raises = ['TypeError']
 confidence = "likely"
 
+["zlib.__getattr__"]
+raises = ['AttributeError', 'TypeError']
+
 ["zlib.adler32"]
 raises = ['TypeError']
+confidence = "likely"
+
+["zlib.adler32_combine"]
+raises = ['Exception', 'TypeError']
 confidence = "likely"
 
 ["zlib.compress"]
@@ -11147,9 +11558,12 @@ raises = ['TypeError']
 raises = ['TypeError']
 confidence = "likely"
 
-["zlib.decompress"]
-raises = ['TypeError']
+["zlib.crc32_combine"]
+raises = ['Exception', 'TypeError']
 confidence = "likely"
+
+["zlib.decompress"]
+raises = ['TypeError', 'ValueError']
 
 ["zlib.decompressobj"]
 raises = ['TypeError']

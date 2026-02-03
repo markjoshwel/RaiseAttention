@@ -8,13 +8,11 @@ by parsing c source code and identifying PyErr_* function calls.
 from __future__ import annotations
 
 import logging
-import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
 from clang.cindex import (
-    Config,
     Cursor,
     CursorKind,
     Index,
@@ -22,7 +20,12 @@ from clang.cindex import (
     TypeKind,
 )
 
-from .models import Confidence, FunctionStub
+from .models import Confidence, FunctionStub, FunctionSummary, ModuleGraph
+from .patterns import (
+    PatternDetector,
+    PYOBJECT_CALL_FUNCS,
+    ERROR_CLEAR_FUNCS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +136,16 @@ PYERR_SPECIFIC: Final[dict[str, str]] = {
 }
 
 
+# pyerr functions that raise any exception (propagation)
+PYERR_RAISE_ANY: Final[frozenset[str]] = frozenset(
+    {
+        "PyErr_Restore",
+        "PyErr_SetRaisedException",
+        "_PyErr_SetRaisedException",
+    }
+)
+
+
 @dataclass
 class ParsedFunction:
     """
@@ -149,6 +162,10 @@ class ParsedFunction:
             whether function uses PyArg_Parse*
         `has_clinic: bool`
             whether function uses argument clinic
+        `outgoing_calls: set[str]`
+            names of all direct callees in same translation unit
+        `propagate_callees: set[str]`
+            callees whose errors are propagated via null check patterns
     """
 
     c_name: str
@@ -156,6 +173,9 @@ class ParsedFunction:
     raises: set[str] = field(default_factory=set)
     has_arg_parsing: bool = False
     has_clinic: bool = False
+    has_explicit_raise: bool = False
+    outgoing_calls: set[str] = field(default_factory=set)
+    propagate_callees: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -175,10 +195,36 @@ class CPythonAnalyser:
     _index: Index = field(init=False, repr=False)
     _functions: dict[str, ParsedFunction] = field(default_factory=dict, repr=False)
     _method_defs: dict[str, str] = field(default_factory=dict, repr=False)
+    # caches for performance
+    _file_content_cache: dict[str, str | None] = field(default_factory=dict, repr=False)
+    _clinic_cache: dict[tuple[str, int], bool] = field(default_factory=dict, repr=False)
 
     def __post_init__(self) -> None:
         """initialise clang index."""
         self._index = Index.create()
+
+    def get_file_content(self, file_path: Path) -> str | None:
+        """
+        get file content with caching.
+
+        arguments:
+            `file_path: Path`
+                path to file
+
+        returns: `str | None`
+            file content, or none on error
+        """
+        key = str(file_path)
+        if key in self._file_content_cache:
+            return self._file_content_cache[key]
+
+        try:
+            content = file_path.read_text(encoding="utf-8", errors="replace")
+            self._file_content_cache[key] = content
+            return content
+        except OSError:
+            self._file_content_cache[key] = None
+            return None
 
     def parse_module(self, c_file: Path) -> TranslationUnit:
         """
@@ -226,16 +272,20 @@ class CPythonAnalyser:
         """
         find PyMethodDef arrays and map python names to c function names.
 
+        python names are qualified with class names when detected from the
+        variable name (e.g., `FileIO_methods` → methods are `FileIO.method`).
+
         arguments:
             `tu: TranslationUnit`
                 parsed translation unit
 
         returns: `dict[str, str]`
-            mapping from python names to c function names
+            mapping from qualified python names to c function names
         """
         exports: dict[str, str] = {}
 
-        for cursor in tu.cursor.walk_preorder():
+        # iterate over top-level cursors only (much faster than walk_preorder)
+        for cursor in tu.cursor.get_children():
             # look for PyMethodDef array declarations
             if cursor.kind == CursorKind.VAR_DECL:
                 type_spelling = cursor.type.spelling
@@ -247,12 +297,14 @@ class CPythonAnalyser:
                         type_spelling,
                     )
                     if "[" in type_spelling or type_spelling.endswith("[]"):
-                        # parse the array initialiser
-                        exports.update(self._parse_method_def_array(cursor))
+                        # parse the array initialiser with class prefix extraction
+                        var_name = cursor.spelling
+                        class_prefix = self._infer_class_from_methods_array(var_name)
+                        exports.update(self._parse_method_def_array(cursor, class_prefix))
 
         # also search by variable name patterns (fallback)
         if not exports:
-            for cursor in tu.cursor.walk_preorder():
+            for cursor in tu.cursor.get_children():
                 if cursor.kind == CursorKind.VAR_DECL:
                     name = cursor.spelling.lower()
                     if name.endswith("_methods") or name.endswith("methods"):
@@ -261,21 +313,122 @@ class CPythonAnalyser:
                             cursor.spelling,
                             cursor.type.spelling,
                         )
-                        exports.update(self._parse_method_def_array(cursor))
+                        var_name = cursor.spelling
+                        class_prefix = self._infer_class_from_methods_array(var_name)
+                        exports.update(self._parse_method_def_array(cursor, class_prefix))
 
         self._method_defs.update(exports)
         return exports
 
-    def _parse_method_def_array(self, var_cursor: Cursor) -> dict[str, str]:
+    def _infer_class_from_methods_array(self, var_name: str) -> str:
+        """
+        infer class name from PyMethodDef array variable name.
+
+        uses heuristics based on CPython naming conventions:
+        - class method arrays: PascalCase (e.g., FileIO_methods, BufferedWriter_methods)
+          OR compound lowercase (e.g., bufferedreader_methods, textiowrapper_methods)
+        - module method arrays: simple lowercase (e.g., json_methods, module_methods)
+
+        arguments:
+            `var_name: str`
+                variable name (e.g., "FileIO_methods", "bufferedwriter_methods")
+
+        returns: `str`
+            class prefix to prepend to method names, or empty string for module-level
+        """
+        name = var_name
+
+        # strip common suffixes
+        for suffix in ("_methods", "_Methods", "Methods", "methods"):
+            if name.endswith(suffix):
+                name = name[: -len(suffix)]
+                break
+        else:
+            # no methods suffix found - treat as module-level
+            return ""
+
+        # skip explicit module-level patterns
+        module_level_patterns = {
+            "module",
+            "mod",
+            "",
+            # common short module names that use _methods arrays
+            "json",
+            "socket",
+            "gc",
+            "time",
+            "signal",
+            "select",
+            "posix",
+            "nt",
+            "os",
+            "sys",
+            "array",
+            "zlib",
+            "mmap",
+            "math",
+            "cmath",
+            "abc",
+            "pwd",
+            "grp",
+            "spwd",
+            "fcntl",
+            "nis",
+            "binascii",
+            "audioop",
+            "atexit",
+            "resource",
+            "syslog",
+            "termios",
+            "unicodedata",
+            "itertools",
+            "overlapped",
+            "pyexpat",
+            "readline",
+            "faulthandler",
+        }
+        name_lower = name.lower()
+        if name_lower in module_level_patterns:
+            return ""
+
+        # strip common prefixes (Py, _Py, _)
+        for prefix in ("Py", "_Py", "_"):
+            if name.startswith(prefix) and len(name) > len(prefix):
+                name = name[len(prefix) :]
+                break
+
+        # empty after stripping? module-level
+        if not name:
+            return ""
+
+        # PascalCase heuristic: class names start with uppercase
+        # e.g., FileIO, BufferedWriter, Compressor
+        if name[0].isupper():
+            return name
+
+        # for lowercase names, use length-based heuristic:
+        # compound words (bufferedreader, textiowrapper, iobase) are longer
+        # simple module names (json, socket) are short
+        # threshold: 6+ chars suggests a class name (iobase, fileio, bytesio)
+        if len(name) >= 6:
+            # convert to PascalCase for class name
+            return name.capitalize()
+
+        # short lowercase name - likely module-level
+        return ""
+
+    def _parse_method_def_array(self, var_cursor: Cursor, class_prefix: str = "") -> dict[str, str]:
         """
         parse a PyMethodDef array initialiser.
 
         arguments:
             `var_cursor: Cursor`
                 variable declaration cursor
+            `class_prefix: str`
+                class name to prepend to method names (empty for module-level)
 
         returns: `dict[str, str]`
-            mapping from python names to c function names
+            mapping from qualified python names to c function names
         """
         methods: dict[str, str] = {}
 
@@ -289,7 +442,12 @@ class CPythonAnalyser:
                             py_name = self._extract_string_literal(children[0])
                             c_func = self._extract_function_ref(children[1])
                             if py_name and c_func:
-                                methods[py_name] = c_func
+                                # qualify with class prefix if present
+                                if class_prefix:
+                                    qualified_name = f"{class_prefix}.{py_name}"
+                                else:
+                                    qualified_name = py_name
+                                methods[qualified_name] = c_func
 
         return methods
 
@@ -309,7 +467,7 @@ class CPythonAnalyser:
         """
         # direct string literal
         if cursor.kind == CursorKind.STRING_LITERAL:
-            spelling = cursor.spelling
+            spelling = str(cursor.spelling)
             if spelling.startswith('"') and spelling.endswith('"'):
                 return spelling[1:-1]
             return spelling
@@ -318,7 +476,7 @@ class CPythonAnalyser:
         try:
             tokens = list(cursor.get_tokens())
             for token in tokens:
-                spelling = token.spelling
+                spelling = str(token.spelling)
                 if spelling.startswith('"') and spelling.endswith('"'):
                     return spelling[1:-1]
         except Exception:
@@ -351,7 +509,7 @@ class CPythonAnalyser:
         """
         # direct function reference
         if cursor.kind == CursorKind.DECL_REF_EXPR:
-            return cursor.spelling
+            return str(cursor.spelling)
 
         # UNEXPOSED_EXPR may have the function name in its spelling
         if cursor.kind == CursorKind.UNEXPOSED_EXPR:
@@ -359,8 +517,9 @@ class CPythonAnalyser:
             if cursor.spelling and not cursor.spelling.startswith('"'):
                 # check if it looks like a function/variable name
                 # (has underscores or starts with a letter)
-                if cursor.spelling[0].isalpha():
-                    return cursor.spelling
+                spelling = str(cursor.spelling)
+                if spelling[0].isalpha():
+                    return spelling
 
             # otherwise dig into children
             for child in cursor.get_children():
@@ -422,7 +581,7 @@ class CPythonAnalyser:
 
     def _check_argument_clinic_cached(self, func_cursor: Cursor, file_content: str | None) -> bool:
         """
-        check if function uses argument clinic (with cached file content).
+        check if function uses argument clinic (with cached file content and memoization).
 
         arguments:
             `func_cursor: Cursor`
@@ -437,13 +596,23 @@ class CPythonAnalyser:
         if location.file is None:
             return False
 
+        file_path = str(location.file)
+        func_line = location.line
+
+        # check memoization cache
+        cache_key = (file_path, func_line)
+        if cache_key in self._clinic_cache:
+            return self._clinic_cache[cache_key]
+
         try:
             if file_content is None:
-                source_file = Path(str(location.file))
-                file_content = source_file.read_text(encoding="utf-8", errors="replace")
+                source_file = Path(file_path)
+                file_content = self.get_file_content(source_file)
+                if file_content is None:
+                    self._clinic_cache[cache_key] = False
+                    return False
 
             # look for clinic markers near function
-            func_line = location.line
             lines = file_content.split("\n")
 
             # check 50 lines before function for clinic markers
@@ -451,9 +620,12 @@ class CPythonAnalyser:
             end = min(len(lines), func_line)
             region = "\n".join(lines[start:end])
 
-            return "[clinic start generated code]" in region
+            result = "[clinic start generated code]" in region
+            self._clinic_cache[cache_key] = result
+            return result
 
         except OSError:
+            self._clinic_cache[cache_key] = False
             return False
 
     def analyse_function(self, tu: TranslationUnit, func_name: str) -> ParsedFunction:
@@ -523,7 +695,7 @@ class CPythonAnalyser:
         found_funcs: dict[str, Cursor] = {}
 
         # single pass to find all target function definitions
-        for cursor in tu.cursor.walk_preorder():
+        for cursor in tu.cursor.get_children():
             if cursor.kind == CursorKind.FUNCTION_DECL:
                 if cursor.spelling in target_funcs and cursor.is_definition():
                     found_funcs[cursor.spelling] = cursor
@@ -567,10 +739,12 @@ class CPythonAnalyser:
             exc_type = self._extract_exception_type(call_cursor)
             if exc_type:
                 result.raises.add(exc_type)
+                result.has_explicit_raise = True
 
         # check for PyErr_NoMemory, PyErr_SetFromErrno, etc.
         elif call_name in PYERR_SPECIFIC:
             result.raises.add(PYERR_SPECIFIC[call_name])
+            result.has_explicit_raise = True
 
         # check for PyArg_Parse*
         elif call_name.startswith("PyArg_Parse"):
@@ -618,7 +792,7 @@ class CPythonAnalyser:
         """
         # direct reference to PyExc_*
         if cursor.kind == CursorKind.DECL_REF_EXPR:
-            spelling = cursor.spelling
+            spelling = str(cursor.spelling)
             if spelling.startswith("PyExc_"):
                 return spelling
 
@@ -680,7 +854,7 @@ class CPythonAnalyser:
             true if return type is a pointer
         """
         return_type = func_cursor.result_type
-        return return_type.kind == TypeKind.POINTER
+        return bool(return_type.kind == TypeKind.POINTER)
 
     def analyse_module_file(self, c_file: Path, module_name: str) -> list[FunctionStub]:
         """
@@ -741,6 +915,530 @@ class CPythonAnalyser:
             stubs.append(stub)
 
         return stubs
+
+    def analyse_module_with_propagation(self, c_file: Path, module_name: str) -> ModuleGraph:
+        """
+        analyse a c module file with call graph propagation.
+
+        builds a call graph for all functions in the module and computes
+        transitive exception propagation via fixpoint iteration.
+
+        arguments:
+            `c_file: Path`
+                path to .c file
+            `module_name: str`
+                python module name (e.g., "_json")
+
+        returns: `ModuleGraph`
+            module graph with transitive exception information
+        """
+        logger.info("analysing with propagation: %s", c_file)
+
+        graph = ModuleGraph(module_name=module_name)
+
+        import time
+
+        t_start = time.perf_counter()
+
+        try:
+            tu = self.parse_module(c_file)
+        except (FileNotFoundError, RuntimeError) as e:
+            logger.warning("failed to parse %s: %s", c_file, e)
+            return graph
+
+        t_parse = time.perf_counter()
+
+        # find exported functions
+        exports = self.find_exported_functions(tu)
+        graph.exports = exports
+
+        t_exports = time.perf_counter()
+
+        if not exports:
+            return graph
+
+        # read file content once for clinic detection (uses cache)
+        file_content = self.get_file_content(c_file)
+
+        # create shared pattern detector for caching across all functions in this TU
+        pattern_detector = PatternDetector()
+
+        # collect all function definitions in the translation unit
+        all_func_cursors: dict[str, Cursor] = {}
+        for cursor in tu.cursor.get_children():
+            if cursor.kind == CursorKind.FUNCTION_DECL and cursor.is_definition():
+                all_func_cursors[cursor.spelling] = cursor
+
+        t_collect = time.perf_counter()
+
+        # analyse each function, building call graph (shared detector for caching)
+        for func_name, func_cursor in all_func_cursors.items():
+            summary = self._analyse_function_with_calls(
+                func_cursor, file_content, module_name, all_func_cursors, pattern_detector
+            )
+            graph.functions[func_name] = summary
+
+        t_analyse = time.perf_counter()
+
+        # compute transitive exception propagation
+        graph.compute_transitive_raises()
+
+        t_end = time.perf_counter()
+
+        if logger.isEnabledFor(logging.INFO):
+            logger.info(
+                "timing: parse=%.3fs exports=%.3fs collect=%.3fs analyse=%.3fs total=%.3fs",
+                t_parse - t_start,
+                t_exports - t_parse,
+                t_collect - t_exports,
+                t_analyse - t_collect,
+                t_end - t_start,
+            )
+
+        return graph
+
+    def _analyse_function_with_calls(
+        self,
+        func_cursor: Cursor,
+        file_content: str | None,
+        module_name: str,
+        all_funcs: dict[str, Cursor],
+        pattern_detector: PatternDetector | None = None,
+    ) -> FunctionSummary:
+        """
+        analyse a function cursor with call graph information.
+
+        uses single-pass ast collection for performance and
+        detects multiple propagation patterns including goto-based.
+
+        arguments:
+            `func_cursor: Cursor`
+                function definition cursor
+            `file_content: str | None`
+                cached file content for clinic detection
+            `module_name: str`
+                python module name
+            `all_funcs: dict[str, Cursor]`
+                all function definitions in the translation unit
+            `pattern_detector: PatternDetector | None`
+                shared pattern detector for caching
+
+        returns: `FunctionSummary`
+            analysis result with call graph information
+        """
+        func_name = func_cursor.spelling
+        summary = FunctionSummary(name=func_name, module=module_name)
+
+        if pattern_detector is None:
+            pattern_detector = PatternDetector()
+
+        # check source for argument clinic markers
+        summary.has_clinic = self._check_argument_clinic_cached(func_cursor, file_content)
+        if summary.has_clinic:
+            summary.local_raises.add("TypeError")
+
+        # === single-pass collection ===
+        # collect labels, calls, gotos, and if statements in one pass
+        all_labels: dict[str, Cursor] = {}
+        all_calls: list[Cursor] = []
+        # map line number -> list of goto labels (for fast lookup)
+        goto_map: dict[int, list[str]] = {}
+        error_clear_locations: set[int] = set()  # lines where errors are cleared
+
+        for child in func_cursor.walk_preorder():
+            kind = child.kind
+            if kind == CursorKind.LABEL_STMT:
+                all_labels[child.spelling] = child
+            elif kind == CursorKind.CALL_EXPR:
+                all_calls.append(child)
+                # detect error clearing
+                if child.spelling in ERROR_CLEAR_FUNCS:
+                    error_clear_locations.add(child.location.line)
+            elif kind == CursorKind.GOTO_STMT:
+                # build map of line -> goto labels
+                line = child.location.line
+                # for goto statements, child usually has no children but refers to label
+                # libclang: get_tokens/spelling is reliable for goto label name
+                tokens = list(child.get_tokens())
+                if len(tokens) >= 2 and tokens[0].spelling == "goto":
+                    label_name = tokens[1].spelling.rstrip(";")
+                    if line not in goto_map:
+                        goto_map[line] = []
+                    goto_map[line].append(label_name)
+
+        # === analyse calls ===
+        call_sites: list[tuple[Cursor, str]] = []  # (call_cursor, callee_name) for TU calls
+        pyobject_call_propagates = False
+
+        for call_cursor in all_calls:
+            call_name = call_cursor.spelling
+            call_line = call_cursor.location.line
+
+            # track outgoing calls to functions in the same TU
+            if call_name in all_funcs:
+                summary.outgoing_calls.add(call_name)
+                call_sites.append((call_cursor, call_name))
+
+            # analyse for direct exception setting
+            self._analyse_call_for_summary(call_cursor, summary)
+
+            # detect PyObject_Call* that propagates any exception
+            if call_name in PYOBJECT_CALL_FUNCS:
+                # check if error is handled after this call
+                if not self._is_error_cleared_after(call_line, error_clear_locations):
+                    pyobject_call_propagates = True
+
+            # detect PyErr_Restore/SetRaisedException
+            if call_name in PYERR_RAISE_ANY:
+                summary.local_raises.add("Exception")
+
+        # if PyObject_Call propagates without clear, mark as may raise any
+        if pyobject_call_propagates:
+            summary.local_raises.add("Exception")
+
+        # === detect propagation patterns ===
+        for call_cursor, callee_name in call_sites:
+            # check original null-check pattern
+            if self._is_propagation_site(call_cursor, func_cursor):
+                summary.propagate_callees.add(callee_name)
+                continue
+
+            # check goto-based propagation pattern (O(1) lookup)
+            goto_site = pattern_detector.detect_goto_error_fast(
+                call_cursor.location.line, callee_name, goto_map
+            )
+            if goto_site is not None and goto_site.propagates:
+                summary.propagate_callees.add(callee_name)
+
+        # if function can return null but no exceptions found, be conservative
+        if not summary.local_raises and self._can_return_null(func_cursor):
+            summary.local_raises.add("Exception")
+
+        return summary
+
+    def _is_error_cleared_after(self, call_line: int, error_clear_locations: set[int]) -> bool:
+        """
+        check if an error is cleared after a specific line.
+
+        arguments:
+            `call_line: int`
+                line of the call
+            `error_clear_locations: set[int]`
+                lines where PyErr_Clear etc are called
+
+        returns: `bool`
+            true if error is cleared after this call
+        """
+        # simple heuristic: check if there's a clear within 10 lines after
+        for clear_line in error_clear_locations:
+            if call_line < clear_line <= call_line + 10:
+                return True
+        return False
+
+    def _analyse_call_for_summary(self, call_cursor: Cursor, summary: FunctionSummary) -> None:
+        """
+        analyse a call expression for exception-setting behaviour.
+
+        arguments:
+            `call_cursor: Cursor`
+                call expression cursor
+            `summary: FunctionSummary`
+                summary to update
+        """
+        call_name = call_cursor.spelling
+
+        # check for PyErr_SetString, PyErr_Format, etc.
+        if call_name in PYERR_SETTERS:
+            exc_type = self._extract_exception_type(call_cursor)
+            if exc_type:
+                summary.local_raises.add(exc_type)
+                summary.has_explicit_raise = True
+
+        # check for PyErr_NoMemory, PyErr_SetFromErrno, etc.
+        elif call_name in PYERR_SPECIFIC:
+            summary.local_raises.add(PYERR_SPECIFIC[call_name])
+            summary.has_explicit_raise = True
+
+        # check for PyArg_Parse*
+        elif call_name.startswith("PyArg_Parse"):
+            summary.has_arg_parsing = True
+            summary.local_raises.add("TypeError")
+
+        # check for _PyArg_* functions (internal argument parsing)
+        elif call_name.startswith("_PyArg_"):
+            summary.has_arg_parsing = True
+            summary.local_raises.add("TypeError")
+
+    def _is_propagation_site(self, call_cursor: Cursor, func_cursor: Cursor) -> bool:
+        """
+        detect if a call site propagates errors to the caller.
+
+        looks for patterns like:
+        - `if (callee() == NULL) return NULL;`
+        - `if (callee() < 0) return -1;`
+        - `PyObject *res = callee(); if (res == NULL) return NULL;`
+
+        arguments:
+            `call_cursor: Cursor`
+                call expression cursor
+            `func_cursor: Cursor`
+                containing function cursor
+
+        returns: `bool`
+            true if this call site propagates errors
+        """
+        # get the parent of the call expression
+        parent = self._find_parent(call_cursor, func_cursor)
+        if parent is None:
+            return False
+
+        # pattern 1: call directly in if condition
+        # if (callee() == NULL) or if (!callee())
+        if parent.kind == CursorKind.BINARY_OPERATOR:
+            grandparent = self._find_parent(parent, func_cursor)
+            if grandparent and grandparent.kind == CursorKind.IF_STMT:
+                return self._check_if_propagates_error(grandparent)
+
+        # pattern 2: call assigned to variable, then checked
+        # PyObject *res = callee();
+        if parent.kind in (CursorKind.VAR_DECL, CursorKind.BINARY_OPERATOR):
+            var_name = self._get_assigned_variable(parent)
+            if var_name:
+                # look for subsequent if statement checking this variable
+                return self._check_variable_propagation(var_name, call_cursor, func_cursor)
+
+        # pattern 3: call directly used as condition
+        # if (callee())
+        if parent.kind == CursorKind.IF_STMT:
+            return self._check_if_propagates_error(parent)
+
+        # pattern 4: call inside unary not
+        # if (!callee())
+        if parent.kind == CursorKind.UNARY_OPERATOR:
+            grandparent = self._find_parent(parent, func_cursor)
+            if grandparent and grandparent.kind == CursorKind.IF_STMT:
+                return self._check_if_propagates_error(grandparent)
+
+        return False
+
+    def _find_parent(self, target: Cursor, func_cursor: Cursor) -> Cursor | None:
+        """
+        find the parent of a cursor within a function.
+
+        arguments:
+            `target: Cursor`
+                cursor to find parent of
+            `func_cursor: Cursor`
+                containing function cursor
+
+        returns: `Cursor | None`
+            parent cursor, or none if not found
+        """
+        target_hash = target.hash
+
+        def search(cursor: Cursor) -> Cursor | None:
+            for child in cursor.get_children():
+                if child.hash == target_hash:
+                    return cursor
+                result = search(child)
+                if result is not None:
+                    return result
+            return None
+
+        return search(func_cursor)
+
+    def _get_assigned_variable(self, cursor: Cursor) -> str | None:
+        """
+        get the variable name from an assignment or declaration.
+
+        arguments:
+            `cursor: Cursor`
+                assignment or declaration cursor
+
+        returns: `str | None`
+            variable name, or none if not found
+        """
+        if cursor.kind == CursorKind.VAR_DECL:
+            return str(cursor.spelling)
+
+        if cursor.kind == CursorKind.BINARY_OPERATOR:
+            # look for assignment operator (=)
+            children = list(cursor.get_children())
+            if len(children) >= 2:
+                first = children[0]
+                if first.kind == CursorKind.DECL_REF_EXPR:
+                    return str(first.spelling)
+
+        return None
+
+    def _check_if_propagates_error(self, if_cursor: Cursor) -> bool:
+        """
+        check if an if statement propagates an error.
+
+        looks for `return NULL;` or `return -1;` in the then branch,
+        without PyErr_Clear or new PyErr_* calls.
+
+        arguments:
+            `if_cursor: Cursor`
+                if statement cursor
+
+        returns: `bool`
+            true if this if statement propagates errors
+        """
+        children = list(if_cursor.get_children())
+        if len(children) < 2:
+            return False
+
+        # children[0] is condition, children[1] is then branch
+        then_branch = children[1]
+
+        has_return_error = False
+        has_error_handling = False
+
+        for child in then_branch.walk_preorder():
+            # check for return statement
+            if child.kind == CursorKind.RETURN_STMT:
+                if self._returns_error_sentinel(child):
+                    has_return_error = True
+
+            # check for PyErr_Clear or new PyErr_* calls
+            if child.kind == CursorKind.CALL_EXPR:
+                call_name = child.spelling
+                if call_name == "PyErr_Clear":
+                    has_error_handling = True
+                elif call_name in PYERR_SETTERS or call_name in PYERR_SPECIFIC:
+                    # new exception being set - not propagation
+                    has_error_handling = True
+
+        return has_return_error and not has_error_handling
+
+    def _returns_error_sentinel(self, return_cursor: Cursor) -> bool:
+        """
+        check if a return statement returns an error sentinel.
+
+        looks for `return NULL;`, `return -1;`, or similar patterns.
+
+        arguments:
+            `return_cursor: Cursor`
+                return statement cursor
+
+        returns: `bool`
+            true if this returns an error sentinel
+        """
+        children = list(return_cursor.get_children())
+        if not children:
+            return False
+
+        return_expr = children[0]
+
+        # check for NULL
+        if return_expr.kind == CursorKind.GNU_NULL_EXPR:
+            return True
+
+        # check for integer literal -1 or 0
+        if return_expr.kind == CursorKind.INTEGER_LITERAL:
+            try:
+                tokens = list(return_expr.get_tokens())
+                if tokens:
+                    val = tokens[0].spelling
+                    if val in ("-1", "0"):
+                        return True
+            except Exception:
+                pass
+
+        # check for unary minus with integer literal
+        if return_expr.kind == CursorKind.UNARY_OPERATOR:
+            inner = list(return_expr.get_children())
+            if inner and inner[0].kind == CursorKind.INTEGER_LITERAL:
+                try:
+                    tokens = list(inner[0].get_tokens())
+                    if tokens and tokens[0].spelling == "1":
+                        return True
+                except Exception:
+                    pass
+
+        # check for NULL cast: (void *)0 or ((void *)0)
+        if return_expr.kind in (CursorKind.CSTYLE_CAST_EXPR, CursorKind.PAREN_EXPR):
+            for child in return_expr.walk_preorder():
+                if child.kind == CursorKind.INTEGER_LITERAL:
+                    try:
+                        tokens = list(child.get_tokens())
+                        if tokens and tokens[0].spelling == "0":
+                            return True
+                    except Exception:
+                        pass
+                if child.kind == CursorKind.GNU_NULL_EXPR:
+                    return True
+
+        return False
+
+    def _check_variable_propagation(
+        self, var_name: str, call_cursor: Cursor, func_cursor: Cursor
+    ) -> bool:
+        """
+        check if a variable is checked for error and propagates.
+
+        looks for patterns like:
+        ```c
+        PyObject *res = callee();
+        if (res == NULL)
+            return NULL;
+        ```
+
+        arguments:
+            `var_name: str`
+                variable name to check
+            `call_cursor: Cursor`
+                the call expression cursor
+            `func_cursor: Cursor`
+                containing function cursor
+
+        returns: `bool`
+            true if variable is checked and error propagated
+        """
+        call_line = call_cursor.location.line
+
+        # look for if statements after the call
+        for child in func_cursor.walk_preorder():
+            if child.kind != CursorKind.IF_STMT:
+                continue
+
+            # must be after the call
+            if child.location.line <= call_line:
+                continue
+
+            # check if the condition references our variable
+            condition_children = list(child.get_children())
+            if not condition_children:
+                continue
+
+            condition = condition_children[0]
+
+            # look for variable reference in condition
+            if self._condition_checks_variable(condition, var_name):
+                if self._check_if_propagates_error(child):
+                    return True
+
+        return False
+
+    def _condition_checks_variable(self, condition: Cursor, var_name: str) -> bool:
+        """
+        check if a condition references a specific variable.
+
+        arguments:
+            `condition: Cursor`
+                condition expression cursor
+            `var_name: str`
+                variable name to look for
+
+        returns: `bool`
+            true if variable is referenced in condition
+        """
+        for child in condition.walk_preorder():
+            if child.kind == CursorKind.DECL_REF_EXPR:
+                if child.spelling == var_name:
+                    return True
+        return False
 
 
 def find_c_modules(cpython_root: Path) -> list[tuple[Path, str]]:

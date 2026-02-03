@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import tomllib
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Final, NamedTuple
@@ -152,9 +152,29 @@ class StubFile:
         """
         sections: list[str] = [self.metadata.to_toml(), ""]
 
+        # deduplicate stubs by qualname, merging raises sets
+        merged: dict[str, FunctionStub] = {}
+        for stub in self.stubs:
+            if stub.qualname in merged:
+                existing = merged[stub.qualname]
+                # merge raises sets
+                combined_raises = existing.raises | stub.raises
+                # pick more conservative confidence
+                confidence = self._more_conservative(existing.confidence, stub.confidence)
+                # merge notes
+                notes = existing.notes or stub.notes
+                merged[stub.qualname] = FunctionStub(
+                    qualname=stub.qualname,
+                    raises=combined_raises,
+                    confidence=confidence,
+                    notes=notes,
+                )
+            else:
+                merged[stub.qualname] = stub
+
         # group stubs by module for readability
         by_module: dict[str, list[FunctionStub]] = {}
-        for stub in self.stubs:
+        for stub in merged.values():
             # extract module from qualname (e.g., "json" from "json.loads")
             parts = stub.qualname.split(".")
             module = parts[0] if len(parts) > 1 else ""
@@ -167,6 +187,12 @@ class StubFile:
                 sections.append("")
 
         return "\n".join(sections)
+
+    @staticmethod
+    def _more_conservative(a: Confidence, b: Confidence) -> Confidence:
+        """return the more conservative of two confidence levels."""
+        order = [Confidence.CONSERVATIVE, Confidence.LIKELY, Confidence.EXACT, Confidence.MANUAL]
+        return a if order.index(a) < order.index(b) else b
 
     def write(self, path: Path) -> None:
         """
@@ -258,3 +284,184 @@ class StubLookupResult(NamedTuple):
     raises: frozenset[str]
     confidence: Confidence
     source: Path | None = None
+
+
+# === call graph analysis types ===
+
+
+@dataclass
+class FunctionSummary:
+    """
+    summary of a c function for call graph analysis.
+
+    used to build intra-module call graphs and compute transitive
+    exception propagation.
+
+    attributes:
+        `name: str`
+            c function name (e.g., "py_scanstring")
+        `module: str`
+            module name (e.g., "_json")
+        `local_raises: set[str]`
+            exceptions raised directly in this function
+        `propagated_raises: set[str]`
+            exceptions propagated from callees (computed by fixpoint)
+        `outgoing_calls: set[str]`
+            names of all direct callees in same translation unit
+        `propagate_callees: set[str]`
+            subset of outgoing_calls where errors are propagated
+            (i.e., `if (res == NULL) return NULL` patterns)
+        `confidence: Confidence`
+            confidence level for this function's analysis
+        `has_arg_parsing: bool`
+            whether function uses PyArg_Parse*
+        `has_clinic: bool`
+            whether function uses argument clinic
+        `notes: str`
+            additional notes about the analysis
+    """
+
+    name: str
+    module: str = ""
+    local_raises: set[str] = field(default_factory=set)
+    propagated_raises: set[str] = field(default_factory=set)
+    outgoing_calls: set[str] = field(default_factory=set)
+    propagate_callees: set[str] = field(default_factory=set)
+    confidence: Confidence = Confidence.EXACT
+    has_arg_parsing: bool = False
+    has_clinic: bool = False
+    has_explicit_raise: bool = False
+    notes: str = ""
+
+    def effective_raises(self) -> set[str]:
+        """
+        compute effective raises set (local + propagated).
+
+        returns: `set[str]`
+            all exception types this function may raise
+        """
+        return self.local_raises | self.propagated_raises
+
+
+@dataclass
+class ModuleGraph:
+    """
+    call graph for a single c module (translation unit).
+
+    contains function summaries and export mappings for computing
+    transitive exception propagation.
+
+    attributes:
+        `module_name: str`
+            python module name (e.g., "_json")
+        `functions: dict[str, FunctionSummary]`
+            c function name -> summary
+        `exports: dict[str, str]`
+            python name -> c function name (from PyMethodDef)
+    """
+
+    module_name: str
+    functions: dict[str, FunctionSummary] = field(default_factory=dict)
+    exports: dict[str, str] = field(default_factory=dict)
+
+    def compute_transitive_raises(self) -> None:
+        """
+        compute transitive exception propagation via fixpoint iteration.
+
+        updates `propagated_raises` for all functions by following
+        `propagate_callees` edges until no changes occur.
+        """
+        changed = True
+        iterations = 0
+        max_iterations = 1000  # prevent infinite loops
+
+        while changed and iterations < max_iterations:
+            changed = False
+            iterations += 1
+
+            for func in self.functions.values():
+                before = len(func.propagated_raises)
+
+                # add raises from propagated callees
+                for callee_name in func.propagate_callees:
+                    callee = self.functions.get(callee_name)
+                    if callee is None:
+                        continue
+
+                    # propagate both local and already-propagated raises
+                    func.propagated_raises |= callee.local_raises
+                    func.propagated_raises |= callee.propagated_raises
+
+                if len(func.propagated_raises) != before:
+                    changed = True
+
+    def get_exported_stubs(self) -> list[FunctionStub]:
+        """
+        generate function stubs for all exported functions.
+
+        must call `compute_transitive_raises()` first.
+
+        returns: `list[FunctionStub]`
+            stubs for python-visible functions
+        """
+        stubs: list[FunctionStub] = []
+
+        for py_name, c_name in sorted(self.exports.items()):
+            func = self.functions.get(c_name)
+            if func is None:
+                continue
+
+            effective = func.effective_raises()
+
+            # determine confidence based on analysis quality
+            confidence = self._compute_confidence(func, effective)
+
+            # build qualified name
+            qualname = f"{self.module_name}.{py_name}"
+
+            stub = FunctionStub(
+                qualname=qualname,
+                raises=frozenset(effective),
+                confidence=confidence,
+                notes=func.notes,
+            )
+            stubs.append(stub)
+
+        return stubs
+
+    def _compute_confidence(self, func: FunctionSummary, effective: set[str]) -> Confidence:
+        """
+        determine confidence level for a function based on analysis.
+
+        arguments:
+            `func: FunctionSummary`
+                function to evaluate
+            `effective: set[str]`
+                effective raises set
+
+        returns: `Confidence`
+            appropriate confidence level
+        """
+        # no exceptions found - conservative fallback
+        if not effective or effective == {"Exception"}:
+            return Confidence.CONSERVATIVE
+
+        # explicit local raises found
+        if func.has_explicit_raise:
+            return Confidence.EXACT
+
+        # only propagated exceptions (no local sites)
+        if not func.local_raises and func.propagated_raises:
+            # check if any callee has conservative confidence
+            for callee_name in func.propagate_callees:
+                callee = self.functions.get(callee_name)
+                if callee and callee.confidence == Confidence.CONSERVATIVE:
+                    return Confidence.LIKELY
+            return Confidence.LIKELY
+
+        # has argument parsing - inferred TypeError
+        if func.has_arg_parsing or func.has_clinic:
+            return Confidence.LIKELY
+
+        # fallback
+        return Confidence.EXACT
