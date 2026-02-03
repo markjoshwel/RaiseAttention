@@ -19,8 +19,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Final, Generator
 
-from .analyser import CPythonAnalyser, find_c_modules
+from .analyser import CPythonAnalyser, find_c_modules, find_python_modules
 from .models import StubMetadata
+from .python_analyser import PythonAnalyser
 from .writer_json import write_stub_file_json_v2
 
 logger = logging.getLogger(__name__)
@@ -254,6 +255,55 @@ def _analyse_worker(
     return module_name, raw_stubs, elapsed
 
 
+def _merge_stubs(
+    c_stubs: list[tuple[str, frozenset[str], str, str]],
+    python_stubs: list[tuple[str, frozenset[str], str, str]],
+) -> list[tuple[str, frozenset[str], str, str]]:
+    """
+    merge c and python analysis stubs using union strategy.
+
+    for each function:
+    - union all exception types from both sources
+    - use 'exact' confidence if either source reports exact
+    - combine notes from both sources
+
+    arguments:
+        `c_stubs: list[tuple[str, frozenset[str], str, str]]`
+            stubs from c analysis (qualname, raises, confidence, notes)
+        `python_stubs: list[tuple[str, frozenset[str], str, str]]`
+            stubs from python analysis
+
+    returns: `list[tuple[str, frozenset[str], str, str]]`
+        merged stubs with combined exception sets
+    """
+    # index c stubs by qualname
+    merged: dict[str, tuple[frozenset[str], str, str]] = {}
+    for qualname, raises, confidence, notes in c_stubs:
+        merged[qualname] = (raises, confidence, notes)
+
+    # merge python stubs
+    for qualname, raises, confidence, notes in python_stubs:
+        if qualname in merged:
+            existing_raises, existing_confidence, existing_notes = merged[qualname]
+            # union exception sets
+            combined_raises = existing_raises | raises
+            # use 'exact' if either source is exact
+            combined_confidence = (
+                "exact" if (existing_confidence == "exact" or confidence == "exact") else confidence
+            )
+            # combine notes
+            combined_notes = f"{existing_notes}; {notes}" if existing_notes else notes
+            merged[qualname] = (combined_raises, combined_confidence, combined_notes)
+        else:
+            merged[qualname] = (raises, confidence, notes)
+
+    # convert back to list format
+    return [
+        (qualname, raises, confidence, notes)
+        for qualname, (raises, confidence, notes) in merged.items()
+    ]
+
+
 def generate_stubs(
     cpython_root: Path,
     version_spec: str,
@@ -343,13 +393,34 @@ def generate_stubs(
             except Exception as e:
                 logger.error("failed to analyse %s: %s", module_name, e)
 
-    global_elapsed = time.perf_counter() - start_global
+    c_elapsed = time.perf_counter() - start_global
     logger.info(
-        "total functions analysed: %d (%.1fs total time, %.1fs wall time)",
+        "c analysis complete: %d functions (%.1fs total time, %.1fs wall time)",
         len(all_raw_stubs),
         total_time,
-        global_elapsed,
+        c_elapsed,
     )
+
+    # phase 2: python source analysis
+    python_modules = find_python_modules(cpython_root)
+    logger.info("found %d python modules", len(python_modules))
+
+    if python_modules:
+        start_python = time.perf_counter()
+        python_analyser = PythonAnalyser()
+        python_stubs = python_analyser.analyse_all(python_modules)
+        python_elapsed = time.perf_counter() - start_python
+        logger.info(
+            "python analysis complete: %d functions (%.1fs)",
+            len(python_stubs),
+            python_elapsed,
+        )
+
+        # merge c and python stubs
+        all_raw_stubs = _merge_stubs(all_raw_stubs, python_stubs)
+        logger.info("merged stub count: %d functions", len(all_raw_stubs))
+
+    global_elapsed = time.perf_counter() - start_global
 
     # create stub file with json v2 writer
     metadata = StubMetadata(

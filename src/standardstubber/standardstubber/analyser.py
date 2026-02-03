@@ -1514,8 +1514,93 @@ def _infer_module_name(c_file: Path) -> str | None:
     if stem.startswith("_"):
         return stem
 
-    # foomodule.c -> foo
-    if stem.endswith("module"):
-        return stem[:-6]
 
-    return stem
+def find_python_modules(cpython_root: Path) -> list[tuple[Path, str]]:
+    """
+    find python stdlib modules in cpython source tree.
+
+    scans the Lib/ directory for .py files, filtering out test modules
+    and other non-stdlib directories.
+
+    arguments:
+        `cpython_root: Path`
+            root directory of cpython source
+
+    returns: `list[tuple[Path, str]]`
+        list of (py_file_path, module_name) tuples
+    """
+    lib_dir = cpython_root / "Lib"
+    if not lib_dir.exists():
+        return []
+
+    results: list[tuple[Path, str]] = []
+
+    # directories to skip entirely (tests, gui, legacy, etc.)
+    skip_dirs: frozenset[str] = frozenset(
+        {
+            "test",
+            "tests",
+            "idlelib",
+            "tkinter",
+            "turtledemo",
+            "lib2to3",
+            "ensurepip",
+            "venv",
+            "site-packages",
+            "__pycache__",
+            "pydoc_data",
+            "msilib",  # windows-only, deprecated
+        }
+    )
+
+    # file prefixes to skip
+    skip_prefixes = ("test_", "_test")
+
+    for py_file in lib_dir.rglob("*.py"):
+        # skip files in excluded directories
+        if any(part in skip_dirs for part in py_file.relative_to(lib_dir).parts):
+            continue
+
+        # skip test files
+        if py_file.name.startswith(skip_prefixes):
+            continue
+
+        # skip __main__.py files (entry points, not modules)
+        if py_file.name == "__main__.py":
+            continue
+
+        # infer module name from path
+        module_name = _infer_python_module_name(py_file, lib_dir)
+        if module_name:
+            results.append((py_file, module_name))
+
+    return results
+
+
+def _infer_python_module_name(py_file: Path, lib_dir: Path) -> str | None:
+    """
+    infer module name from python file path.
+
+    arguments:
+        `py_file: Path`
+            path to .py file
+        `lib_dir: Path`
+            path to Lib/ directory
+
+    returns: `str | None`
+        inferred module name (e.g., "json.decoder"), or none if invalid
+    """
+    rel_path = py_file.relative_to(lib_dir)
+    parts = list(rel_path.parts)
+
+    # handle package __init__.py
+    if parts[-1] == "__init__.py":
+        parts = parts[:-1]
+        if not parts:
+            return None
+        return ".".join(parts)
+
+    # remove .py extension from last part
+    parts[-1] = parts[-1][:-3]
+
+    return ".".join(parts)
