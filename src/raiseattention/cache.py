@@ -15,7 +15,7 @@ import time
 from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, final
+from typing import TYPE_CHECKING, Generic, TypeVar, final
 
 from typing_extensions import TypedDict
 
@@ -40,6 +40,7 @@ class CallDict(TypedDict):
 
     func_name: str
     location: tuple[int, int]
+    end_location: tuple[int, int]
     is_async: bool
     containing_try_blocks: list[int]
     callable_args: list[str]
@@ -244,9 +245,14 @@ class FileCache:
         # store persistently
         cache_file = self._get_cache_file(cache_key)
         try:
+            # ensure cache directory exists (may have been deleted)
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            # ensure .gitignore exists (in case cache dir was recreated)
+            self._ensure_gitignore()
             with open(cache_file, "wb") as f:
                 pickle.dump(entry, f)
         except OSError:
+            # cache directory not writable, keep in memory only
             pass
 
     def invalidate(self, file_path: str | Path) -> None:
@@ -348,7 +354,7 @@ class FileCache:
 
         if not gitignore_path.exists():
             with suppress(OSError):
-                gitignore_path.write_text("*\n")
+                _ = gitignore_path.write_text("*\n")
 
     def _is_valid(self, entry: CacheEntry[FileAnalysis], file_path: Path) -> bool:
         """
@@ -470,7 +476,7 @@ class DependencyCache:
         if self.config.enabled:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-    def get(self, package: str, version: str) -> dict[str, Any] | None:
+    def get(self, package: str, version: str) -> dict[str, list[str]] | None:
         """
         Get cached exception signatures for a package version.
 
@@ -480,7 +486,7 @@ class DependencyCache:
             `version: str`
                 package version
 
-        returns: `dict[str, Any] | None`
+        returns: `dict[str, list[str]] | None`
             cached exception signatures or none
         """
         if not self.config.enabled:
@@ -492,14 +498,14 @@ class DependencyCache:
         if cache_file.exists():
             try:
                 with open(cache_file, "rb") as f:
-                    result: dict[str, Any] = pickle.load(f)  # pyright: ignore[reportAny]
+                    result: dict[str, list[str]] = pickle.load(f)  # pyright: ignore[reportAny]
                     return result
             except (pickle.PickleError, OSError):
                 pass
 
         return None
 
-    def store(self, package: str, version: str, exceptions: dict[str, Any]) -> None:
+    def store(self, package: str, version: str, exceptions: dict[str, list[str]]) -> None:
         """
         cache exception signatures for a package version.
 
@@ -508,7 +514,7 @@ class DependencyCache:
                 package name
             `version: str`
                 package version
-            `exceptions: dict[str, Any]`
+            `exceptions: dict[str, list[str]]`
                 exception signatures to cache
         """
         if not self.config.enabled:

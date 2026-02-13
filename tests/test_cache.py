@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
+from typing import cast
 
 from raiseattention.cache import (
     CacheEntry,
     FileAnalysis,
     FileCache,
+    FunctionDict,
 )
 from raiseattention.config import CacheConfig
 
@@ -46,7 +48,7 @@ class TestFileCache:
         cache_dir = tmp_path / "cache"
         config = CacheConfig(enabled=True)
 
-        FileCache(config, cache_dir)
+        _ = FileCache(config, cache_dir)
 
         assert cache_dir.exists()
 
@@ -55,7 +57,7 @@ class TestFileCache:
         cache_dir = tmp_path / ".raiseattention" / "cache"
         config = CacheConfig(enabled=True)
 
-        FileCache(config, cache_dir)
+        _ = FileCache(config, cache_dir)
 
         gitignore_path = tmp_path / ".raiseattention" / ".gitignore"
         assert gitignore_path.exists()
@@ -66,13 +68,48 @@ class TestFileCache:
         raiseattention_dir = tmp_path / ".raiseattention"
         raiseattention_dir.mkdir(parents=True)
         gitignore_path = raiseattention_dir / ".gitignore"
-        gitignore_path.write_text("existing content\n")
+        _ = gitignore_path.write_text("existing content\n")
 
         cache_dir = raiseattention_dir / "cache"
         config = CacheConfig(enabled=True)
-        FileCache(config, cache_dir)
+        _ = FileCache(config, cache_dir)
 
         assert gitignore_path.read_text() == "existing content\n"
+
+    def test_store_recreates_gitignore_after_directory_deletion(self, tmp_path: Path) -> None:
+        """Test that .gitignore is recreated when cache dir is deleted and recreated via store()."""
+        import shutil
+
+        raiseattention_dir = tmp_path / ".raiseattention"
+        cache_dir = raiseattention_dir / "cache"
+        gitignore_path = raiseattention_dir / ".gitignore"
+
+        # create cache - this creates .gitignore
+        config = CacheConfig(enabled=True)
+        cache = FileCache(config, cache_dir)
+
+        assert gitignore_path.exists(), ".gitignore should exist after init"
+
+        # delete entire .raiseattention directory
+        shutil.rmtree(raiseattention_dir)
+        assert not raiseattention_dir.exists()
+
+        # create a test file to store
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text("x = 1")
+        analysis = FileAnalysis(
+            file_path=test_file,
+            functions={},
+            imports={},
+            timestamp=time.time(),
+        )
+
+        # store should recreate directory AND .gitignore
+        cache.store(test_file, analysis)
+
+        assert cache_dir.exists(), "cache dir should be recreated"
+        assert gitignore_path.exists(), ".gitignore should be recreated after store()"
+        assert gitignore_path.read_text() == "*\n"
 
     def test_store_and_get(self, tmp_path: Path) -> None:
         """Test storing and retrieving cache entries."""
@@ -82,11 +119,16 @@ class TestFileCache:
 
         # create a test file
         test_file = tmp_path / "test.py"
-        test_file.write_text("x = 1")
+        _ = test_file.write_text("x = 1")
 
+        # use cast to create a minimal FunctionDict for testing
+        test_func_dict = cast(
+            dict[str, FunctionDict],
+            {"test_func": {"name": "test_func"}},
+        )
         analysis = FileAnalysis(
             file_path=test_file,
-            functions={"test_func": {"name": "test_func"}},
+            functions=test_func_dict,
             imports={},
             timestamp=time.time(),
         )
@@ -107,7 +149,7 @@ class TestFileCache:
         cache = FileCache(config, cache_dir)
 
         test_file = tmp_path / "test.py"
-        test_file.write_text("x = 1")
+        _ = test_file.write_text("x = 1")
 
         result = cache.get(test_file)
 
@@ -121,7 +163,7 @@ class TestFileCache:
 
         # create and cache a file
         test_file = tmp_path / "test.py"
-        test_file.write_text("x = 1")
+        _ = test_file.write_text("x = 1")
 
         analysis = FileAnalysis(
             file_path=test_file,
@@ -133,7 +175,7 @@ class TestFileCache:
 
         # modify the file
         time.sleep(0.01)  # ensure different mtime
-        test_file.write_text("x = 2")
+        _ = test_file.write_text("x = 2")
 
         # cache should be invalid
         retrieved = cache.get(test_file)
@@ -146,7 +188,7 @@ class TestFileCache:
         cache = FileCache(config, cache_dir)
 
         test_file = tmp_path / "test.py"
-        test_file.write_text("x = 1")
+        _ = test_file.write_text("x = 1")
 
         analysis = FileAnalysis(
             file_path=test_file,
@@ -172,7 +214,7 @@ class TestFileCache:
         # create multiple entries
         for i in range(3):
             test_file = tmp_path / f"test{i}.py"
-            test_file.write_text(f"x = {i}")
+            _ = test_file.write_text(f"x = {i}")
             analysis = FileAnalysis(
                 file_path=test_file,
                 functions={},
@@ -197,7 +239,7 @@ class TestFileCache:
 
         # create an entry for a file that exists
         existing_file = tmp_path / "existing.py"
-        existing_file.write_text("x = 1")
+        _ = existing_file.write_text("x = 1")
         analysis = FileAnalysis(
             file_path=existing_file,
             functions={},
@@ -208,7 +250,7 @@ class TestFileCache:
 
         # create a file, store it, then delete it to make it stale
         stale_file = tmp_path / "stale.py"
-        stale_file.write_text("x = 1")
+        _ = stale_file.write_text("x = 1")
         analysis2 = FileAnalysis(
             file_path=stale_file,
             functions={},
@@ -231,7 +273,7 @@ class TestFileCache:
 
         # create an entry
         test_file = tmp_path / "test.py"
-        test_file.write_text("x = 1")
+        _ = test_file.write_text("x = 1")
         analysis = FileAnalysis(
             file_path=test_file,
             functions={},
@@ -258,7 +300,7 @@ class TestCacheTTL:
         cache = FileCache(config, cache_dir)
 
         test_file = tmp_path / "test.py"
-        test_file.write_text("x = 1")
+        _ = test_file.write_text("x = 1")
 
         # create entry with old timestamp
         analysis = FileAnalysis(
@@ -273,11 +315,11 @@ class TestCacheTTL:
             data=analysis,
             mtime=test_file.stat().st_mtime,
             size=test_file.stat().st_size,
-            content_hash=cache._hash_file(test_file),
+            content_hash=cache._hash_file(test_file),  # pyright: ignore[reportPrivateUsage]
             timestamp=time.time() - 3600,  # 1 hour ago
         )
 
-        cache._memory_cache[str(test_file.resolve())] = entry
+        cache._memory_cache[str(test_file.resolve())] = entry  # pyright: ignore[reportPrivateUsage]
 
         # should be expired (ttl=0 means immediate expiration)
         # actually, let's test with a more reasonable scenario
