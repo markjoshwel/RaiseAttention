@@ -446,7 +446,7 @@ wheels = [
 
 [[package]]
 name = "raiseattention"
-version = "0.1.0"
+version = "2026.2.14"
 source = { editable = "." }
 dependencies = [
     { name = "libclang" },
@@ -530,7 +530,7 @@ wheels = [
 
 [[package]]
 name = "standardstubber"
-version = "0.1.0"
+version = "2026.2.14"
 source = { editable = "src/standardstubber" }
 dependencies = [
     { name = "libclang" },
