@@ -33,7 +33,7 @@ root = find_project_root(
 )
 ```
 
-### finding files
+### finding files (simple)
 
 ```python
 from libsightseeing import find_files
@@ -48,6 +48,25 @@ files = find_files("src", exclude=["tests"])
 files = find_files(".", include=["*.py"], respect_gitignore=False)
 ```
 
+### finding files (advanced)
+
+use `SourceResolver` when you need more control or want to reuse the resolver:
+
+```python
+from libsightseeing import SourceResolver
+
+# create a reusable resolver
+resolver = SourceResolver(
+    root=".",
+    include=["src/**/*.py"],
+    exclude=["tests", "*.pyc"],
+    respect_gitignore=True,
+)
+
+# resolve files multiple times (e.g., in a watch loop)
+files = resolver.resolve()
+```
+
 ### combining both
 
 ```python
@@ -59,19 +78,18 @@ if root:
     files = find_files(root, include=["*.py"])
 ```
 
-### advanced api
+## api differences
 
-```python
-from libsightseeing import SourceResolver
+**`find_files()` vs `SourceResolver`**
 
-resolver = SourceResolver(
-    root=".",
-    include=["src/**/*.py"],
-    exclude=["tests"],
-    respect_gitignore=True,
-)
-files = resolver.resolve()
-```
+- **`find_files()`** — simple one-liner function. creates a resolver internally
+  and returns files immediately. use this for one-off file finding.
+
+- **`SourceResolver`** — class-based api. gives you a reusable resolver object
+  that you can call `.resolve()` on multiple times. use this when you need to
+  search the same directory repeatedly or want more control.
+
+both respect .gitignore and support the same include/exclude patterns.
 
 ## features
 

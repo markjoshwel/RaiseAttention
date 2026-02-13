@@ -236,7 +236,7 @@ wheels = [
 
 [[package]]
 name = "libsightseeing"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "src/libsightseeing" }
 dependencies = [
     { name = "pathspec" },
@@ -256,7 +256,7 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "libsoulsearching"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "src/libsoulsearching" }
 dependencies = [
     { name = "typing-extensions" },
@@ -446,7 +446,7 @@ wheels = [
 
 [[package]]
 name = "raiseattention"
-version = "2026.2.14"
+version = "2026.2.14+1"
 source = { editable = "." }
 dependencies = [
     { name = "libclang" },
@@ -530,7 +530,7 @@ wheels = [
 
 [[package]]
 name = "standardstubber"
-version = "2026.2.14"
+version = "2026.2.14+1"
 source = { editable = "src/standardstubber" }
 dependencies = [
     { name = "libclang" },

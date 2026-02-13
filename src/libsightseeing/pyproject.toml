@@ -1,6 +1,6 @@
 [project]
 name = "libsightseeing"
-version = "0.1.1"
+version = "0.2.0"
 description = "a shared library for file finding and source resolution with gitignore support"
 readme = "README.md"
 license = "Unlicense OR 0BSD"

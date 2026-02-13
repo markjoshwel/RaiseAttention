@@ -40,7 +40,7 @@ from pathlib import Path
 
 from .core import SourceResolver, find_project_root
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 __all__ = ["find_files", "find_project_root", "SourceResolver"]
 
 
