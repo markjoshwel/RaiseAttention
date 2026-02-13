@@ -24,7 +24,6 @@ if sys.platform == "win32":
     _libclang_path = Path(clang.native.__file__).parent / "libclang.dll"
     if _libclang_path.exists():
         Config.set_library_file(str(_libclang_path))
-        Config.set_compatibility_check(False)
 
 # generator identifier
 GENERATOR = "standardstubber@0.1.0"
