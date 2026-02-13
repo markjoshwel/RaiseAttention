@@ -27,6 +27,7 @@ dependencies = [
     "typing-extensions>=4.6.0",
     "libsoulsearching",
     "libsightseeing",
+    "clang>=18.0",
     "libclang>=18.1.1",
     "packaging>=24.0",
 ]
@@ -137,8 +138,9 @@ disallow_subclassing_any = false
 
 [tool.basedpyright]
 pythonVersion = "3.11"
-include = ["src/raiseattention", "src/standardstubber/standardstubber", "src/libsoulsearching/libsoulsearching", "src/libsightseeing/libsightseeing"]
-exclude = ["tests/", "playground/"]
+include = ["src/raiseattention", "src/libsoulsearching/libsoulsearching", "src/libsightseeing/libsightseeing", "src/standardstubber/standardstubber", "tests"]
+exclude = ["playground/"]
+stubPath = "src/standardstubber/typings"
 strict = ["*"]
 reportMissingTypeStubs = "none"
 reportAny = "warning"

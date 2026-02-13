@@ -17,6 +17,7 @@ classifiers = [
 ]
 
 dependencies = [
+    "clang>=18.0",
     "libclang>=18.1.1",
     "packaging>=24.0",
     "typing-extensions>=4.6.0",
