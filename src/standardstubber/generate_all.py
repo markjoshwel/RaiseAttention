@@ -59,6 +59,19 @@ def extract_tarball_cached(tarball: Path) -> Path:
     raise RuntimeError(f"failed to find Python directory in {extract_dir}")
 
 
+def _init_libclang():
+    """initialise libclang path for multiprocessing workers on windows."""
+    import os
+    import sys
+
+    if sys.platform == "win32":
+        import clang.native
+
+        libclang_path = Path(clang.native.__file__).parent / "libclang.dll"
+        if libclang_path.exists():
+            os.environ.setdefault("LIBCLANG_PATH", str(libclang_path))
+
+
 def analyse_single_module(
     args: tuple[Path, Path, str],
 ) -> tuple[str, list[tuple[str, frozenset[str], str, str]]]:
@@ -69,6 +82,9 @@ def analyse_single_module(
     returns: (module_name, [(qualname, raises, confidence, notes), ...])
     """
     c_file, cpython_root, module_name = args
+
+    # initialise libclang before importing (required for multiprocessing on windows)
+    _init_libclang()
 
     # import here to avoid issues with multiprocessing
     from standardstubber.analyser import CPythonAnalyser
@@ -196,6 +212,9 @@ def main() -> int:
         logging.basicConfig(level=logging.INFO, format="%(message)s")
     else:
         logging.basicConfig(level=logging.WARNING, format="%(message)s")
+
+    # initialise libclang path (required on windows for multiprocessing)
+    _init_libclang()
 
     # paths are relative to this script's directory (src/standardstubber/)
     script_dir = Path(__file__).parent

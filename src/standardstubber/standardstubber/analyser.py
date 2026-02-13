@@ -8,10 +8,21 @@ by parsing c source code and identifying PyErr_* function calls.
 from __future__ import annotations
 
 import logging
+import os
 import re
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
+
+# configure libclang path before importing clang
+# on windows, libclang.dll is bundled with the python package
+if sys.platform == "win32":
+    import clang.native
+
+    libclang_path = Path(clang.native.__file__).parent / "libclang.dll"
+    if libclang_path.exists():
+        os.environ.setdefault("LIBCLANG_PATH", str(libclang_path))
 
 try:
     from clang.cindex import (
@@ -22,8 +33,6 @@ try:
         TypeKind,
     )
 except ImportError as e:
-    import sys
-
     error_msg = """
 error: libclang not found.
 
