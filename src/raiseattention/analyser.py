@@ -14,11 +14,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from .ast_visitor import parse_file
+from .ast_visitor import parse_file, parse_source
 from .cache import (
     DependencyCache,
     FileAnalysis,
     FileCache,
+    FunctionDict,
     TryExceptDict,
 )
 from .config import Config
@@ -27,6 +28,7 @@ from .external_analyser import (
     KEY_CALLABLE_HOFS,
     ExternalAnalyser,
 )
+from .ignore_parser import IgnoreParseResult, parse_ignore_comments
 
 if TYPE_CHECKING:
     from .env_detector import VenvInfo
@@ -43,7 +45,7 @@ class Diagnostic:
         `file_path: Path`
             file where the issue was found
         `line: int`
-            line number (1-indexed)
+            line number (1-indexed) where the call starts
         `column: int`
             column number (0-indexed)
         `message: str`
@@ -52,6 +54,8 @@ class Diagnostic:
             exception types that are unhandled
         `severity: str`
             'error', 'warning', or 'info'
+        `end_line: int | None`
+            line number where the call ends (for multi-line statements)
     """
 
     file_path: Path
@@ -60,6 +64,7 @@ class Diagnostic:
     message: str
     exception_types: list[str] = field(default_factory=list)
     severity: str = "error"
+    end_line: int | None = None
 
 
 @dataclass
@@ -108,6 +113,11 @@ class ExceptionAnalyser:
             computed exception signatures for functions
     """
 
+    config: Config
+    file_cache: FileCache
+    dependency_cache: DependencyCache
+    external_analyser: ExternalAnalyser
+
     def __init__(
         self,
         config: Config,
@@ -129,6 +139,8 @@ class ExceptionAnalyser:
             venv_info,
             config.cache,
             warn_native=config.analysis.warn_native,
+            ignore_include=config.analysis.ignore_include,
+            ignore_exclude=config.analysis.ignore_exclude,
         )
         self._file_analyses: dict[Path, FileAnalysis] = {}
         self._exception_signatures: dict[str, list[str]] = {}
@@ -148,12 +160,12 @@ class ExceptionAnalyser:
 
         # also check analysis config (for backward compatibility with tests)
         if hasattr(self.config.analysis, "ignore_exceptions"):
-            analysis_ignored = getattr(self.config.analysis, "ignore_exceptions", [])
-            if analysis_ignored:
+            analysis_ignored_raw: object = getattr(self.config.analysis, "ignore_exceptions", [])
+            if isinstance(analysis_ignored_raw, list):
                 # extend without duplicates
-                for exc in analysis_ignored:
-                    if exc not in ignored:
-                        ignored.append(exc)
+                for item in analysis_ignored_raw:  # pyright: ignore[reportUnknownVariableType]
+                    if isinstance(item, str) and item not in ignored:
+                        ignored.append(item)
 
         return ignored
 
@@ -186,6 +198,7 @@ class ExceptionAnalyser:
 
         # parse and analyse
         try:
+            source = file_path.read_text(encoding="utf-8")
             visitor = parse_file(file_path)
         except (SyntaxError, FileNotFoundError, OSError) as e:
             result.diagnostics.append(
@@ -199,6 +212,22 @@ class ExceptionAnalyser:
                 )
             )
             return result
+
+        # parse ignore comments from source
+        ignore_result = parse_ignore_comments(source)
+
+        # report invalid ignore directives
+        for invalid in ignore_result.invalid:
+            result.diagnostics.append(
+                Diagnostic(
+                    file_path=file_path,
+                    line=invalid.line,
+                    column=0,
+                    message="invalid ignore comment: must include exception types in brackets (e.g., # raiseattention: ignore[ValueError])",
+                    exception_types=[],
+                    severity="warning",
+                )
+            )
 
         # create file analysis with new structure
         analysis = FileAnalysis(
@@ -220,6 +249,7 @@ class ExceptionAnalyser:
                         {
                             "func_name": call.func_name,
                             "location": call.location,
+                            "end_location": call.end_location,
                             "is_async": call.is_async,
                             "containing_try_blocks": call.containing_try_blocks,
                             "callable_args": call.callable_args,
@@ -255,9 +285,128 @@ class ExceptionAnalyser:
         result.functions_found = len(visitor.functions)
         result.exceptions_tracked = sum(len(func.raises) for func in visitor.functions.values())
 
-        # compute diagnostics
-        diagnostics = self._compute_diagnostics(file_path, analysis)
+        # compute diagnostics with ignore filtering
+        diagnostics = self._compute_diagnostics(file_path, analysis, ignore_result)
         result.diagnostics.extend(diagnostics)
+
+        return result
+
+    def analyse_source(
+        self,
+        source: str,
+        file_path: str | Path,
+    ) -> AnalysisResult:
+        """
+        analyse source code directly for unhandled exceptions.
+
+        this method is used by the lsp server to analyse unsaved changes
+        without reading from disk.
+
+        arguments:
+            `source: str`
+                python source code to analyse
+            `file_path: str | Path`
+                path to the file (for context and error reporting)
+
+        returns: `AnalysisResult`
+            analysis results with diagnostics
+        """
+        file_path = Path(file_path).resolve()
+        logger.debug("analysing source for file: %s", file_path)
+        result = AnalysisResult()
+
+        # parse and analyse (skip cache since source may differ from disk)
+        try:
+            visitor = parse_source(source, file_path)
+        except SyntaxError as e:
+            result.diagnostics.append(
+                Diagnostic(
+                    file_path=file_path,
+                    line=1,
+                    column=0,
+                    message=f"failed to analyse file: {e}",
+                    exception_types=[],
+                    severity="error",
+                )
+            )
+            return result
+
+        # parse ignore comments from source
+        ignore_result = parse_ignore_comments(source)
+
+        # report invalid ignore directives
+        for invalid in ignore_result.invalid:
+            result.diagnostics.append(
+                Diagnostic(
+                    file_path=file_path,
+                    line=invalid.line,
+                    column=0,
+                    message="invalid ignore comment: must include exception types in brackets (e.g., # raiseattention: ignore[ValueError])",
+                    exception_types=[],
+                    severity="warning",
+                )
+            )
+
+        # create file analysis with new structure
+        analysis = FileAnalysis(
+            file_path=file_path,
+            functions={
+                name: {
+                    "name": func.name,
+                    "qualified_name": func.qualified_name,
+                    "location": func.location,
+                    "raises": [
+                        {
+                            "type": exc.exception_type,
+                            "location": exc.location,
+                            "is_re_raise": exc.is_re_raise,
+                            "message": exc.message,
+                        }
+                        for exc in func.raises
+                    ],
+                    "calls": [
+                        {
+                            "func_name": call.func_name,
+                            "location": call.location,
+                            "end_location": call.end_location,
+                            "is_async": call.is_async,
+                            "containing_try_blocks": call.containing_try_blocks,
+                            "callable_args": call.callable_args,
+                        }
+                        for call in func.calls
+                    ],
+                    "docstring": func.docstring,
+                    "is_async": func.is_async,
+                }
+                for name, func in visitor.functions.items()
+            },
+            imports=visitor.imports,
+            timestamp=time.time(),
+            try_except_blocks=[
+                {
+                    "location": try_info.location,
+                    "end_location": try_info.end_location,
+                    "handled_types": try_info.handled_types,
+                    "has_bare_except": try_info.has_bare_except,
+                    "has_except_exception": try_info.has_except_exception,
+                    "reraises": try_info.reraises,
+                }
+                for try_info in visitor.try_except_blocks
+            ],
+        )
+
+        # store analysis
+        self._file_analyses[file_path] = analysis
+        result.files_analysed.append(file_path)
+        result.functions_found = len(analysis.functions)
+
+        # compute diagnostics
+        diagnostics = self._compute_diagnostics(file_path, analysis, ignore_result)
+        result.diagnostics.extend(diagnostics)
+
+        # count tracked exceptions
+        for func in visitor.functions.values():
+            result.exceptions_tracked += len(func.raises)
 
         return result
 
@@ -556,6 +705,7 @@ class ExceptionAnalyser:
         self,
         file_path: Path,
         analysis: FileAnalysis,
+        ignore_result: IgnoreParseResult | None = None,
     ) -> list[Diagnostic]:
         """
                 Compute diagnostics for a file analysis.
@@ -570,6 +720,8 @@ class ExceptionAnalyser:
                         path to the file
                     `analysis: FileAnalysis`
                         analysis results
+                    `ignore_result: IgnoreParseResult | None`
+                        parsed ignore comments for filtering diagnostics
 
                 returns: `list[Diagnostic]`
                     list of diagnostics
@@ -630,11 +782,15 @@ class ExceptionAnalyser:
 
                 if unhandled_exceptions:
                     # report diagnostic at the call site
+                    call_end_location = call.get("end_location")
                     call_diagnostics.append(
                         Diagnostic(
                             file_path=file_path,
                             line=call_location[0],
                             column=call_location[1],
+                            end_line=call_end_location[0]
+                            if call_end_location
+                            else call_location[0],
                             message=(
                                 f"call to '{called_func_name}' may raise "
                                 f"unhandled exception(s): {', '.join(unhandled_exceptions)}"
@@ -647,6 +803,49 @@ class ExceptionAnalyser:
                     func_unhandled_exceptions[func_name].update(unhandled_exceptions)
 
         diagnostics.extend(call_diagnostics)
+
+        # filter diagnostics based on ignore directives and docstrings
+        filtered_diagnostics: list[Diagnostic] = []
+        for d in diagnostics:
+            # check ignore directives - use end_line if available (for multi-line statements)
+            ignore_line = d.end_line if d.end_line is not None else d.line
+            if ignore_result is not None and any(
+                ignore_result.should_ignore(ignore_line, exc) for exc in d.exception_types
+            ):
+                continue
+
+            # check docstrings - filter out exceptions documented in parent docstring
+            docstring_line = d.end_line if d.end_line is not None else d.line
+            undocumented_exceptions = [
+                exc
+                for exc in d.exception_types
+                if not self._is_exception_documented_in_docstring(docstring_line, exc, analysis)
+            ]
+
+            if not undocumented_exceptions:
+                # all exceptions are documented in docstring, skip this diagnostic
+                continue
+
+            if len(undocumented_exceptions) != len(d.exception_types):
+                # some exceptions are documented, update the diagnostic
+                filtered_diagnostics.append(
+                    Diagnostic(
+                        file_path=d.file_path,
+                        line=d.line,
+                        column=d.column,
+                        message=d.message.replace(
+                            f": {', '.join(d.exception_types)}",
+                            f": {', '.join(undocumented_exceptions)}",
+                        ),
+                        exception_types=undocumented_exceptions,
+                        severity=d.severity,
+                    )
+                )
+            else:
+                # no exceptions are documented, keep original diagnostic
+                filtered_diagnostics.append(d)
+
+        diagnostics = filtered_diagnostics
 
         # second pass: check for undocumented exceptions in strict mode
         # only flag functions that have unhandled exceptions escaping them
@@ -795,6 +994,11 @@ class ExceptionAnalyser:
             parent_types = [t.strip() for t in parent_type.split(",")]
             return any(self._is_subclass_of(child_type, pt) for pt in parent_types)
 
+        # PossibleNativeException is a sentinel for "some exception from native code"
+        # it should be caught by except Exception, except BaseException, or bare except
+        if child_type == "PossibleNativeException":
+            return parent_type in ("Exception", "BaseException")
+
         # built-in exception hierarchy mapping
         # these are the most common parent classes
         exception_hierarchy = {
@@ -929,10 +1133,10 @@ class ExceptionAnalyser:
 
         # try to resolve using actual python classes if they're built-in
         try:
-            child_class = eval(child_type)  # noqa: S307 - only used for built-in exception types
-            parent_class = eval(parent_type)  # noqa: S307 - only used for built-in exception types
-            if isinstance(child_class, type) and isinstance(parent_class, type):
-                return issubclass(child_class, parent_class)
+            child_class_raw: object = eval(child_type)  # noqa: S307  # pyright: ignore[reportAny]
+            parent_class_raw: object = eval(parent_type)  # noqa: S307  # pyright: ignore[reportAny]
+            if isinstance(child_class_raw, type) and isinstance(parent_class_raw, type):
+                return issubclass(child_class_raw, parent_class_raw)
         except (NameError, TypeError, AttributeError):
             pass
 
@@ -1143,3 +1347,61 @@ class ExceptionAnalyser:
                 python_files.append(py_file)
 
         return sorted(python_files)
+
+    def _is_exception_documented_in_docstring(
+        self,
+        line: int,
+        exception_type: str,
+        analysis: FileAnalysis,
+    ) -> bool:
+        """
+        check if an exception is documented in the closest parent function's docstring.
+
+        looks for "raise" or "raises" followed by the exception class name
+        in the docstring of the closest parent function or module.
+
+        arguments:
+            `line: int`
+                line number where the exception is raised (1-indexed)
+            `exception_type: str`
+                the exception type (e.g., 'ValueError' or 'module.Exception')
+            `analysis: FileAnalysis`
+                analysis results containing function info
+
+        returns: `bool`
+            true if the exception is documented in the docstring
+        """
+        # extract exception class name (last part after dot)
+        exc_name = exception_type.split(".")[-1]
+
+        # find the closest parent function containing this line
+        parent_func: FunctionDict | None = None
+        for func_name, func_info in analysis.functions.items():
+            func_location = func_info["location"]
+            # skip module-level synthetic function
+            if func_name.endswith(".<module>"):
+                continue
+            # check if this line falls within this function
+            # (we assume functions start at their location and we don't have end info)
+            if func_location[0] <= line:
+                # if no parent yet, or this function starts later (closer to the line)
+                if parent_func is None or func_location[0] > parent_func["location"][0]:  # type: ignore[index]
+                    parent_func = func_info  # type: ignore[assignment]
+
+        if parent_func is None:
+            return False
+
+        docstring = parent_func["docstring"]
+        if not docstring:
+            return False
+
+        doc_lower = docstring.lower()
+
+        # check for "raise" or "raises" in docstring
+        has_raises_keyword = "raise" in doc_lower or "raises" in doc_lower
+
+        if not has_raises_keyword:
+            return False
+
+        # check if exception name appears in docstring
+        return exc_name in docstring
