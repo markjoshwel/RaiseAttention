@@ -126,11 +126,7 @@ class RaiseAttentionLanguageServer(LanguageServer):
         # wait for debounce interval
         await asyncio.sleep(self.config.lsp.debounce_ms / 1000)
 
-        # clear pending changes for this uri
-        if uri in self._pending_changes:
-            del self._pending_changes[uri]
-
-        # perform analysis
+        # perform analysis (pending changes will be cleared after analysis)
         self._analyse_document(uri)
 
     def _analyse_document(self, uri: str) -> None:
@@ -145,10 +141,36 @@ class RaiseAttentionLanguageServer(LanguageServer):
         if not uri.startswith("file://"):
             return
 
-        file_path = uri[7:]  # remove 'file://' prefix
+        # properly convert file uri to path
+        # file:///path/to/file.py -> /path/to/file.py (unix)
+        # file:///B:/path/to/file.py -> B:/path/to/file.py (windows)
+        # file:///B%3A/path/to/file.py -> B:/path/to/file.py (windows, url encoded)
+        from urllib.parse import unquote
 
-        # analyse
-        result = self.analyzer.analyse_file(file_path)
+        file_path = uri[7:]  # remove 'file://' prefix
+        file_path = unquote(file_path)  # url decode
+
+        # on windows, file uris look like:
+        # - file:///B:/path (3 slashes with colon)
+        # strip leading slash if followed by a drive letter
+        if (
+            len(file_path) >= 3
+            and file_path[0] == "/"
+            and file_path[1].isalpha()
+            and file_path[2] == ":"
+        ):
+            file_path = file_path[1:]
+
+        # check if we have pending changes for this document
+        if uri in self._pending_changes:
+            # build source from pending changes
+            source = self._get_document_source(uri, file_path)
+            result = self.analyzer.analyse_source(source, file_path)
+            # clear pending changes after analysis
+            del self._pending_changes[uri]
+        else:
+            # analyse from disk
+            result = self.analyzer.analyse_file(file_path)
 
         # convert to lsp diagnostics
         diagnostics = [self._to_lsp_diagnostic(d) for d in result.diagnostics]
@@ -160,6 +182,74 @@ class RaiseAttentionLanguageServer(LanguageServer):
                 diagnostics=diagnostics,
             )
         )
+
+    def _get_document_source(self, uri: str, file_path: str) -> str:
+        """
+        get the current document source, applying any pending changes.
+
+        arguments:
+            `uri: str`
+                document uri
+            `file_path: str`
+                path to the file
+
+        returns: `str`
+            current source code with pending changes applied
+        """
+        from pathlib import Path
+
+        path = Path(file_path)
+
+        # start with file contents from disk
+        try:
+            source = path.read_text(encoding="utf-8")
+        except (FileNotFoundError, OSError):
+            source = ""
+
+        # apply pending changes
+        if uri in self._pending_changes:
+            for change in self._pending_changes[uri]:
+                # pyright: ignore[reportUnknownVariableType]
+                change_range = getattr(change, "range", None)
+                if change_range is None:
+                    # full document replacement
+                    # pyright: ignore[reportUnknownMemberType]
+                    source = change.text
+                else:
+                    # incremental change
+                    lines = source.split("\n") if source else [""]
+                    start_line = change_range.start.line
+                    start_char = change_range.start.character
+                    end_line = change_range.end.line
+                    end_char = change_range.end.character
+
+                    # ensure we have enough lines
+                    while len(lines) <= max(start_line, end_line):
+                        lines.append("")
+
+                    # handle single-line change
+                    if start_line == end_line:
+                        line = lines[start_line]
+                        lines[start_line] = (
+                            line[:start_char]
+                            + change.text  # pyright: ignore[reportUnknownMemberType]
+                            + line[end_char:]
+                        )
+                    else:
+                        # multi-line change
+                        start_line_text = lines[start_line][:start_char]
+                        end_line_text = lines[end_line][end_char:]
+                        new_text = (
+                            start_line_text
+                            + change.text  # pyright: ignore[reportUnknownMemberType]
+                            + end_line_text
+                        )
+                        new_lines = new_text.split("\n")
+                        lines[start_line : end_line + 1] = new_lines
+
+                    source = "\n".join(lines)
+
+        return source
 
     def _to_lsp_diagnostic(self, diagnostic: Diagnostic) -> types.Diagnostic:
         """
@@ -211,7 +301,20 @@ class RaiseAttentionLanguageServer(LanguageServer):
         if not uri.startswith("file://"):
             return None
 
-        file_path = uri[7:]
+        # properly convert file uri to path (same logic as _analyse_document)
+        from urllib.parse import unquote
+
+        file_path = uri[7:]  # remove 'file://' prefix
+        file_path = unquote(file_path)  # url decode
+
+        # on windows, strip leading slash if followed by a drive letter
+        if (
+            len(file_path) >= 3
+            and file_path[0] == "/"
+            and file_path[1].isalpha()
+            and file_path[2] == ":"
+        ):
+            file_path = file_path[1:]
 
         # get analysis for this file
         result = self.analyzer.analyse_file(file_path)
