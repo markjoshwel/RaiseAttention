@@ -82,6 +82,27 @@ exclude = [
     "**/typings/**",
 ]
 
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "**/tests/**",
+    "**/test_*.py",
+    "**/*.pyc",
+    "**/__pycache__/**",
+    "**/.git/**",
+    "**/.venv/**",
+    "**/.raiseattention/**",
+    "**/resources/*.tar.xz",
+    "**/playground/**",
+    "**/.mypy_cache/**",
+    "**/.ruff_cache/**",
+    "**/typings/**",
+    ".github/**",
+    ".vscode/**",
+    "htmlcov/**",
+    ".coverage",
+    "session-*.md",
+]
+
 [tool.raiseattention]
 python_path = "auto"
 venv_path = "auto"
