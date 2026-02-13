@@ -20,6 +20,10 @@ unhandled exceptions in python codebases. it provides:
 - **dynamic builtin filtering** — only flags builtins with interesting exceptions
 - **type constructor analysis** — detects exceptions from `int()`, `float()`, `str()`, etc.
 - **docstring heuristics** for functions that can't be statically analysed
+- **exception instance re-raise detection** — `raise error` from `except Exception as error:` is treated as re-raise
+- **inline ignore comments** — `# raiseattention: ignore[ExceptionType]` for line-specific suppression
+- **docstring-based suppression** — exceptions documented in parent docstrings are suppressed
+- **configurable builtin filtering** — `ignore_include`/`ignore_exclude` for noisy builtins
 - **debug logging** throughout the analysis pipeline
 
 ## workspace structure
@@ -38,6 +42,7 @@ raiseattention/
 │   │   ├── config.py         # configuration loading
 │   │   ├── env_detector.py   # venv detection (re-exports libsoulsearching)
 │   │   ├── external_analyser.py  # stdlib/third-party module analysis
+│   │   ├── ignore_parser.py  # parser for # raiseattention: ignore comments
 │   │   ├── stub_resolver.py  # .pyras stub file resolution for c extensions
 │   │   ├── stubs/            # pre-computed exception stubs
 │   │   │   └── stdlib/       # stdlib stubs (python-3.12.pyras, etc.)
@@ -248,6 +253,10 @@ use british spelling throughout:
   - **type constructor analysis** — `int()`, `float()`, `str()`, `bytes()`, `list()`, etc.
   - **docstring heuristics** for functions that can't be statically analysed
   - **debug logging** with `--debug` CLI flag
+  - **exception instance re-raise detection** — `raise error` from `except Exception as error:` is treated as re-raise
+  - **inline ignore comments** — `# raiseattention: ignore[ExceptionType]` for line-specific suppression
+  - **docstring-based suppression** — exceptions documented in parent docstrings are suppressed
+  - **configurable builtin filtering** — `ignore_include`/`ignore_exclude` for noisy builtins
 - **comprehensive test coverage**:
   - 35 synthetic analyser tests (unhandled/caught/edge cases)
   - 24 external analyser tests (stdlib/third-party tracking)
@@ -323,6 +332,13 @@ the exception analyser has been redesigned for robust flow tracking:
    - skips c extensions (`.so`/`.pyd`) as they cannot be statically analysed
    - per-module caching to avoid redundant parsing
    - integrates with libsoulsearching to locate site-packages
+   - **configurable builtin filtering** via `ignore_include`/`ignore_exclude`
+
+4. **ignore_parser.py** - inline ignore comment parser:
+   - parses pyright-style `# raiseattention: ignore[ExceptionType]` comments
+   - validates comment format (brackets required)
+   - reports invalid comments as warnings
+   - filters diagnostics based on line-specific ignore directives
 
 ### how it works
 
@@ -398,6 +414,63 @@ data = open("file.txt")  # FileNotFoundError, PermissionError, etc.
 the analyser now detects exceptions from type constructors like `int()`, `float()`,
 `str()`, `bytes()`, `list()`, `tuple()`, and `complex()`. these are extracted from
 cpython's argument clinic annotations via standardstubber.
+
+**exception instance re-raise detection:**
+when an exception instance is re-raised (e.g., `raise error` where `error` comes from
+`except Exception as error:`), it is treated as a re-raise rather than a new exception.
+this avoids confusing diagnostics like "may raise tooling.error" when the variable
+name is misinterpreted as a class.
+
+```python
+def handler():
+    try:
+        risky()
+    except ValueError as error:
+        raise error  # treated as re-raise, not a new ValueError
+```
+
+**inline ignore comments:**
+line-specific suppression via pyright-style comments:
+
+```python
+# single-line statement
+_ = risky()  # raiseattention: ignore[ValueError, JSONDecodeError]
+
+# multi-line statement
+_ = multi_line_statement(
+    ...
+)  # raiseattention: ignore[ValueError]
+```
+
+plain `# raiseattention: ignore` without brackets is invalid and will be reported
+as a warning.
+
+**docstring-based suppression:**
+if a line raises an exception and does not have an ignore comment, the analyser
+checks the closest parent function's docstring. if the docstring contains "raise"
+or "raises" and the exception class name, the diagnostic is suppressed.
+
+```python
+def caller():
+    """may raise ValueError."""
+    risky()  # no diagnostic - ValueError is documented in parent docstring
+```
+
+for external exceptions like `module.submodule.ExceptionClassName`, only
+`ExceptionClassName` is checked (not the full qualified path).
+
+**configurable builtin filtering:**
+`ignore_include` and `ignore_exclude` lists in the analysis config allow fine-grained
+control over which builtins are analysed:
+
+```toml
+[tool.raiseattention.analysis]
+ignore_include = ["str", "print"]  # always ignore these builtins
+ignore_exclude = ["open"]          # never ignore this builtin (overrides ignore_include)
+```
+
+`ignore_include` takes precedence over dynamic filtering (builtins that only raise
+boring exceptions like `TypeError` are already filtered by default).
 
 ## libsoulsearching
 
@@ -694,6 +767,34 @@ uv run pytest tests/test_lsp_server.py -v
 # run libsoulsearching tests only
 uv run --directory src/libsoulsearching pytest
 ```
+
+### lsp server implementation notes
+
+**windows file uri handling:**
+the lsp server must properly convert file uris to windows paths. windows file uris from editors like zed can come in several formats:
+
+- `file:///B:/path/to/file.py` (3 slashes with colon)
+- `file:///B%3A/path/to/file.py` (url-encoded colon)
+- `file://B:/path/to/file.py` (2 slashes, from pygls)
+- `file:///B|/path/to/file.py` (old windows pipe format)
+
+all these are converted to proper windows paths (`B:\path\to\file.py`) by the uri parsing logic in `lsp_server.py`.
+
+**error codes:**
+- `unhandled-exception` — actual exception analysis results
+- `internal-error` — file not found, permission errors, etc.
+- `raiseattention` — other diagnostics
+
+**debug logging:**
+the lsp server logs to stderr with debug level enabled by default. logs include:
+- document open/change/save/close events
+- uri to path conversion steps
+- file analysis start/completion
+- diagnostic counts
+
+logs are written to stderr and should appear in your editor's lsp output panel. look for lines starting with `[LSP]`.
+
+if you don't see logs, check that your editor is capturing stderr from the lsp process. for zed, you may need to check the lsp trace logs.
 
 ### linting and type checking
 

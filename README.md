@@ -122,6 +122,12 @@ when it comes to whether any functions you use may raise exceptions you didn't e
   noisy ones like `len()`, `abs()`, `print()`
 - **docstring heuristics** — checks `__doc__` for "raises" keywords when static analysis
   isn't possible
+- **exception instance re-raise detection** — `raise error` from `except Exception as error:`
+  is treated as re-raise, not a new exception
+- **inline ignore comments** — `# raiseattention: ignore[ExceptionType]` for line-specific
+  suppression (pyright-style)
+- **docstring-based suppression** — exceptions documented in parent docstrings are
+  automatically suppressed
 - **lsp server** — real-time feedback in your editor
 - **debug logging** — see exactly what the analyser is doing with `--debug`
 
@@ -140,6 +146,45 @@ example `pyproject.toml`:
 [tool.raiseattention.analysis]
 local_only = false    # set to true to skip external module analysis
 warn_native = true    # set to false to suppress native code warnings
+
+# control which builtins are analysed
+ignore_include = ["str", "print"]  # always ignore these builtins
+ignore_exclude = ["open"]          # never ignore this builtin (overrides ignore_include)
+```
+
+### inline ignore comments
+
+suppress specific exceptions on a single line:
+
+```python
+import json
+
+def parse_data(data: str) -> dict:
+    return json.loads(data)  # raiseattention: ignore[JSONDecodeError]
+```
+
+multi-line statements work too:
+
+```python
+result = some_function(
+    arg1,
+    arg2,
+)  # raiseattention: ignore[ValueError, TypeError]
+```
+
+plain `# raiseattention: ignore` without brackets is invalid and will be reported
+as a warning.
+
+### docstring-based suppression
+
+if a line raises an exception, raiseattention checks the parent function's docstring.
+if the docstring contains "raise" or "raises" and the exception class name, the
+diagnostic is suppressed:
+
+```python
+def parse_config(path: str) -> dict:
+    """may raise ValueError if config is invalid."""
+    return json.loads(read_file(path))  # no diagnostic - ValueError is documented
 ```
 
 ### cli flags
