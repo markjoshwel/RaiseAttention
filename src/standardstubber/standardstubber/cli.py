@@ -17,7 +17,8 @@ import tempfile
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Final, Generator
+from collections.abc import Generator
+from typing import Final
 
 from .analyser import CPythonAnalyser, find_c_modules, find_python_modules
 from .models import StubMetadata
@@ -33,7 +34,7 @@ GENERATOR: Final[str] = "standardstubber@0.1.0"
 _temp_dirs: list[Path] = []
 
 
-def _cleanup_temp_dirs(signum: int | None = None, frame: object | None = None) -> None:
+def _cleanup_temp_dirs(signum: int | None = None, _frame: object | None = None) -> None:
     """clean up all tracked temp directories, even on interrupt."""
     for temp_dir in _temp_dirs:
         if temp_dir.exists():
@@ -82,56 +83,56 @@ def main(args: list[str] | None = None) -> int:
         exit code (0 for success)
     """
     # set up signal handler for graceful cleanup on interrupt
-    signal.signal(signal.SIGINT, _cleanup_temp_dirs)
-    signal.signal(signal.SIGTERM, _cleanup_temp_dirs)
+    _ = signal.signal(signal.SIGINT, _cleanup_temp_dirs)
+    _ = signal.signal(signal.SIGTERM, _cleanup_temp_dirs)
 
     parser = argparse.ArgumentParser(
         prog="standardstubber",
         description="generate .pyras exception stubs from cpython source",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--cpython",
         type=Path,
         required=True,
         help="path to cpython source tree or .tar.xz archive",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--version",
         type=str,
         required=True,
         help="pep 440 version specifier (e.g., '>=3.12,<3.13')",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--output",
         "-o",
         type=Path,
         required=True,
         help="output .pyras file path",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
         help="enable verbose logging",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--debug",
         action="store_true",
         help="enable debug logging",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--no-propagation",
         action="store_true",
         help="disable call graph propagation analysis (faster but less accurate)",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--jobs",
         "-j",
         type=int,
         default=None,
         help="number of parallel jobs (default: cpu count)",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--profile",
         action="store_true",
         help="output timing breakdown per phase (deprecated, use -v)",
@@ -139,41 +140,50 @@ def main(args: list[str] | None = None) -> int:
 
     parsed = parser.parse_args(args)
 
+    # extract typed values from argparse namespace
+    debug: bool = parsed.debug  # pyright: ignore[reportAny]
+    verbose: bool = parsed.verbose  # pyright: ignore[reportAny]
+    profile: bool = parsed.profile  # pyright: ignore[reportAny]
+    version_spec: str = parsed.version  # pyright: ignore[reportAny]
+    output_path: Path = parsed.output  # pyright: ignore[reportAny]
+    no_propagation: bool = parsed.no_propagation  # pyright: ignore[reportAny]
+    jobs: int | None = parsed.jobs  # pyright: ignore[reportAny]
+
     # configure logging
-    if parsed.debug:
+    if debug:
         logging.basicConfig(level=logging.DEBUG, format="%(name)s: %(message)s")
-    elif parsed.verbose or parsed.profile:
+    elif verbose or profile:
         logging.basicConfig(level=logging.INFO, format="%(message)s")
     else:
         logging.basicConfig(level=logging.WARNING, format="%(message)s")
 
     # handle tarball extraction
-    cpython_path: Path = parsed.cpython
+    cpython_path: Path = parsed.cpython  # pyright: ignore[reportAny]
 
     if cpython_path.suffix in (".xz", ".gz", ".tar"):
         # extract tarball to temp directory with automatic cleanup
         with managed_temp_dir(prefix="standardstubber-") as temp_dir:
             extracted = extract_tarball(cpython_path, temp_dir)
             if extracted is None:
-                print(f"error: failed to extract tarball: {parsed.cpython}", file=sys.stderr)
+                print(f"error: failed to extract tarball: {cpython_path}", file=sys.stderr)
                 return 1
             cpython_path = extracted
 
             return generate_stubs(
                 cpython_root=cpython_path,
-                version_spec=parsed.version,
-                output_path=parsed.output,
-                use_propagation=not parsed.no_propagation,
-                jobs=parsed.jobs,
+                version_spec=version_spec,
+                output_path=output_path,
+                use_propagation=not no_propagation,
+                jobs=jobs,
             )
     else:
         # direct path to source tree
         return generate_stubs(
             cpython_root=cpython_path,
-            version_spec=parsed.version,
-            output_path=parsed.output,
-            use_propagation=not parsed.no_propagation,
-            jobs=parsed.jobs,
+            version_spec=version_spec,
+            output_path=output_path,
+            use_propagation=not no_propagation,
+            jobs=jobs,
         )
 
 

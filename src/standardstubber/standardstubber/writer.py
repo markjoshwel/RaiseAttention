@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Final
+from typing import IO, Final
 
 from .models import Confidence, StubMetadata
 
@@ -37,7 +37,7 @@ def _escape_toml_string(s: str) -> str:
     returns: `str`
         escaped string
     """
-    result = []
+    result: list[str] = []
     for char in s:
         if char in ESCAPE_CHARS:
             result.append(ESCAPE_CHARS[char])
@@ -46,27 +46,27 @@ def _escape_toml_string(s: str) -> str:
     return "".join(result)
 
 
-def _write_metadata_section(file_handle: Any, metadata: StubMetadata) -> None:
+def _write_metadata_section(file_handle: IO[str], metadata: StubMetadata) -> None:
     """
     write the metadata section to the file.
 
     arguments:
-        `file_handle: Any`
+        `file_handle: IO[str]`
             writable file handle
         `metadata: StubMetadata`
             metadata to write
     """
-    file_handle.write("[metadata]\n")
-    file_handle.write(f'name = "{_escape_toml_string(metadata.name)}"\n')
-    file_handle.write(f'version = "{_escape_toml_string(metadata.version)}"\n')
-    file_handle.write(f'format_version = "{metadata.format_version}"\n')
+    _ = file_handle.write("[metadata]\n")
+    _ = file_handle.write(f'name = "{_escape_toml_string(metadata.name)}"\n')
+    _ = file_handle.write(f'version = "{_escape_toml_string(metadata.version)}"\n')
+    _ = file_handle.write(f'format_version = "{metadata.format_version}"\n')
     if metadata.generator:
-        file_handle.write(f'generator = "{_escape_toml_string(metadata.generator)}"\n')
+        _ = file_handle.write(f'generator = "{_escape_toml_string(metadata.generator)}"\n')
     if metadata.generated_at:
-        file_handle.write(f'generated_at = "{metadata.generated_at.isoformat()}"\n')
+        _ = file_handle.write(f'generated_at = "{metadata.generated_at.isoformat()}"\n')
     if metadata.package:
-        file_handle.write(f'package = "{_escape_toml_string(metadata.package)}"\n')
-    file_handle.write("\n")
+        _ = file_handle.write(f'package = "{_escape_toml_string(metadata.package)}"\n')
+    _ = file_handle.write("\n")
 
 
 def write_stub_file_incremental(
@@ -143,20 +143,20 @@ def write_stub_file_incremental(
         for module in sorted(by_module.keys()):
             stubs = by_module[module]
             for qualname, raises, confidence, notes in stubs:
-                f.write(f'["{qualname}"]\n')
+                _ = f.write(f'["{qualname}"]\n')
 
                 # sort raises for deterministic output
                 raises_list = sorted(raises)
-                f.write(f"raises = {raises_list}\n")
+                _ = f.write(f"raises = {raises_list}\n")
 
                 if confidence != Confidence.EXACT:
-                    f.write(f'confidence = "{confidence.value}"\n')
+                    _ = f.write(f'confidence = "{confidence.value}"\n')
 
                 if notes:
                     escaped_notes = _escape_toml_string(notes)
-                    f.write(f'notes = "{escaped_notes}"\n')
+                    _ = f.write(f'notes = "{escaped_notes}"\n')
 
-                f.write("\n")
+                _ = f.write("\n")
 
     num_written = len(merged)
     logger.info("wrote %d unique stubs to %s", num_written, output_path)

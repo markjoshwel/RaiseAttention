@@ -73,20 +73,20 @@ def empty_project(tmp_path: Path) -> Path:
 @pytest.fixture
 def poetry_project(tmp_path: Path) -> Path:
     """create a mock poetry project."""
-    (tmp_path / "poetry.lock").write_text("")
+    _ = (tmp_path / "poetry.lock").write_text("")
     venv = tmp_path / ".venv"
     venv.mkdir()
-    (venv / "pyvenv.cfg").write_text("")
+    _ = (venv / "pyvenv.cfg").write_text("")
     return tmp_path
 
 
 @pytest.fixture
 def pipenv_project(tmp_path: Path) -> Path:
     """create a mock pipenv project."""
-    (tmp_path / "Pipfile.lock").write_text("")
+    _ = (tmp_path / "Pipfile.lock").write_text("")
     venv = tmp_path / ".venv"
     venv.mkdir()
-    (venv / "pyvenv.cfg").write_text("")
+    _ = (venv / "pyvenv.cfg").write_text("")
     return tmp_path
 
 
@@ -95,40 +95,40 @@ def pdm_project(tmp_path: Path) -> Path:
     """create a mock pdm project."""
     import sys
 
-    (tmp_path / "pdm.lock").write_text("")
+    _ = (tmp_path / "pdm.lock").write_text("")
     venv = tmp_path / ".venv"
     venv.mkdir()
-    (venv / "pyvenv.cfg").write_text("")
+    _ = (venv / "pyvenv.cfg").write_text("")
     # create mock python executable for detection
     if sys.platform == "win32":
         bin_dir = venv / "Scripts"
         bin_dir.mkdir()
-        (bin_dir / "python.exe").write_text("")
+        _ = (bin_dir / "python.exe").write_text("")
     else:
         bin_dir = venv / "bin"
         bin_dir.mkdir()
-        (bin_dir / "python").write_text("")
+        _ = (bin_dir / "python").write_text("")
     return tmp_path
 
 
 @pytest.fixture
 def uv_project(tmp_path: Path) -> Path:
     """create a mock uv project."""
-    (tmp_path / "uv.lock").write_text("")
+    _ = (tmp_path / "uv.lock").write_text("")
     venv = tmp_path / ".venv"
     venv.mkdir()
-    (venv / "pyvenv.cfg").write_text("")
+    _ = (venv / "pyvenv.cfg").write_text("")
     return tmp_path
 
 
 @pytest.fixture
 def rye_project(tmp_path: Path) -> Path:
     """create a mock rye project."""
-    (tmp_path / "rye.lock").write_text("")
-    (tmp_path / ".python-version").write_text("3.10.5")
+    _ = (tmp_path / "rye.lock").write_text("")
+    _ = (tmp_path / ".python-version").write_text("3.10.5")
     venv = tmp_path / ".venv"
     venv.mkdir()
-    (venv / "pyvenv.cfg").write_text("")
+    _ = (venv / "pyvenv.cfg").write_text("")
     return tmp_path
 
 
@@ -136,13 +136,13 @@ def rye_project(tmp_path: Path) -> Path:
 def hatch_project(tmp_path: Path) -> Path:
     """create a mock hatch project."""
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text("""
+    _ = pyproject.write_text("""
 [tool.hatch.envs.default]
 type = "virtual"
 """)
     venv = tmp_path / ".venv"
     venv.mkdir()
-    (venv / "pyvenv.cfg").write_text("")
+    _ = (venv / "pyvenv.cfg").write_text("")
     return tmp_path
 
 
@@ -151,12 +151,12 @@ def venv_project(tmp_path: Path) -> Path:
     """create a mock standard venv project."""
     venv = tmp_path / ".venv"
     venv.mkdir()
-    (venv / "pyvenv.cfg").write_text("")
+    _ = (venv / "pyvenv.cfg").write_text("")
     return tmp_path
 
 
 @pytest.fixture
 def pyenv_project(tmp_path: Path) -> Path:
     """create a mock pyenv project."""
-    (tmp_path / ".python-version").write_text("3.10.5")
+    _ = (tmp_path / ".python-version").write_text("3.10.5")
     return tmp_path

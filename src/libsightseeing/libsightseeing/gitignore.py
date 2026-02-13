@@ -34,6 +34,9 @@ class GitignoreMatcher:
         ```
     """
 
+    root: Path
+    specs: list[tuple[Path, GitIgnoreSpec]]
+
     def __init__(self, root: Path) -> None:
         """
         initialise the gitignore matcher.
@@ -43,7 +46,7 @@ class GitignoreMatcher:
                 the root directory to search for .gitignore files
         """
         self.root = root.resolve()
-        self.specs: list[tuple[Path, GitIgnoreSpec]] = []
+        self.specs = []
         self._collect_gitignore_rules()
 
     def _collect_gitignore_rules(self) -> None:

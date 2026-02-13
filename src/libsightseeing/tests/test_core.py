@@ -13,9 +13,9 @@ class TestFindFiles:
     def test_find_files_basic(self, tmp_path: Path) -> None:
         """test basic file finding."""
         # create test files
-        (tmp_path / "file1.py").write_text("x = 1")
-        (tmp_path / "file2.py").write_text("y = 2")
-        (tmp_path / "readme.md").write_text("# readme")
+        _ = (tmp_path / "file1.py").write_text("x = 1")
+        _ = (tmp_path / "file2.py").write_text("y = 2")
+        _ = (tmp_path / "readme.md").write_text("# readme")
 
         files = find_files(tmp_path, include=["*.py"])
 
@@ -24,9 +24,9 @@ class TestFindFiles:
 
     def test_find_files_with_exclude(self, tmp_path: Path) -> None:
         """test file finding with exclude patterns."""
-        (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "main.py").write_text("main")
         (tmp_path / ".venv").mkdir()
-        (tmp_path / ".venv" / "script.py").write_text("venv script")
+        _ = (tmp_path / ".venv" / "script.py").write_text("venv script")
 
         files = find_files(tmp_path, include=["*.py"])
 
@@ -36,9 +36,9 @@ class TestFindFiles:
 
     def test_find_files_respects_gitignore(self, tmp_path: Path) -> None:
         """test that .gitignore files are respected."""
-        (tmp_path / "main.py").write_text("main")
-        (tmp_path / "ignored.py").write_text("ignored")
-        (tmp_path / ".gitignore").write_text("ignored.py\n")
+        _ = (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "ignored.py").write_text("ignored")
+        _ = (tmp_path / ".gitignore").write_text("ignored.py\n")
 
         files = find_files(tmp_path, include=["*.py"])
 
@@ -47,9 +47,9 @@ class TestFindFiles:
 
     def test_find_files_include_ignored(self, tmp_path: Path) -> None:
         """test including gitignored files."""
-        (tmp_path / "main.py").write_text("main")
-        (tmp_path / "ignored.py").write_text("ignored")
-        (tmp_path / ".gitignore").write_text("ignored.py\n")
+        _ = (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "ignored.py").write_text("ignored")
+        _ = (tmp_path / ".gitignore").write_text("ignored.py\n")
 
         files = find_files(tmp_path, include=["*.py"], respect_gitignore=False)
 
@@ -57,8 +57,8 @@ class TestFindFiles:
 
     def test_find_files_with_explicit_exclude(self, tmp_path: Path) -> None:
         """test find_files with explicit exclude parameter."""
-        (tmp_path / "main.py").write_text("main")
-        (tmp_path / "test.py").write_text("test")
+        _ = (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "test.py").write_text("test")
 
         # when exclude is explicitly provided, it should override defaults
         files = find_files(tmp_path, include=["*.py"], exclude=["test.py"])
@@ -68,10 +68,10 @@ class TestFindFiles:
 
     def test_find_files_no_include_pattern(self, tmp_path: Path) -> None:
         """test find_files without include pattern finds all files."""
-        (tmp_path / "main.py").write_text("main")
-        (tmp_path / "readme.md").write_text("readme")
+        _ = (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "readme.md").write_text("readme")
         (tmp_path / ".venv").mkdir()
-        (tmp_path / ".venv" / "script.py").write_text("venv script")
+        _ = (tmp_path / ".venv" / "script.py").write_text("venv script")
 
         files = find_files(tmp_path)
 
@@ -101,7 +101,7 @@ class TestSourceResolver:
 
     def test_resolver_resolve_with_files(self, tmp_path: Path) -> None:
         """test resolving files."""
-        (tmp_path / "file.py").write_text("x = 1")
+        _ = (tmp_path / "file.py").write_text("x = 1")
 
         resolver = SourceResolver(root=tmp_path, include=["*.py"])
         files = resolver.resolve()
@@ -120,9 +120,9 @@ class TestSourceResolver:
     def test_resolver_nested_directories(self, tmp_path: Path) -> None:
         """test resolver with nested directories."""
         (tmp_path / "src").mkdir()
-        (tmp_path / "src" / "main.py").write_text("main")
+        _ = (tmp_path / "src" / "main.py").write_text("main")
         (tmp_path / "src" / "utils").mkdir()
-        (tmp_path / "src" / "utils" / "helper.py").write_text("helper")
+        _ = (tmp_path / "src" / "utils" / "helper.py").write_text("helper")
 
         resolver = SourceResolver(root=tmp_path, include=["**/*.py"])
         files = resolver.resolve()
@@ -137,9 +137,9 @@ class TestGitignoreRespect:
 
     def test_gitignore_in_root(self, tmp_path: Path) -> None:
         """test .gitignore in root directory."""
-        (tmp_path / "keep.py").write_text("keep")
-        (tmp_path / "ignore.py").write_text("ignore")
-        (tmp_path / ".gitignore").write_text("ignore.py\n")
+        _ = (tmp_path / "keep.py").write_text("keep")
+        _ = (tmp_path / "ignore.py").write_text("ignore")
+        _ = (tmp_path / ".gitignore").write_text("ignore.py\n")
 
         resolver = SourceResolver(root=tmp_path, include=["*.py"])
         files = resolver.resolve()
@@ -150,9 +150,9 @@ class TestGitignoreRespect:
     def test_gitignore_in_subdirectories(self, tmp_path: Path) -> None:
         """test .gitignore files in subdirectories."""
         (tmp_path / "src").mkdir()
-        (tmp_path / "src" / "main.py").write_text("main")
-        (tmp_path / "src" / "temp.py").write_text("temp")
-        (tmp_path / "src" / ".gitignore").write_text("temp.py\n")
+        _ = (tmp_path / "src" / "main.py").write_text("main")
+        _ = (tmp_path / "src" / "temp.py").write_text("temp")
+        _ = (tmp_path / "src" / ".gitignore").write_text("temp.py\n")
 
         resolver = SourceResolver(root=tmp_path, include=["**/*.py"])
         files = resolver.resolve()
@@ -162,9 +162,9 @@ class TestGitignoreRespect:
 
     def test_gitignore_negation(self, tmp_path: Path) -> None:
         """test .gitignore negation patterns."""
-        (tmp_path / "all.py").write_text("all")
-        (tmp_path / "except.py").write_text("except")
-        (tmp_path / ".gitignore").write_text("*.py\n!except.py\n")
+        _ = (tmp_path / "all.py").write_text("all")
+        _ = (tmp_path / "except.py").write_text("except")
+        _ = (tmp_path / ".gitignore").write_text("*.py\n!except.py\n")
 
         resolver = SourceResolver(root=tmp_path, include=["*.py"])
         files = resolver.resolve()
@@ -174,10 +174,10 @@ class TestGitignoreRespect:
 
     def test_gitignore_directory_ignored(self, tmp_path: Path) -> None:
         """test that files in ignored directories are excluded."""
-        (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "main.py").write_text("main")
         (tmp_path / "build").mkdir()
-        (tmp_path / "build" / "output.py").write_text("output")
-        (tmp_path / ".gitignore").write_text("build/\n")
+        _ = (tmp_path / "build" / "output.py").write_text("output")
+        _ = (tmp_path / ".gitignore").write_text("build/\n")
 
         resolver = SourceResolver(root=tmp_path, include=["**/*.py"])
         files = resolver.resolve()
@@ -187,9 +187,9 @@ class TestGitignoreRespect:
 
     def test_gitignore_empty_lines_and_comments(self, tmp_path: Path) -> None:
         """test that empty lines and comments in .gitignore are skipped."""
-        (tmp_path / "main.py").write_text("main")
-        (tmp_path / "ignored.py").write_text("ignored")
-        (tmp_path / ".gitignore").write_text("# this is a comment\n\nignored.py\n")
+        _ = (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "ignored.py").write_text("ignored")
+        _ = (tmp_path / ".gitignore").write_text("# this is a comment\n\nignored.py\n")
 
         resolver = SourceResolver(root=tmp_path, include=["*.py"])
         files = resolver.resolve()
@@ -199,9 +199,9 @@ class TestGitignoreRespect:
 
     def test_gitignore_invalid_encoding(self, tmp_path: Path) -> None:
         """test handling of .gitignore files with invalid encoding."""
-        (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "main.py").write_text("main")
         gitignore = tmp_path / ".gitignore"
-        gitignore.write_bytes(b"\xff\xfeignored.py\n")  # invalid utf-8
+        _ = gitignore.write_bytes(b"\xff\xfeignored.py\n")  # invalid utf-8
 
         # should not raise, just skip the file
         resolver = SourceResolver(root=tmp_path, include=["*.py"])
@@ -213,9 +213,9 @@ class TestGitignoreRespect:
 
     def test_gitignore_permission_error(self, tmp_path: Path) -> None:
         """test handling of .gitignore files that can't be read."""
-        (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "main.py").write_text("main")
         gitignore = tmp_path / ".gitignore"
-        gitignore.write_text("ignored.py\n")
+        _ = gitignore.write_text("ignored.py\n")
 
         # make file unreadable (this might not work on Windows, so we skip if it fails)
         try:
@@ -237,7 +237,7 @@ class TestGitignoreRespect:
 
     def test_gitignore_directory_not_file(self, tmp_path: Path) -> None:
         """test that .gitignore directories are skipped."""
-        (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "main.py").write_text("main")
         # create a directory named .gitignore (edge case)
         (tmp_path / ".gitignore").mkdir()
 
@@ -250,12 +250,12 @@ class TestGitignoreRespect:
 
     def test_gitignore_parent_directory_traversal(self, tmp_path: Path) -> None:
         """test that parent directory gitignore rules are applied."""
-        (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "main.py").write_text("main")
         # create a deeply nested file
         (tmp_path / "a" / "b" / "c").mkdir(parents=True)
-        (tmp_path / "a" / "b" / "c" / "deep.py").write_text("deep")
+        _ = (tmp_path / "a" / "b" / "c" / "deep.py").write_text("deep")
         # ignore the 'b' directory
-        (tmp_path / ".gitignore").write_text("a/b/\n")
+        _ = (tmp_path / ".gitignore").write_text("a/b/\n")
 
         resolver = SourceResolver(root=tmp_path, include=["**/*.py"])
         files = resolver.resolve()
@@ -270,8 +270,8 @@ class TestPatternMatching:
 
     def test_include_pattern(self, tmp_path: Path) -> None:
         """test include patterns."""
-        (tmp_path / "main.py").write_text("main")
-        (tmp_path / "readme.md").write_text("readme")
+        _ = (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "readme.md").write_text("readme")
 
         resolver = SourceResolver(root=tmp_path, include=["*.py"])
         files = resolver.resolve()
@@ -281,8 +281,8 @@ class TestPatternMatching:
 
     def test_exclude_pattern(self, tmp_path: Path) -> None:
         """test exclude patterns."""
-        (tmp_path / "main.py").write_text("main")
-        (tmp_path / "test.py").write_text("test")
+        _ = (tmp_path / "main.py").write_text("main")
+        _ = (tmp_path / "test.py").write_text("test")
 
         resolver = SourceResolver(
             root=tmp_path,
@@ -297,9 +297,9 @@ class TestPatternMatching:
     def test_globstar_pattern(self, tmp_path: Path) -> None:
         """test ** glob patterns."""
         (tmp_path / "src").mkdir()
-        (tmp_path / "src" / "main.py").write_text("main")
+        _ = (tmp_path / "src" / "main.py").write_text("main")
         (tmp_path / "tests").mkdir()
-        (tmp_path / "tests" / "test.py").write_text("test")
+        _ = (tmp_path / "tests" / "test.py").write_text("test")
 
         resolver = SourceResolver(root=tmp_path, include=["src/**/*.py"])
         files = resolver.resolve()
@@ -315,7 +315,7 @@ class TestPatternMatching:
         root = tmp_path / "project"
         root.mkdir()
         outside_file = tmp_path / "outside.py"
-        outside_file.write_text("outside")
+        _ = outside_file.write_text("outside")
 
         pm = PatternMatcher(include=["*.py"], exclude=[])
         # this should handle the ValueError and use absolute path
@@ -328,7 +328,7 @@ class TestPatternMatching:
         """test ** pattern matching with suffix only pattern."""
         (tmp_path / "deep").mkdir()
         (tmp_path / "deep" / "nested").mkdir()
-        (tmp_path / "deep" / "nested" / "file.py").write_text("deep")
+        _ = (tmp_path / "deep" / "nested" / "file.py").write_text("deep")
 
         resolver = SourceResolver(root=tmp_path, include=["**/file.py"])
         files = resolver.resolve()
@@ -338,7 +338,7 @@ class TestPatternMatching:
 
     def test_pattern_no_include_no_exclude(self, tmp_path: Path) -> None:
         """test pattern matching with no patterns."""
-        (tmp_path / "file.txt").write_text("text")
+        _ = (tmp_path / "file.txt").write_text("text")
 
         resolver = SourceResolver(root=tmp_path)
         files = resolver.resolve()

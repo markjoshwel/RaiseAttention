@@ -7,6 +7,7 @@ code coverage for these low-coverage detectors.
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from unittest import mock
 
@@ -28,7 +29,7 @@ class TestHatchDetectorEdgeCases:
     def test_empty_pyproject_toml(self, tmp_path: Path) -> None:
         """test that empty pyproject.toml is handled gracefully."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("")
+        _ = pyproject.write_text("")
 
         result = detect_hatch(tmp_path)
         assert result is None
@@ -36,7 +37,7 @@ class TestHatchDetectorEdgeCases:
     def test_invalid_toml_syntax(self, tmp_path: Path) -> None:
         """test that invalid toml syntax is handled gracefully."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("invalid toml [[{{content")
+        _ = pyproject.write_text("invalid toml [[{{content")
 
         result = detect_hatch(tmp_path)
         assert result is None
@@ -44,7 +45,7 @@ class TestHatchDetectorEdgeCases:
     def test_missing_tool_section(self, tmp_path: Path) -> None:
         """test pyproject.toml without [tool] section."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("""
+        _ = pyproject.write_text("""
 [project]
 name = "test"
 version = "0.1.0"
@@ -56,7 +57,7 @@ version = "0.1.0"
     def test_missing_hatch_section(self, tmp_path: Path) -> None:
         """test pyproject.toml without [tool.hatch] section."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("""
+        _ = pyproject.write_text("""
 [tool.poetry]
 name = "test"
 """)
@@ -67,7 +68,7 @@ name = "test"
     def test_missing_envs_section(self, tmp_path: Path) -> None:
         """test pyproject.toml without [tool.hatch.envs] section."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("""
+        _ = pyproject.write_text("""
 [tool.hatch.build]
 targets = ["wheel"]
 """)
@@ -78,7 +79,7 @@ targets = ["wheel"]
     def test_empty_envs_section(self, tmp_path: Path) -> None:
         """test pyproject.toml with empty [tool.hatch.envs] section."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("""
+        _ = pyproject.write_text("""
 [tool.hatch.envs]
 """)
 
@@ -88,7 +89,7 @@ targets = ["wheel"]
     def test_missing_default_env(self, tmp_path: Path) -> None:
         """test pyproject.toml with envs but no default env."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("""
+        _ = pyproject.write_text("""
 [tool.hatch.envs.production]
 path = ".venv-prod"
 """)
@@ -101,23 +102,21 @@ path = ".venv-prod"
 
     def test_custom_venv_path(self, tmp_path: Path) -> None:
         """test custom venv path in hatch configuration."""
-        import sys
-
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("""
+        _ = pyproject.write_text("""
 [tool.hatch.envs.default]
 path = "custom-venv"
 """)
         venv = tmp_path / "custom-venv"
         venv.mkdir()
-        (venv / "pyvenv.cfg").write_text("")
+        _ = (venv / "pyvenv.cfg").write_text("")
         # create python executable
         if sys.platform == "win32":
             python_exe = venv / "Scripts" / "python.exe"
         else:
             python_exe = venv / "bin" / "python"
         python_exe.parent.mkdir(parents=True, exist_ok=True)
-        python_exe.write_text("")
+        _ = python_exe.write_text("")
 
         result = detect_hatch(tmp_path)
         assert result is not None
@@ -126,23 +125,21 @@ path = "custom-venv"
 
     def test_absolute_venv_path(self, tmp_path: Path) -> None:
         """test absolute venv path in hatch configuration."""
-        import sys
-
         abs_venv = tmp_path / "absolute-venv"
         abs_venv.mkdir()
-        (abs_venv / "pyvenv.cfg").write_text("")
+        _ = (abs_venv / "pyvenv.cfg").write_text("")
         # create python executable
         if sys.platform == "win32":
             python_exe = abs_venv / "Scripts" / "python.exe"
         else:
             python_exe = abs_venv / "bin" / "python"
         python_exe.parent.mkdir(parents=True, exist_ok=True)
-        python_exe.write_text("")
+        _ = python_exe.write_text("")
 
         pyproject = tmp_path / "pyproject.toml"
         # use as_posix() for consistent path separators in toml
         path_str = abs_venv.as_posix()
-        pyproject.write_text(f"""
+        _ = pyproject.write_text(f"""
 [tool.hatch.envs.default]
 path = "{path_str}"
 """)
@@ -150,13 +147,14 @@ path = "{path_str}"
         result = detect_hatch(tmp_path)
         assert result is not None
         # venv_path should be absolute and exist
+        assert result.venv_path is not None
         assert result.venv_path.is_absolute()
         assert "absolute-venv" in str(result.venv_path)
 
     def test_nonexistent_venv_path(self, tmp_path: Path) -> None:
         """test when configured venv path does not exist."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("""
+        _ = pyproject.write_text("""
 [tool.hatch.envs.default]
 path = "nonexistent-venv"
 """)
@@ -168,7 +166,7 @@ path = "nonexistent-venv"
     def test_permission_error_on_pyproject(self, tmp_path: Path) -> None:
         """test permission error when reading pyproject.toml."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("""
+        _ = pyproject.write_text("""
 [tool.hatch.envs.default]
 path = ".venv"
 """)
@@ -180,7 +178,7 @@ path = ".venv"
     def test_oserror_on_pyproject(self, tmp_path: Path) -> None:
         """test oserror when reading pyproject.toml."""
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text("""
+        _ = pyproject.write_text("""
 [tool.hatch.envs.default]
 path = ".venv"
 """)
@@ -200,14 +198,14 @@ class TestPdmDetectorEdgeCases:
 
     def test_pdm_lock_only_no_config(self, tmp_path: Path) -> None:
         """test pdm.lock without .pdm.toml or .venv."""
-        (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / "pdm.lock").write_text("")
 
         result = detect_pdm(tmp_path)
         assert result is None
 
     def test_pdm_lock_with_nonexistent_venv(self, tmp_path: Path) -> None:
         """test pdm.lock without .pdm.toml but nonexistent .venv."""
-        (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / "pdm.lock").write_text("")
         # .venv directory does not exist
 
         result = detect_pdm(tmp_path)
@@ -215,24 +213,24 @@ class TestPdmDetectorEdgeCases:
 
     def test_empty_pdm_toml(self, tmp_path: Path) -> None:
         """test empty .pdm.toml file."""
-        (tmp_path / "pdm.lock").write_text("")
-        (tmp_path / ".pdm.toml").write_text("")
+        _ = (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / ".pdm.toml").write_text("")
 
         result = detect_pdm(tmp_path)
         assert result is None
 
     def test_invalid_toml_in_pdm_config(self, tmp_path: Path) -> None:
         """test invalid toml syntax in .pdm.toml."""
-        (tmp_path / "pdm.lock").write_text("")
-        (tmp_path / ".pdm.toml").write_text("invalid [[toml {{content")
+        _ = (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / ".pdm.toml").write_text("invalid [[toml {{content")
 
         result = detect_pdm(tmp_path)
         assert result is None
 
     def test_pdm_toml_without_python_section(self, tmp_path: Path) -> None:
         """test .pdm.toml without [python] section."""
-        (tmp_path / "pdm.lock").write_text("")
-        (tmp_path / ".pdm.toml").write_text("""
+        _ = (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / ".pdm.toml").write_text("""
 [project]
 name = "test"
 """)
@@ -242,8 +240,8 @@ name = "test"
 
     def test_pdm_toml_without_path_key(self, tmp_path: Path) -> None:
         """test .pdm.toml with [python] section but no path key."""
-        (tmp_path / "pdm.lock").write_text("")
-        (tmp_path / ".pdm.toml").write_text("""
+        _ = (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / ".pdm.toml").write_text("""
 [python]
 version = "3.10.0"
 """)
@@ -253,8 +251,8 @@ version = "3.10.0"
 
     def test_pdm_toml_with_empty_path(self, tmp_path: Path) -> None:
         """test .pdm.toml with empty python path."""
-        (tmp_path / "pdm.lock").write_text("")
-        (tmp_path / ".pdm.toml").write_text("""
+        _ = (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / ".pdm.toml").write_text("""
 [python]
 path = ""
 """)
@@ -264,8 +262,8 @@ path = ""
 
     def test_pdm_toml_with_nonexistent_python_path(self, tmp_path: Path) -> None:
         """test .pdm.toml pointing to nonexistent python path."""
-        (tmp_path / "pdm.lock").write_text("")
-        (tmp_path / ".pdm.toml").write_text("""
+        _ = (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / ".pdm.toml").write_text("""
 [python]
 path = "/nonexistent/python"
 """)
@@ -277,18 +275,18 @@ path = "/nonexistent/python"
 
     def test_pdm_toml_with_valid_python_path(self, tmp_path: Path) -> None:
         """test .pdm.toml pointing to valid python path."""
-        (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / "pdm.lock").write_text("")
         # create a mock python executable
         venv_path = tmp_path / ".venv"
         venv_path.mkdir()
-        if __import__("sys").platform == "win32":
+        if sys.platform == "win32":
             python_exe = venv_path / "Scripts" / "python.exe"
         else:
             python_exe = venv_path / "bin" / "python"
         python_exe.parent.mkdir(parents=True)
-        python_exe.write_text("")
+        _ = python_exe.write_text("")
 
-        (tmp_path / ".pdm.toml").write_text(f"""
+        _ = (tmp_path / ".pdm.toml").write_text(f"""
 [python]
 path = "{python_exe}"
 """)
@@ -302,8 +300,8 @@ path = "{python_exe}"
 
     def test_permission_error_on_pdm_toml(self, tmp_path: Path) -> None:
         """test permission error when reading .pdm.toml."""
-        (tmp_path / "pdm.lock").write_text("")
-        (tmp_path / ".pdm.toml").write_text("""
+        _ = (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / ".pdm.toml").write_text("""
 [python]
 path = "/some/path"
 """)
@@ -315,8 +313,8 @@ path = "/some/path"
 
     def test_oserror_on_pdm_toml(self, tmp_path: Path) -> None:
         """test oserror when reading .pdm.toml."""
-        (tmp_path / "pdm.lock").write_text("")
-        (tmp_path / ".pdm.toml").write_text("""
+        _ = (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / ".pdm.toml").write_text("""
 [python]
 path = "/some/path"
 """)
@@ -328,17 +326,17 @@ path = "/some/path"
 
     def test_fallback_to_venv_with_python(self, tmp_path: Path) -> None:
         """test fallback to .venv when .pdm.toml is missing but .venv exists with python."""
-        (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / "pdm.lock").write_text("")
         venv = tmp_path / ".venv"
         venv.mkdir()
-        (venv / "pyvenv.cfg").write_text("")
+        _ = (venv / "pyvenv.cfg").write_text("")
 
-        if __import__("sys").platform == "win32":
+        if sys.platform == "win32":
             python_exe = venv / "Scripts" / "python.exe"
         else:
             python_exe = venv / "bin" / "python"
         python_exe.parent.mkdir(parents=True, exist_ok=True)
-        python_exe.write_text("")
+        _ = python_exe.write_text("")
 
         result = detect_pdm(tmp_path)
         assert result is not None
@@ -349,10 +347,10 @@ path = "/some/path"
 
     def test_fallback_to_venv_without_python(self, tmp_path: Path) -> None:
         """test fallback to .venv when python executable is missing."""
-        (tmp_path / "pdm.lock").write_text("")
+        _ = (tmp_path / "pdm.lock").write_text("")
         venv = tmp_path / ".venv"
         venv.mkdir()
-        (venv / "pyvenv.cfg").write_text("")
+        _ = (venv / "pyvenv.cfg").write_text("")
         # no python executable created
 
         result = detect_pdm(tmp_path)
@@ -373,7 +371,7 @@ class TestPyenvDetectorEdgeCases:
 
     def test_empty_python_version_file(self, tmp_path: Path) -> None:
         """test empty .python-version file."""
-        (tmp_path / ".python-version").write_text("")
+        _ = (tmp_path / ".python-version").write_text("")
 
         result = detect_pyenv(tmp_path)
         assert result is not None
@@ -383,7 +381,7 @@ class TestPyenvDetectorEdgeCases:
 
     def test_whitespace_only_python_version(self, tmp_path: Path) -> None:
         """test .python-version containing only whitespace."""
-        (tmp_path / ".python-version").write_text("   \n\t  ")
+        _ = (tmp_path / ".python-version").write_text("   \n\t  ")
 
         result = detect_pyenv(tmp_path)
         assert result is not None
@@ -392,7 +390,7 @@ class TestPyenvDetectorEdgeCases:
 
     def test_python_version_with_newline(self, tmp_path: Path) -> None:
         """test .python-version with trailing newline."""
-        (tmp_path / ".python-version").write_text("3.10.5\n")
+        _ = (tmp_path / ".python-version").write_text("3.10.5\n")
 
         result = detect_pyenv(tmp_path)
         assert result is not None
@@ -400,7 +398,7 @@ class TestPyenvDetectorEdgeCases:
 
     def test_python_version_with_whitespace(self, tmp_path: Path) -> None:
         """test .python-version with surrounding whitespace."""
-        (tmp_path / ".python-version").write_text("  3.10.5  ")
+        _ = (tmp_path / ".python-version").write_text("  3.10.5  ")
 
         result = detect_pyenv(tmp_path)
         assert result is not None
@@ -408,7 +406,7 @@ class TestPyenvDetectorEdgeCases:
 
     def test_invalid_python_version_string(self, tmp_path: Path) -> None:
         """test .python-version with invalid version string."""
-        (tmp_path / ".python-version").write_text("not-a-version")
+        _ = (tmp_path / ".python-version").write_text("not-a-version")
 
         result = detect_pyenv(tmp_path)
         assert result is not None
@@ -418,7 +416,7 @@ class TestPyenvDetectorEdgeCases:
 
     def test_default_pyenv_root(self, tmp_path: Path) -> None:
         """test default pyenv root when PYENV_ROOT not set."""
-        (tmp_path / ".python-version").write_text("3.10.5")
+        _ = (tmp_path / ".python-version").write_text("3.10.5")
 
         # provide a fake home directory to avoid RuntimeError
         fake_home = tmp_path / "fake_home"
@@ -434,8 +432,6 @@ class TestPyenvDetectorEdgeCases:
 
     def test_custom_pyenv_root(self, tmp_path: Path) -> None:
         """test custom pyenv root from environment variable."""
-        import sys
-
         custom_root = tmp_path / "custom_pyenv"
         custom_root.mkdir()
         version_dir = custom_root / "versions" / "3.10.5"
@@ -450,9 +446,9 @@ class TestPyenvDetectorEdgeCases:
         else:
             python_exe = version_dir / "bin" / "python"
         python_exe.parent.mkdir(parents=True, exist_ok=True)
-        python_exe.write_text("")
+        _ = python_exe.write_text("")
 
-        (tmp_path / ".python-version").write_text("3.10.5")
+        _ = (tmp_path / ".python-version").write_text("3.10.5")
 
         with mock.patch.dict("os.environ", {"PYENV_ROOT": str(custom_root)}):
             result = detect_pyenv(tmp_path)
@@ -462,7 +458,7 @@ class TestPyenvDetectorEdgeCases:
 
     def test_nonexistent_pyenv_root(self, tmp_path: Path) -> None:
         """test when pyenv root directory does not exist."""
-        (tmp_path / ".python-version").write_text("3.10.5")
+        _ = (tmp_path / ".python-version").write_text("3.10.5")
 
         with mock.patch.dict("os.environ", {"PYENV_ROOT": "/nonexistent/pyenv"}):
             result = detect_pyenv(tmp_path)
@@ -475,7 +471,7 @@ class TestPyenvDetectorEdgeCases:
         pyenv_root.mkdir()
         (pyenv_root / "versions").mkdir()
 
-        (tmp_path / ".python-version").write_text("3.10.5")
+        _ = (tmp_path / ".python-version").write_text("3.10.5")
 
         with mock.patch.dict("os.environ", {"PYENV_ROOT": str(pyenv_root)}):
             result = detect_pyenv(tmp_path)
@@ -485,7 +481,7 @@ class TestPyenvDetectorEdgeCases:
     def test_oserror_on_reading_version_file(self, tmp_path: Path) -> None:
         """test oserror when reading .python-version file."""
         version_file = tmp_path / ".python-version"
-        version_file.write_text("3.10.5")
+        _ = version_file.write_text("3.10.5")
 
         with mock.patch.object(Path, "read_text", side_effect=OSError("disk error")):
             result = detect_pyenv(tmp_path)
@@ -494,7 +490,7 @@ class TestPyenvDetectorEdgeCases:
     def test_permission_error_on_reading_version_file(self, tmp_path: Path) -> None:
         """test permission error when reading .python-version file."""
         version_file = tmp_path / ".python-version"
-        version_file.write_text("3.10.5")
+        _ = version_file.write_text("3.10.5")
 
         with mock.patch.object(Path, "read_text", side_effect=PermissionError("access denied")):
             result = detect_pyenv(tmp_path)
@@ -507,7 +503,7 @@ class TestPyenvDetectorEdgeCases:
         version_dir.mkdir(parents=True)
         # no python executable
 
-        (tmp_path / ".python-version").write_text("3.10.5")
+        _ = (tmp_path / ".python-version").write_text("3.10.5")
 
         with mock.patch.dict("os.environ", {"PYENV_ROOT": str(pyenv_root)}):
             result = detect_pyenv(tmp_path)
@@ -517,9 +513,7 @@ class TestPyenvDetectorEdgeCases:
 
     def test_pyenv_with_multiple_versions(self, tmp_path: Path) -> None:
         """test .python-version with multiple versions (pyenv supports this)."""
-        import sys
-
-        (tmp_path / ".python-version").write_text("3.10.5\n3.9.0")
+        _ = (tmp_path / ".python-version").write_text("3.10.5\n3.9.0")
 
         pyenv_root = tmp_path / ".pyenv"
         version_dir = pyenv_root / "versions" / "3.10.5"
@@ -530,7 +524,7 @@ class TestPyenvDetectorEdgeCases:
         else:
             python_exe = version_dir / "bin" / "python"
             python_exe.parent.mkdir(parents=True, exist_ok=True)
-        python_exe.write_text("")
+        _ = python_exe.write_text("")
 
         with mock.patch.dict("os.environ", {"PYENV_ROOT": str(pyenv_root)}):
             result = detect_pyenv(tmp_path)
@@ -538,15 +532,17 @@ class TestPyenvDetectorEdgeCases:
             # should use the first version (stripped of newlines and following lines)
             # note: detector strips entire content, so includes both lines
             # this tests the actual behavior - detector could be improved
+            assert result.python_version is not None
             assert "3.10.5" in result.python_version
 
     def test_tilde_expansion_in_pyenv_root(self, tmp_path: Path) -> None:
         """test tilde expansion in PYENV_ROOT path."""
-        (tmp_path / ".python-version").write_text("3.10.5")
+        _ = (tmp_path / ".python-version").write_text("3.10.5")
 
         with mock.patch.dict("os.environ", {"PYENV_ROOT": "~/.pyenv"}):
             result = detect_pyenv(tmp_path)
             assert result is not None
             # path should be expanded
+            assert result.venv_path is not None
             assert result.venv_path.is_absolute()
             assert ".pyenv" in str(result.venv_path)

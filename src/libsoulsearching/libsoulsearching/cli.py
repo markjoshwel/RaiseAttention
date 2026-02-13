@@ -34,32 +34,32 @@ examples:
         """,
     )
 
-    parser.add_argument(
+    _ = parser.add_argument(
         "project_root",
         nargs="?",
         default=".",
         help="project directory to search (default: current directory)",
     )
 
-    parser.add_argument(
+    _ = parser.add_argument(
         "--tool",
         choices=[t.value for t in ToolType],
         help="detect only this specific tool",
     )
 
-    parser.add_argument(
+    _ = parser.add_argument(
         "--all",
         action="store_true",
         help="show all detected venvs, not just the first",
     )
 
-    parser.add_argument(
+    _ = parser.add_argument(
         "--json",
         action="store_true",
         help="output as json",
     )
 
-    parser.add_argument(
+    _ = parser.add_argument(
         "--version",
         action="version",
         version="%(prog)s 0.1.0",
@@ -125,26 +125,33 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = create_parser()
     args = parser.parse_args(argv)
 
-    project_path = Path(args.project_root)
+    # extract args with getattr to avoid Any propagation from Namespace
+    project_root = str(getattr(args, "project_root", "."))
+    tool_arg_raw = getattr(args, "tool", None)
+    tool_arg = str(tool_arg_raw) if tool_arg_raw is not None else None  # pyright: ignore[reportAny]
+    show_all = bool(getattr(args, "all", False))
+    json_output = bool(getattr(args, "json", False))
+
+    project_path = Path(project_root)
 
     if not project_path.exists():
         print(f"error: path not found: {project_path}", file=sys.stderr)
         return 1
 
-    tool = None
-    if args.tool:
-        tool = ToolType(args.tool)
+    tool: ToolType | None = None
+    if tool_arg:
+        tool = ToolType(tool_arg)
 
-    if args.all:
+    if show_all:
         results = find_all_venvs(project_path)
         if not results:
-            if not args.json:
+            if not json_output:
                 print("no virtual environments found")
             else:
                 print("[]")
             return 0
 
-        if args.json:
+        if json_output:
             output = [
                 {
                     "tool": r.tool.value,
@@ -163,13 +170,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     else:
         result = find_venv(project_path, tool=tool)
         if result is None:
-            if not args.json:
+            if not json_output:
                 print("no virtual environment found")
             else:
                 print("null")
             return 0
 
-        print(format_output(result, json_output=args.json))
+        print(format_output(result, json_output=json_output))
 
     return 0
 

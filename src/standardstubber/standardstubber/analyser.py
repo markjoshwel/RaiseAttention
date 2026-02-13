@@ -372,7 +372,7 @@ class CPythonAnalyser:
 
         # find all clinic input blocks
         # pattern: /*[clinic input] ... [clinic start generated code]*/
-        clinic_blocks = re.findall(
+        clinic_blocks: list[str] = re.findall(
             r"/\*\[clinic input\](.*?)\[clinic start generated code\]\*/",
             file_content,
             re.DOTALL,
@@ -381,8 +381,8 @@ class CPythonAnalyser:
         for block in clinic_blocks:
             # look for constructor declarations in each block
             for line in block.split("\n"):
-                line = line.strip()
-                match = _CLINIC_CONSTRUCTOR_PATTERN.match(line)
+                stripped_line = line.strip()
+                match = _CLINIC_CONSTRUCTOR_PATTERN.match(stripped_line)
                 if match:
                     type_name = match.group(1)  # e.g., "int", "float"
                     method = match.group(2)  # "__new__" or "__init__"

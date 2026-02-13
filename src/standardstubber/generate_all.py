@@ -157,42 +157,50 @@ def main() -> int:
         prog="generate_all",
         description="generate all stdlib pyras stubs for python 3.10-3.14",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--jobs",
         "-j",
         type=int,
         default=None,
         help="number of parallel jobs (default: cpu count)",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
         help="enable verbose logging",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--profile",
         action="store_true",
         help="enable profiling (implies verbose)",
     )
-    parser.add_argument(
+    _ = parser.add_argument(
         "--debug",
         action="store_true",
         help="enable debug logging",
     )
 
-    args = parser.parse_args()
+    parsed = parser.parse_args()
+
+    # extract typed values from argparse namespace
+    debug: bool = parsed.debug  # pyright: ignore[reportAny]
+    verbose: bool = parsed.verbose  # pyright: ignore[reportAny]
+    profile: bool = parsed.profile  # pyright: ignore[reportAny]
+    jobs: int | None = parsed.jobs  # pyright: ignore[reportAny]
 
     # configure logging
-    if args.debug:
+    if debug:
         logging.basicConfig(level=logging.DEBUG, format="%(message)s")
-    elif args.verbose or args.profile:
+    elif verbose or profile:
         logging.basicConfig(level=logging.INFO, format="%(message)s")
     else:
         logging.basicConfig(level=logging.WARNING, format="%(message)s")
 
-    resources_dir = Path(__file__).parent.joinpath("resources")
-    output_dir = Path(__file__).parent.parent.joinpath("raiseattention", "stubs", "stdlib")
+    # paths are relative to this script's directory (src/standardstubber/)
+    script_dir = Path(__file__).parent
+    resources_dir = script_dir.joinpath("resources")
+    output_dir = script_dir.joinpath("../raiseattention/stubs/stdlib")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # dynamically find tarballs
@@ -204,7 +212,7 @@ def main() -> int:
     print(f"found {len(tarballs)} python versions: {[t.name for t in tarballs]}")
 
     # detect number of cores
-    num_cores = args.jobs if args.jobs is not None else (os.cpu_count() or 4)
+    num_cores = jobs if jobs is not None else (os.cpu_count() or 4)
     print(f"using {num_cores} cores for parallel module analysis")
     print()
 

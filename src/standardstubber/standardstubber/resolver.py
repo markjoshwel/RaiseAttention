@@ -11,7 +11,7 @@ import logging
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Final
+from typing import Final, cast
 
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
@@ -121,11 +121,12 @@ class StubResolver:
                 # check version compatibility
                 try:
                     with open(stub_file, "rb") as f:
-                        data = tomllib.load(f)
+                        data = cast(dict[str, object], tomllib.load(f))
 
-                    metadata = data.get("metadata", {})
-                    version_spec = metadata.get("version", "*")
-                    specifier = SpecifierSet(str(version_spec))
+                    metadata_raw = data.get("metadata", {})
+                    metadata = cast(dict[str, object], metadata_raw)
+                    version_spec = str(metadata.get("version", "*"))
+                    specifier = SpecifierSet(version_spec)
 
                     if self.target_version in specifier:
                         specificity = self._specificity(specifier)

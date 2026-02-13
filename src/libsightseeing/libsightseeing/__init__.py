@@ -31,7 +31,6 @@ usage:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 from .core import SourceResolver
 
@@ -77,15 +76,19 @@ def find_files(
         files = find_files(".", include=["*.py"], respect_gitignore=False)
         ```
     """
-    # build kwargs, only including exclude if explicitly provided
-    # this preserves the default exclude patterns from SourceResolver
-    kwargs: dict[str, Any] = {
-        "root": Path(root),
-        "include": include or [],
-        "respect_gitignore": respect_gitignore,
-    }
+    # call constructor directly, conditionally passing exclude
+    # this preserves the default exclude patterns from SourceResolver when not specified
     if exclude is not None:
-        kwargs["exclude"] = exclude
-
-    resolver = SourceResolver(**kwargs)
+        resolver = SourceResolver(
+            root=Path(root),
+            include=include or [],
+            exclude=exclude,
+            respect_gitignore=respect_gitignore,
+        )
+    else:
+        resolver = SourceResolver(
+            root=Path(root),
+            include=include or [],
+            respect_gitignore=respect_gitignore,
+        )
     return resolver.resolve()

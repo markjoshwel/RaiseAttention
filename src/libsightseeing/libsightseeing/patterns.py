@@ -34,6 +34,9 @@ class PatternMatcher:
         ```
     """
 
+    include: list[str]
+    exclude: list[str]
+
     def __init__(self, include: list[str], exclude: list[str]) -> None:
         """
         initialise the pattern matcher.

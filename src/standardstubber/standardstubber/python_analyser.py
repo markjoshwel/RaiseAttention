@@ -14,6 +14,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
+from typing_extensions import override
+
 from .models import Confidence, FunctionStub
 
 logger = logging.getLogger(__name__)
@@ -204,6 +206,7 @@ class ExceptionVisitor(ast.NodeVisitor):
         self._current_function: str | None = None
         self._current_qualname: str | None = None
 
+    @override
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """visit a class definition."""
         old_class = self._current_class
@@ -211,10 +214,12 @@ class ExceptionVisitor(ast.NodeVisitor):
         self.generic_visit(node)
         self._current_class = old_class
 
+    @override
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """visit a function definition."""
         self._visit_function(node)
 
+    @override
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
         """visit an async function definition."""
         self._visit_function(node)
@@ -243,6 +248,7 @@ class ExceptionVisitor(ast.NodeVisitor):
         self._current_function = old_function
         self._current_qualname = old_qualname
 
+    @override
     def visit_Raise(self, node: ast.Raise) -> None:
         """visit a raise statement."""
         if self._current_qualname is None:
@@ -257,6 +263,7 @@ class ExceptionVisitor(ast.NodeVisitor):
         if exc_type:
             func_info.local_raises.add(exc_type)
 
+    @override
     def visit_Call(self, node: ast.Call) -> None:
         """visit a function call."""
         if self._current_qualname is None:

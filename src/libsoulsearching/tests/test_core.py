@@ -77,7 +77,7 @@ class TestFindAllVenvs:
     def test_multiple_tools(self, poetry_project: Path) -> None:
         """test detecting multiple tools (e.g., uv.lock + .venv)."""
         # create a project with both uv.lock and .venv
-        (poetry_project / "uv.lock").write_text("")
+        _ = (poetry_project / "uv.lock").write_text("")
 
         results = find_all_venvs(poetry_project)
 

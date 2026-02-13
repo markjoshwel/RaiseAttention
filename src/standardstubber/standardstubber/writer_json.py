@@ -10,11 +10,19 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import TypeAlias
 
 from .models import Confidence, StubMetadata
 
 logger = logging.getLogger(__name__)
+
+# type alias for the nested JSON structure
+# structure: module -> class -> method -> (exception -> confidence) or list[exception]
+MethodData: TypeAlias = "dict[str, str] | list[str]"
+ClassData: TypeAlias = "dict[str, MethodData]"
+ModuleData: TypeAlias = "dict[str, ClassData]"
+NestedStubs: TypeAlias = "dict[str, ModuleData]"
+JsonOutput: TypeAlias = "dict[str, object]"
 
 # test module patterns to skip
 test_module_prefixes = ("_test", "xx", "_xx")
@@ -103,8 +111,12 @@ def write_stub_file_json_v2(
         number of unique stubs written
     """
     # build nested structure: module -> class -> method -> exception -> confidence
-    # can also be list for compactness (all default confidence)
-    nested: dict[str, Any] = {}
+    # the structure starts as dict[str, dict[str, dict[str, dict[str, str]]]]
+    # but transforms during cleanup to allow list[str] for method values
+    # we use explicit typing throughout to satisfy basedpyright
+
+    # phase 1: build initial structure (all dicts)
+    nested: dict[str, dict[str, dict[str, dict[str, str]]]] = {}
 
     for qualname, raises, confidence_str, _ in raw_stubs:
         confidence = confidence_str if confidence_str else Confidence.LIKELY.value
@@ -148,39 +160,9 @@ def write_stub_file_json_v2(
                 else:
                     nested[module][class_name][method][exc] = ""
 
-    # clean up: remove empty confidence values for compactness
-    for module in nested:
-        for class_name in nested[module]:
-            for method in nested[module][class_name]:
-                # convert {"exc": ""} to just ["exc"] list for default confidence
-                exc_dict = nested[module][class_name][method]
-                default_conf_exceptions = [exc for exc, conf in exc_dict.items() if not conf]
-                non_default_conf_exceptions = {exc: conf for exc, conf in exc_dict.items() if conf}
-
-                # rebuild: list for default, dict for non-default
-                if default_conf_exceptions and non_default_conf_exceptions:
-                    # mixed - keep as dict, but default ones get "likely" explicitly
-                    nested[module][class_name][method] = {
-                        exc: Confidence.LIKELY.value for exc in default_conf_exceptions
-                    }
-                    nested[module][class_name][method].update(non_default_conf_exceptions)
-                elif default_conf_exceptions:
-                    # all default - use list for compactness
-                    nested[module][class_name][method] = sorted(default_conf_exceptions)
-                else:
-                    # all non-default - use dict
-                    nested[module][class_name][method] = non_default_conf_exceptions
-
-    # remove empty class entries
-    for module in list(nested.keys()):
-        for class_name in list(nested[module].keys()):
-            if not nested[module][class_name]:
-                del nested[module][class_name]
-        if not nested[module]:
-            del nested[module]
-
-    # prepare output structure
-    output: dict[str, Any] = {
+    # phase 2: clean up and convert to final output structure
+    # at this point we transform the nested dict into the output format
+    output: JsonOutput = {
         "metadata": {
             "name": metadata.name,
             "version": metadata.version,
@@ -190,27 +172,77 @@ def write_stub_file_json_v2(
     }
 
     if metadata.package:
-        output["metadata"]["package"] = metadata.package
+        meta = output["metadata"]
+        if isinstance(meta, dict):
+            meta["package"] = metadata.package
     if metadata.generated_at:
-        output["metadata"]["generated_at"] = metadata.generated_at.isoformat()
+        meta = output["metadata"]
+        if isinstance(meta, dict):
+            meta["generated_at"] = metadata.generated_at.isoformat()
 
-    # add all module data (sorted for determinism)
+    # process each module and build final output
     for module in sorted(nested.keys()):
-        output[module] = {}
+        module_output: dict[str, object] = {}
+
         for class_name in sorted(nested[module].keys()):
+            class_data = nested[module][class_name]
+
+            # skip empty classes
+            if not class_data:
+                continue
+
             if class_name:  # normal class
-                output[module][class_name] = {}
-                for method in sorted(nested[module][class_name].keys()):
-                    output[module][class_name][method] = nested[module][class_name][method]
+                class_output: dict[str, dict[str, str] | list[str]] = {}
+                for method in sorted(class_data.keys()):
+                    exc_dict = class_data[method]
+                    class_output[method] = _convert_exc_dict(exc_dict)
+                if class_output:
+                    module_output[class_name] = class_output
             else:  # module-level functions - merge into module directly
-                for method in sorted(nested[module][class_name].keys()):
-                    output[module][method] = nested[module][class_name][method]
+                for method in sorted(class_data.keys()):
+                    exc_dict = class_data[method]
+                    module_output[method] = _convert_exc_dict(exc_dict)
+
+        if module_output:
+            output[module] = module_output
 
     # write json file
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, sort_keys=False, ensure_ascii=False)
 
-    num_written = sum(len(methods) for module in nested.values() for methods in module.values())
+    num_written = sum(
+        len(class_data) for module_data in nested.values() for class_data in module_data.values()
+    )
     logger.info("wrote %d unique stubs to %s (v2.0 json)", num_written, output_path)
     return num_written
+
+
+def _convert_exc_dict(exc_dict: dict[str, str]) -> dict[str, str] | list[str]:
+    """
+    convert exception dict to compact format.
+
+    if all exceptions have default (empty) confidence, return a sorted list.
+    otherwise return a dict with confidences.
+
+    arguments:
+        `exc_dict: dict[str, str]`
+            exception -> confidence mapping (empty string = default)
+
+    returns: `dict[str, str] | list[str]`
+        compact representation
+    """
+    default_conf_exceptions = [exc for exc, conf in exc_dict.items() if not conf]
+    non_default_conf_exceptions = {exc: conf for exc, conf in exc_dict.items() if conf}
+
+    if default_conf_exceptions and non_default_conf_exceptions:
+        # mixed - keep as dict, but default ones get "likely" explicitly
+        result = {exc: Confidence.LIKELY.value for exc in default_conf_exceptions}
+        result.update(non_default_conf_exceptions)
+        return result
+    elif default_conf_exceptions:
+        # all default - use list for compactness
+        return sorted(default_conf_exceptions)
+    else:
+        # all non-default - use dict
+        return non_default_conf_exceptions

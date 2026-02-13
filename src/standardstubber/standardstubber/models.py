@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Final, NamedTuple
+from typing import Final, NamedTuple, cast
 
 
 class Confidence(Enum):
@@ -202,7 +202,7 @@ class StubFile:
             `path: Path`
                 path to write to (should have .pyras extension)
         """
-        path.write_text(self.to_toml(), encoding="utf-8")
+        _ = path.write_text(self.to_toml(), encoding="utf-8")
 
     @classmethod
     def load(cls, path: Path) -> StubFile:
@@ -225,10 +225,16 @@ class StubFile:
                 if required fields are missing
         """
         with open(path, "rb") as f:
-            data = tomllib.load(f)
+            data: dict[str, object] = tomllib.load(f)
 
-        # parse metadata
-        meta_data = data["metadata"]
+        # parse metadata - safely cast to dict
+        meta_data_raw = data["metadata"]
+        if not isinstance(meta_data_raw, dict):
+            msg = "metadata section must be a dict"
+            raise TypeError(msg)
+        # cast to known types to satisfy type checker
+        meta_data = cast(dict[str, object], meta_data_raw)
+
         generated_at: datetime | None = None
         if "generated_at" in meta_data:
             generated_at = datetime.fromisoformat(str(meta_data["generated_at"]))
@@ -244,14 +250,22 @@ class StubFile:
 
         # parse function stubs
         stubs: list[FunctionStub] = []
-        for key, value in data.items():
+        for key, value_raw in data.items():
             if key == "metadata":
                 continue
 
+            if not isinstance(value_raw, dict):
+                continue
+            # cast to known types to satisfy type checker
+            value = cast(dict[str, object], value_raw)
+
             # key is the qualname (without quotes from toml)
             qualname = key
-            raises_raw: list[object] = value.get("raises", [])
-            raises = frozenset(str(r) for r in raises_raw)
+            raises_raw = value.get("raises", [])
+            if not isinstance(raises_raw, list):
+                raises_raw = []
+            raises_list = cast(list[object], raises_raw)
+            raises = frozenset(str(r) for r in raises_list)
             confidence_str = str(value.get("confidence", "exact"))
             confidence = Confidence(confidence_str)
             notes = str(value.get("notes", ""))

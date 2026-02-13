@@ -29,6 +29,7 @@ dev = [
 
 [project.scripts]
 standardstubber = "standardstubber.cli:main"
+generate-all = "generate_all:main"
 
 [project.urls]
 homepage = "https://github.com/anomalyco/raiseattention"
