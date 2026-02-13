@@ -76,7 +76,7 @@ class TestExceptionAnalyser:
     def test_analyse_simple_file(self, tmp_path: Path) -> None:
         """Test analysing a simple python file."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def simple():
     pass
 """)
@@ -93,7 +93,7 @@ def simple():
     def test_analyse_file_with_exception(self, tmp_path: Path) -> None:
         """Test analysing a file that raises exceptions."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def risky():
     raise ValueError("error")
 """)
@@ -110,16 +110,16 @@ def risky():
     def test_analyse_project(self, tmp_path: Path) -> None:
         """Test analysing an entire project."""
         # create multiple python files
-        (tmp_path / "module1.py").write_text("""
+        _ = (tmp_path / "module1.py").write_text("""
 def func1():
     pass
 """)
-        (tmp_path / "module2.py").write_text("""
+        _ = (tmp_path / "module2.py").write_text("""
 def func2():
     raise ValueError()
 """)
         (tmp_path / "subdir").mkdir()
-        (tmp_path / "subdir" / "module3.py").write_text("""
+        _ = (tmp_path / "subdir" / "module3.py").write_text("""
 def func3():
     pass
 """)
@@ -136,14 +136,14 @@ def func3():
     def test_get_function_signature(self, tmp_path: Path) -> None:
         """Test getting exception signature for a function."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def risky():
     raise ValueError("error")
 """)
 
         config = Config()
         analyzer = ExceptionAnalyser(config)
-        analyzer.analyse_file(test_file)
+        _ = analyzer.analyse_file(test_file)
 
         signature = analyzer.get_function_signature("test.risky")
 
@@ -152,7 +152,7 @@ def risky():
     def test_transitive_exception_tracking(self, tmp_path: Path) -> None:
         """Test that exceptions propagate transitively."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def level3():
     raise ValueError("deep error")
 
@@ -165,7 +165,7 @@ def level1():
 
         config = Config()
         analyzer = ExceptionAnalyser(config)
-        analyzer.analyse_file(test_file)
+        _ = analyzer.analyse_file(test_file)
 
         # all levels should have ValueError in signature
         assert "ValueError" in analyzer.get_function_signature("test.level3")
@@ -175,7 +175,7 @@ def level1():
     def test_ignore_exceptions_config(self, tmp_path: Path) -> None:
         """Test that ignored exceptions are filtered."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def func():
     raise KeyboardInterrupt()
 """)
@@ -192,7 +192,7 @@ def func():
     def test_strict_mode_docstring_check(self, tmp_path: Path) -> None:
         """Test strict mode requires documented exceptions."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def undocumented():
     raise ValueError("error")
 
@@ -213,7 +213,7 @@ def caller():
     def test_cache_usage(self, tmp_path: Path) -> None:
         """Test that cache is used for repeated analysis."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def func():
     pass
 """)
@@ -232,17 +232,17 @@ def func():
     def test_invalidate_file(self, tmp_path: Path) -> None:
         """Test invalidating a file from cache."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("def func(): pass")
+        _ = test_file.write_text("def func(): pass")
 
         config = Config()
         analyzer = ExceptionAnalyser(config)
-        analyzer.analyse_file(test_file)
+        _ = analyzer.analyse_file(test_file)
 
         # invalidate
         analyzer.invalidate_file(test_file)
 
         # file analyses should be cleared
-        assert test_file.resolve() not in analyzer._file_analyses
+        assert test_file.resolve() not in analyzer._file_analyses  # pyright: ignore[reportPrivateUsage]
 
 
 class TestDebugLogging:
@@ -256,7 +256,7 @@ class TestDebugLogging:
         logging.getLogger("raiseattention").setLevel(logging.DEBUG)
 
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def risky():
     raise ValueError("error")
 
@@ -268,7 +268,7 @@ def caller():
         analyzer = ExceptionAnalyser(config)
 
         with caplog.at_level(logging.DEBUG, logger="raiseattention"):
-            analyzer.analyse_file(test_file)
+            _ = analyzer.analyse_file(test_file)
 
         # check that some debug messages were logged
         debug_messages = [r.message for r in caplog.records if r.levelno == logging.DEBUG]
@@ -286,7 +286,7 @@ def caller():
         logging.getLogger("raiseattention").setLevel(logging.DEBUG)
 
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def level2():
     raise ValueError("deep")
 
@@ -298,7 +298,7 @@ def level1():
         analyzer = ExceptionAnalyser(config)
 
         with caplog.at_level(logging.DEBUG, logger="raiseattention"):
-            analyzer.analyse_file(test_file)
+            _ = analyzer.analyse_file(test_file)
             # trigger signature computation
             _ = analyzer.get_function_signature("test.level1")
 
@@ -310,13 +310,16 @@ def level1():
         logging.getLogger("raiseattention").setLevel(logging.WARNING)
 
     def test_ast_visitor_logs_function_visits(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+        self,
+        tmp_path: Path,
+        caplog: pytest.LogCaptureFixture,  # noqa: ARG002
     ) -> None:
         """test that AST visitor logs function visits."""
         import logging
 
         from raiseattention.ast_visitor import parse_source
 
+        _ = tmp_path  # unused but required by pytest fixture pattern
         logging.getLogger("raiseattention").setLevel(logging.DEBUG)
 
         source = """
@@ -342,7 +345,7 @@ class TestHOFExceptionPropagation:
     def test_map_with_risky_callable(self, tmp_path: Path) -> None:
         """test that exceptions from functions passed to map are tracked."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def risky_transform(x):
     if x < 0:
         raise ValueError("negative value")
@@ -356,7 +359,7 @@ def uses_map():
 
         config = Config()
         analyzer = ExceptionAnalyser(config)
-        analyzer.analyse_file(test_file)
+        _ = analyzer.analyse_file(test_file)
 
         # uses_map should have ValueError in its signature via risky_transform
         signature = analyzer.get_function_signature("test.uses_map")
@@ -365,7 +368,7 @@ def uses_map():
     def test_filter_with_risky_predicate(self, tmp_path: Path) -> None:
         """test that exceptions from predicates passed to filter are tracked."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def risky_predicate(x):
     if x == 0:
         raise ZeroDivisionError("cannot check zero")
@@ -379,7 +382,7 @@ def uses_filter():
 
         config = Config()
         analyzer = ExceptionAnalyser(config)
-        analyzer.analyse_file(test_file)
+        _ = analyzer.analyse_file(test_file)
 
         signature = analyzer.get_function_signature("test.uses_filter")
         assert "ZeroDivisionError" in signature
@@ -387,7 +390,7 @@ def uses_filter():
     def test_sorted_with_risky_key(self, tmp_path: Path) -> None:
         """test that exceptions from key functions passed to sorted are tracked."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def risky_key(item):
     if "key" not in item:
         raise KeyError("missing key")
@@ -401,7 +404,7 @@ def uses_sorted():
 
         config = Config()
         analyzer = ExceptionAnalyser(config)
-        analyzer.analyse_file(test_file)
+        _ = analyzer.analyse_file(test_file)
 
         signature = analyzer.get_function_signature("test.uses_sorted")
         assert "KeyError" in signature
@@ -409,7 +412,7 @@ def uses_sorted():
     def test_min_max_with_risky_key(self, tmp_path: Path) -> None:
         """test that exceptions from key functions passed to min/max are tracked."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def risky_key(item):
     if item is None:
         raise TypeError("cannot compare None")
@@ -428,7 +431,7 @@ def uses_max():
 
         config = Config()
         analyzer = ExceptionAnalyser(config)
-        analyzer.analyse_file(test_file)
+        _ = analyzer.analyse_file(test_file)
 
         min_sig = analyzer.get_function_signature("test.uses_min")
         max_sig = analyzer.get_function_signature("test.uses_max")
@@ -438,7 +441,7 @@ def uses_max():
     def test_nested_hof_calls(self, tmp_path: Path) -> None:
         """test that nested HOF calls propagate exceptions correctly."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def risky_transform(x):
     if x < 0:
         raise ValueError("negative")
@@ -458,7 +461,7 @@ def uses_nested_hofs():
 
         config = Config()
         analyzer = ExceptionAnalyser(config)
-        analyzer.analyse_file(test_file)
+        _ = analyzer.analyse_file(test_file)
 
         signature = analyzer.get_function_signature("test.uses_nested_hofs")
         assert "ValueError" in signature
@@ -467,7 +470,7 @@ def uses_nested_hofs():
     def test_lambda_in_hof_not_tracked(self, tmp_path: Path) -> None:
         """test that lambdas in HOFs are gracefully skipped (not tracked)."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def uses_lambda_in_map():
     data = [1, 2, 3]
     # lambda exceptions are not tracked
@@ -477,7 +480,7 @@ def uses_lambda_in_map():
 
         config = Config()
         analyzer = ExceptionAnalyser(config)
-        analyzer.analyse_file(test_file)
+        _ = analyzer.analyse_file(test_file)
 
         # should not crash, and signature should be empty (lambdas not tracked)
         signature = analyzer.get_function_signature("test.uses_lambda_in_map")
@@ -487,7 +490,7 @@ def uses_lambda_in_map():
     def test_method_reference_in_hof(self, tmp_path: Path) -> None:
         """test that method references passed to HOFs are tracked."""
         test_file = tmp_path / "test.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 class Processor:
     def process(self, x):
         if x < 0:
@@ -500,7 +503,7 @@ class Processor:
 
         config = Config()
         analyzer = ExceptionAnalyser(config)
-        analyzer.analyse_file(test_file)
+        _ = analyzer.analyse_file(test_file)
 
         # process_all should include ValueError from self.process
         _signature = analyzer.get_function_signature("test.Processor.process_all")
@@ -557,3 +560,169 @@ def caller():
         # risky_transform should also have ValueError in its signature
         risky_sig = analyzer.get_function_signature("test.risky_transform")
         assert "ValueError" in risky_sig
+
+
+class TestIgnoreComments:
+    """tests for inline ignore comment functionality."""
+
+    def test_ignore_comment_basic(self, tmp_path: Path) -> None:
+        """test that # raiseattention: ignore[Exception] comments work."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text("""
+def risky():
+    raise ValueError("error")
+
+def caller():
+    risky()  # raiseattention: ignore[ValueError]
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should not report error on line 6 because of ignore comment
+        error_lines = [d.line for d in result.diagnostics]
+        assert 6 not in error_lines
+
+    def test_ignore_comment_ra_shorthand(self, tmp_path: Path) -> None:
+        """test that # ra: ignore[Exception] shorthand works."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text("""
+def risky():
+    raise ValueError("error")
+
+def caller():
+    risky()  # ra: ignore[ValueError]
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should not report error because of ra: ignore comment
+        error_lines = [d.line for d in result.diagnostics]
+        assert 6 not in error_lines
+
+    def test_ignore_comment_mixed_case(self, tmp_path: Path) -> None:
+        """test that mixed case formats like RaiseAttention work."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text("""
+def risky():
+    raise ValueError("error")
+
+def caller():
+    risky()  # RaiseAttention: ignore[ValueError]
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should not report error because of mixed case comment
+        error_lines = [d.line for d in result.diagnostics]
+        assert 6 not in error_lines
+
+    def test_ignore_comment_possible_native_exception(self, tmp_path: Path) -> None:
+        """test that PossibleNativeException can be ignored."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text("""
+import mmap
+
+def caller():
+    mmap.mmap(-1, 1024)  # raiseattention: ignore[PossibleNativeException]
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should not report PossibleNativeException because of ignore comment
+        native_diagnostics = [
+            d
+            for d in result.diagnostics
+            if any("PossibleNativeException" in exc for exc in d.exception_types)
+        ]
+        assert len(native_diagnostics) == 0
+
+    def test_ignore_comment_multiple_exceptions(self, tmp_path: Path) -> None:
+        """test that multiple exceptions can be ignored in one comment."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text("""
+def risky():
+    raise ValueError("error")
+
+def caller():
+    risky()  # raiseattention: ignore[ValueError, TypeError]
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should not report error because ValueError is in ignore list
+        error_lines = [d.line for d in result.diagnostics]
+        assert 6 not in error_lines
+
+    def test_invalid_ignore_comment_reported(self, tmp_path: Path) -> None:
+        """test that invalid ignore comments (without brackets) are reported."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text("""
+def caller():
+    pass  # raiseattention: ignore
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should report invalid ignore comment on line 3
+        warnings = [d for d in result.diagnostics if d.severity == "warning"]
+        warning_lines = [d.line for d in warnings]
+        assert 3 in warning_lines
+
+    def test_main_reraise_pattern_not_flagged(self, tmp_path: Path) -> None:
+        """test that calls inside try-except at module level are not flagged."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text("""
+def main():
+    raise ValueError("error")
+
+if __name__ == "__main__":
+    try:
+        exit(main())  # this should NOT be flagged
+    except Exception as exc:
+        print(f"error: {exc}")
+        exit(1)
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should not report call to main() as it's inside try-except
+        main_call_diagnostics = [d for d in result.diagnostics if "main" in d.message.lower()]
+        assert len(main_call_diagnostics) == 0
+
+    def test_possible_native_exception_caught_by_except_exception(self, tmp_path: Path) -> None:
+        """test that PossibleNativeException is caught by 'except Exception:'."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text("""
+import mmap
+
+def main():
+    mmap.mmap(-1, 1024)
+
+def caller():
+    try:
+        main()  # should NOT be flagged - PossibleNativeException caught by except Exception
+    except Exception as exc:
+        print(f"error: {exc}")
+""")
+
+        config = Config()
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # the call to main() inside try-except should not be flagged
+        call_diagnostics = [d for d in result.diagnostics if d.line == 9]
+        assert len(call_diagnostics) == 0
