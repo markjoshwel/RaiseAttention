@@ -86,6 +86,8 @@ class CallInfo:
             name of the called function
         `location: tuple[int, int]`
             line and column of the call
+        `end_location: tuple[int, int]`
+            line and column where the call statement ends
         `is_async: bool`
             whether this is an await expression
         `containing_try_blocks: list[int]`
@@ -96,6 +98,7 @@ class CallInfo:
 
     func_name: str
     location: tuple[int, int]
+    end_location: tuple[int, int]
     is_async: bool = False
     containing_try_blocks: list[int] = field(default_factory=list)
     callable_args: list[str] = field(default_factory=list)
@@ -166,6 +169,7 @@ class ExceptionVisitor(ast.NodeVisitor):
     _class_stack: list[str]
     active_try_blocks: list[int]
     _module_level_func: FunctionInfo
+    _exception_instances: set[str]
 
     def __init__(self, module_name: str = "") -> None:
         """
@@ -182,6 +186,7 @@ class ExceptionVisitor(ast.NodeVisitor):
         self.imports = {}
         self._class_stack = []
         self.active_try_blocks = []
+        self._exception_instances = set()
 
         # create synthetic function to track module-level code
         qualified_module_name = (
@@ -221,7 +226,7 @@ class ExceptionVisitor(ast.NodeVisitor):
         """visit class definitions to track qualified names."""
         self._class_stack.append(node.name)
         self.generic_visit(node)
-        self._class_stack.pop()
+        _ = self._class_stack.pop()
 
     def _process_function(
         self, node: ast.FunctionDef | ast.AsyncFunctionDef, is_async: bool = False
@@ -306,6 +311,16 @@ class ExceptionVisitor(ast.NodeVisitor):
                 is_re_raise=True,
             )
             logger.debug("found bare raise (re-raise) at line %d", node.lineno)
+        elif isinstance(node.exc, ast.Name) and node.exc.id in self._exception_instances:
+            # raising a caught exception instance (e.g., 'raise error' where 'error' is from 'except Exception as error:')
+            exc_info = ExceptionInfo(
+                exception_type="",
+                location=(node.lineno, node.col_offset),
+                is_re_raise=True,
+            )
+            logger.debug(
+                "found re-raise of exception instance '%s' at line %d", node.exc.id, node.lineno
+            )
         else:
             # get exception type
             exc_type = self._get_exception_type(node.exc)
@@ -395,7 +410,7 @@ class ExceptionVisitor(ast.NodeVisitor):
             self.visit(stmt)
 
         # remove from active blocks
-        self.active_try_blocks.pop()
+        _ = self.active_try_blocks.pop()
 
         # visit handlers, else, and finally normally
         for handler in node.handlers:
@@ -408,11 +423,20 @@ class ExceptionVisitor(ast.NodeVisitor):
     @override
     def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
         """visit except handlers - do not track try-except context here."""
+        # track exception instance name (e.g., 'except ValueError as e:')
+        if node.name is not None:
+            self._exception_instances.add(node.name)
+            logger.debug("tracking exception instance: %s", node.name)
+
         # except handlers are not inside the try block
         saved_blocks = self.active_try_blocks
         self.active_try_blocks = []
         self.generic_visit(node)
         self.active_try_blocks = saved_blocks
+
+        # remove exception instance when leaving handler
+        if node.name is not None:
+            self._exception_instances.discard(node.name)
 
     @override
     def visit_Call(self, node: ast.Call) -> None:
@@ -431,6 +455,10 @@ class ExceptionVisitor(ast.NodeVisitor):
             call_info = CallInfo(
                 func_name=func_name,
                 location=(node.lineno, node.col_offset),
+                end_location=(
+                    getattr(node, "end_lineno", node.lineno),
+                    getattr(node, "end_col_offset", 0),
+                ),
                 is_async=False,
                 containing_try_blocks=list(self.active_try_blocks),
                 callable_args=callable_args,
@@ -462,6 +490,10 @@ class ExceptionVisitor(ast.NodeVisitor):
                 call_info = CallInfo(
                     func_name=func_name,
                     location=(node.lineno, node.col_offset),
+                    end_location=(
+                        getattr(node, "end_lineno", node.lineno),
+                        getattr(node, "end_col_offset", 0),
+                    ),
                     is_async=True,
                     containing_try_blocks=list(self.active_try_blocks),
                     callable_args=callable_args,
