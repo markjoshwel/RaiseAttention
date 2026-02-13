@@ -1,15 +1,23 @@
 [project]
 name = "standardstubber"
-version = "2026.2.14"
+version = "2026.2.14+1"
 description = "cpython standard library exception stub generator for raiseattention"
 readme = "README.md"
-license = {text = "MIT"}
+license = "Unlicense OR 0BSD"
+license-files = ["LICEN[CS]E*", "LICENCING"]
 requires-python = ">=3.11"
+authors = [
+    {name = "Mark Joshwel", email = "mark@joshwel.co"},
+]
+maintainers = [
+    {name = "Mark Joshwel", email = "mark@joshwel.co"},
+]
 keywords = ["cpython", "stubs", "exceptions", "static-analysis", "libclang"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Zero-Clause BSD (0BSD)",
+    "License :: OSI Approved :: The Unlicense (Unlicense)",
     "Private :: Do Not Upload",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
@@ -33,9 +41,9 @@ standardstubber = "standardstubber.cli:main"
 generate-all = "standardstubber.generate_all_wrapper:main"
 
 [project.urls]
-homepage = "https://github.com/anomalyco/raiseattention"
-repository = "https://github.com/anomalyco/raiseattention"
-documentation = "https://github.com/anomalyco/raiseattention#readme"
+Documentation = "https://github.com/markjoshwel/RaiseAttention/tree/main/src/standardstubber#readme"
+Repository = "https://github.com/markjoshwel/RaiseAttention/tree/main/src/standardstubber"
+Issues = "https://github.com/markjoshwel/RaiseAttention/issues"
 
 [build-system]
 requires = ["hatchling"]

@@ -1,18 +1,23 @@
 [project]
-name = "raiseattention"
-version = "2026.2.14"
+name = "RaiseAttention"
+version = "2026.2.14+1"
 description = "a static exception flow analyser for python with lsp integration"
 readme = "README.md"
-license = {text = "MIT"}
+license = "Unlicense OR 0BSD"
+license-files = ["LICEN[CS]E*", "LICENCING"]
 requires-python = ">=3.11"
 authors = [
-    {name = "RaiseAttention Contributors"},
+    {name = "Mark Joshwel", email = "mark@joshwel.co"},
+]
+maintainers = [
+    {name = "Mark Joshwel", email = "mark@joshwel.co"},
 ]
 keywords = ["exception", "analysis", "lsp", "static-analysis", "python"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Zero-Clause BSD (0BSD)",
+    "License :: OSI Approved :: The Unlicense (Unlicense)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -52,9 +57,9 @@ dev = [
 raiseattention = "raiseattention.cli:main"
 
 [project.urls]
-homepage = "https://github.com/anomalyco/raiseattention"
-repository = "https://github.com/anomalyco/raiseattention"
-documentation = "https://github.com/anomalyco/raiseattention#readme"
+Documentation = "https://github.com/markjoshwel/RaiseAttention/blob/main/README.md"
+Repository = "https://github.com/markjoshwel/RaiseAttention"
+Issues = "https://github.com/markjoshwel/RaiseAttention/issues"
 
 [build-system]
 requires = ["hatchling"]
@@ -199,7 +204,7 @@ ignore = [
     "D104",  # missing docstring in public package
     "D403",  # first word of first line should be capitalized (MDF uses lowercase)
     "D405",  # section name should be properly capitalized (MDF uses lowercase)
-    "D406",  # section name should end with newline (MDF format)
+    "D406",  # section name should end with newline (MDF uses no dashes)
     "D407",  # missing dashed underline after section (MDF uses no dashes)
 ]
 

@@ -1,15 +1,23 @@
 [project]
 name = "libsoulsearching"
-version = "0.1.0"
+version = "0.1.1"
 description = "universal python virtual environment finder"
 readme = "README.md"
-license = {text = "MIT"}
+license = "Unlicense OR 0BSD"
+license-files = ["LICEN[CS]E*", "LICENCING"]
 requires-python = ">=3.11"
+authors = [
+    {name = "Mark Joshwel", email = "mark@joshwel.co"},
+]
+maintainers = [
+    {name = "Mark Joshwel", email = "mark@joshwel.co"},
+]
 keywords = ["venv", "virtualenv", "python", "poetry", "pdm", "uv", "rye", "pipenv", "hatch", "pyenv"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Zero-Clause BSD (0BSD)",
+    "License :: OSI Approved :: The Unlicense (Unlicense)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -31,9 +39,9 @@ dev = [
 venvfinder = "libsoulsearching.cli:main"
 
 [project.urls]
-homepage = "https://github.com/anomalyco/raiseattention"
-repository = "https://github.com/anomalyco/raiseattention"
-documentation = "https://github.com/anomalyco/raiseattention#readme"
+Documentation = "https://github.com/markjoshwel/RaiseAttention/tree/main/src/libsoulsearching#readme"
+Repository = "https://github.com/markjoshwel/RaiseAttention/tree/main/src/libsoulsearching"
+Issues = "https://github.com/markjoshwel/RaiseAttention/issues"
 
 [build-system]
 requires = ["hatchling"]

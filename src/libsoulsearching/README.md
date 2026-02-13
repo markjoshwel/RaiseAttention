@@ -1,12 +1,15 @@
 # libsoulsearching
 
-universal python virtual environment finder
+universal python virtual environment finder. i built this because i got tired of
+guessing where different tools put their virtual environments.
 
 ## installation
 
-```bash
+```text
 pip install libsoulsearching
 ```
+
+**nix users, rejoice:** available via the RaiseAttention workspace
 
 ## quickstart
 
@@ -27,20 +30,22 @@ for venv in all_venvs:
 poetry_venv = find_venv("/path/to/project", tool=ToolType.POETRY)
 ```
 
+et voilà! — no more guessing where your venvs are hiding.
+
 ## supported tools
 
-- **poetry** - `poetry.lock`, `pyproject.toml` with poetry config
-- **pipenv** - `pipfile.lock`
-- **pdm** - `pdm.lock`, `.pdm.toml`
-- **uv** - `uv.lock`, `.venv`
-- **rye** - `rye.lock`, `.python-version`
-- **hatch** - `pyproject.toml` with `[tool.hatch.envs]`
-- **venv** - `.venv/pyvenv.cfg`
-- **pyenv** - `.python-version`
+- **poetry** — `poetry.lock`, `pyproject.toml` with poetry config
+- **pipenv** — `pipfile.lock`
+- **pdm** — `pdm.lock`, `.pdm.toml`
+- **uv** — `uv.lock`, `.venv`
+- **rye** — `rye.lock`, `.python-version`
+- **hatch** — `pyproject.toml` with `[tool.hatch.envs]`
+- **venv** — `.venv/pyvenv.cfg`
+- **pyenv** — `.python-version`
 
 ## cli usage
 
-```bash
+```text
 # find first venv
 venvfinder /path/to/project
 
@@ -56,10 +61,10 @@ venvfinder /path/to/project --json
 
 ## api reference
 
-- [libsoulsearching.find_venv](#def-libsoulsearchingfind_venv)
-- [libsoulsearching.find_all_venvs](#def-libsoulsearchingfind_all_venvs)
-- [libsoulsearching.ToolType](#class-libsoulsearchingtooltype)
-- [libsoulsearching.VenvInfo](#class-libsoulsearchingvenvinfo)
+- `libsoulsearching.find_venv()` — find a virtual environment in the given project directory
+- `libsoulsearching.find_all_venvs()` — find all virtual environments in the given project directory
+- `libsoulsearching.ToolType` — enumeration of supported python environment management tools
+- `libsoulsearching.VenvInfo` — information about a detected python virtual environment
 
 ### def libsoulsearching.find_venv()
 
@@ -75,12 +80,12 @@ find a virtual environment in the given project directory
   ```
 
 - arguments:
-  - `project_root: str | Path`
+  - `project_root: str | Path`  
     path to the project directory
-  - `tool: ToolType | None`
+  - `tool: ToolType | None`  
     specific tool to detect. if none, uses priority order
 
-- returns: `VenvInfo | None`
+- returns: `VenvInfo | None`  
   venvinfo if a venv is found, none otherwise
 
 ### def libsoulsearching.find_all_venvs()
@@ -98,10 +103,10 @@ the actual venv is missing
   ```
 
 - arguments:
-  - `project_root: str | Path`
+  - `project_root: str | Path`  
     path to the project directory
 
-- returns: `list[VenvInfo]`
+- returns: `list[VenvInfo]`  
   list of venvinfo objects (may be empty)
 
 ### class libsoulsearching.ToolType
@@ -109,23 +114,23 @@ the actual venv is missing
 enumeration of supported python environment management tools
 
 - attributes:
-  - `POETRY: str`
+  - `POETRY: str`  
     poetry package manager
-  - `PIPENV: str`
+  - `PIPENV: str`  
     pipenv package manager
-  - `PDM: str`
+  - `PDM: str`  
     pdm package manager
-  - `UV: str`
+  - `UV: str`  
     uv package manager
-  - `RYE: str`
+  - `RYE: str`  
     rye package manager
-  - `HATCH: str`
+  - `HATCH: str`  
     hatch package manager
-  - `VENV: str`
+  - `VENV: str`  
     standard venv module
-  - `PYENV: str`
+  - `PYENV: str`  
     pyenv version manager
-  - `ENV_VAR: str`
+  - `ENV_VAR: str`  
     virtual environment from environment variable
 
 ### class libsoulsearching.VenvInfo
@@ -133,17 +138,21 @@ enumeration of supported python environment management tools
 information about a detected python virtual environment
 
 - attributes:
-  - `tool: ToolType`
+  - `tool: ToolType`  
     the detected tool type
-  - `venv_path: Path | None`
+  - `venv_path: Path | None`  
     path to the virtual environment directory
-  - `python_executable: Path | None`
+  - `python_executable: Path | None`  
     path to the python executable
-  - `python_version: str | None`
+  - `python_version: str | None`  
     python version string (e.g., "3.10.5")
-  - `is_valid: bool`
+  - `is_valid: bool`  
     whether the detected environment exists and is valid
 
 ## licence
 
-mit
+libsoulsearching is free and unencumbered software released into the public domain.
+for more information, please refer to <https://unlicense.org/> or go ham with the
+zero-clause bsd licence — your choice.
+
+see [LICENCING](../../LICENCING) for details.
