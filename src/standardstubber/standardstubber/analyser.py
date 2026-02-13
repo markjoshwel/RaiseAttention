@@ -24,6 +24,8 @@ if sys.platform == "win32":
     libclang_path = Path(clang.native.__file__).parent / "libclang.dll"
     if libclang_path.exists():
         Config.set_library_file(str(libclang_path))
+        # disable compatibility check - bundled dll works despite version mismatch
+        Config.set_compatibility_check(False)
 
 try:
     from clang.cindex import (
