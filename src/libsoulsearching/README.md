@@ -1,7 +1,7 @@
 # libsoulsearching
 
-universal python virtual environment finder. i got tired of guessing where
-different tools put their virtual environments, so i made this.
+python virtual environment finder for most mainstream setups,
+after multiple projects of mine needed to dig through a venv
 
 ## installation
 

@@ -6,15 +6,21 @@ and supporting include/exclude patterns.
 
 functions:
     `find_files` - one-liner api for finding files
+    `find_project_root` - find project root by walking up directory tree
 
 classes:
     `SourceResolver` - configurable file resolver with gitignore support
 
 usage:
     ```python
-    from libsightseeing import find_files, SourceResolver
+    from libsightseeing import find_files, find_project_root, SourceResolver
 
-    # simple usage
+    # find project root
+    root = find_project_root("~/Works/example/sub/dir")
+    if root:
+        print(f"found project at: {root}")  # ~/Works/example
+
+    # simple file finding
     files = find_files(".", include=["*.py"])
 
     # advanced usage
@@ -32,10 +38,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .core import SourceResolver
+from .core import SourceResolver, find_project_root
 
-__version__ = "0.1.0"
-__all__ = ["find_files", "SourceResolver"]
+__version__ = "0.1.1"
+__all__ = ["find_files", "find_project_root", "SourceResolver"]
 
 
 def find_files(
