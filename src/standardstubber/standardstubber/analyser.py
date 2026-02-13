@@ -8,55 +8,18 @@ by parsing c source code and identifying PyErr_* function calls.
 from __future__ import annotations
 
 import logging
-import os
 import re
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
-# configure libclang path before importing clang
-# on windows, libclang.dll is bundled with the python package
-if sys.platform == "win32":
-    from clang.cindex import Config
-    import clang.native
-
-    libclang_path = Path(clang.native.__file__).parent / "libclang.dll"
-    if libclang_path.exists():
-        Config.set_library_file(str(libclang_path))
-        # disable compatibility check - bundled dll works despite version mismatch
-        Config.set_compatibility_check(False)
-
-try:
-    from clang.cindex import (
-        Cursor,
-        CursorKind,
-        Index,
-        TranslationUnit,
-        TypeKind,
-    )
-except ImportError as e:
-    error_msg = """
-error: libclang not found.
-
-standardstubber requires libclang to parse cpython c source code.
-
-on windows:
-1. download llvm from https://github.com/llvm/llvm-project/releases
-2. install it (e.g., to c:\\program files\\llvm)
-3. add the bin directory to your path, or
-4. set the libclang_path environment variable:
-   $env:libclang_path = "c:\\program files\\llvm\\bin\\libclang.dll"
-
-on linux/macos:
-   sudo apt install libclang-dev  # debian/ubuntu
-   sudo dnf install clang-devel   # fedora
-   brew install llvm              # macos
-
-original error: {}
-""".format(e)
-    print(error_msg, file=sys.stderr)
-    sys.exit(1)
+from clang.cindex import (
+    Cursor,
+    CursorKind,
+    Index,
+    TranslationUnit,
+    TypeKind,
+)
 
 from .models import Confidence, FunctionStub, FunctionSummary, ModuleGraph
 from .patterns import (

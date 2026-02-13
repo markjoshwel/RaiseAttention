@@ -15,6 +15,17 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
+# configure libclang BEFORE any imports that use it (required on windows)
+# must be at module level to run before multiprocessing spawns child processes
+if sys.platform == "win32":
+    from clang.cindex import Config
+    import clang.native
+
+    _libclang_path = Path(clang.native.__file__).parent / "libclang.dll"
+    if _libclang_path.exists():
+        Config.set_library_file(str(_libclang_path))
+        Config.set_compatibility_check(False)
+
 # generator identifier
 GENERATOR = "standardstubber@0.1.0"
 
@@ -59,21 +70,6 @@ def extract_tarball_cached(tarball: Path) -> Path:
     raise RuntimeError(f"failed to find Python directory in {extract_dir}")
 
 
-def _init_libclang():
-    """initialise libclang path for multiprocessing workers on windows."""
-    import sys
-
-    if sys.platform == "win32":
-        from clang.cindex import Config
-        import clang.native
-
-        libclang_path = Path(clang.native.__file__).parent / "libclang.dll"
-        if libclang_path.exists():
-            Config.set_library_file(str(libclang_path))
-            # disable compatibility check - bundled dll works despite version mismatch
-            Config.set_compatibility_check(False)
-
-
 def analyse_single_module(
     args: tuple[Path, Path, str],
 ) -> tuple[str, list[tuple[str, frozenset[str], str, str]]]:
@@ -85,10 +81,8 @@ def analyse_single_module(
     """
     c_file, cpython_root, module_name = args
 
-    # initialise libclang before importing (required for multiprocessing on windows)
-    _init_libclang()
-
     # import here to avoid issues with multiprocessing
+    # note: libclang is configured at module level in this file
     from standardstubber.analyser import CPythonAnalyser
 
     analyser = CPythonAnalyser(cpython_root=cpython_root)
@@ -214,9 +208,6 @@ def main() -> int:
         logging.basicConfig(level=logging.INFO, format="%(message)s")
     else:
         logging.basicConfig(level=logging.WARNING, format="%(message)s")
-
-    # initialise libclang path (required on windows for multiprocessing)
-    _init_libclang()
 
     # paths are relative to this script's directory (src/standardstubber/)
     script_dir = Path(__file__).parent
