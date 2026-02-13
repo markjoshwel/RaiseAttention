@@ -51,51 +51,51 @@ examples:
         "check",
         help="analyse python code for unhandled exceptions",
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "paths",
         nargs="*",
         default=["."],
         help="files or directories to analyse (default: current directory)",
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "--include-ignored",
         action="store_true",
         help="include files that are ignored by .gitignore",
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "--json",
         action="store_true",
         dest="json_output",
         help="output in json format (default: text)",
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "--output",
         "-o",
         type=str,
         help="output file (default: stdout)",
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
         help="verbose output",
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "--local",
         action="store_true",
         help="only analyse local/first-party code, skip external modules",
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "--strict",
         action="store_true",
         help="enable strict mode (require all exceptions to be declared)",
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "--absolute",
         action="store_true",
         help="use absolute paths in output (default: cwd-relative for text, absolute for json)",
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "--full-module-path",
         action="store_true",
         help=(
@@ -104,17 +104,17 @@ examples:
             "'tomlantic.TOMLValidationError')"
         ),
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "--no-warn-native",
         action="store_true",
         help="disable warnings about possible native code exceptions",
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "--no-cache",
         action="store_true",
         help="disable caching (useful for readonly environments or fresh analysis)",
     )
-    check_parser.add_argument(
+    _ = check_parser.add_argument(
         "--debug",
         action="store_true",
         help="enable debug logging for troubleshooting",
@@ -125,7 +125,7 @@ examples:
         "lsp",
         help="start language server protocol server",
     )
-    lsp_parser.add_argument(
+    _ = lsp_parser.add_argument(
         "--stdio",
         action="store_true",
         default=True,
@@ -139,9 +139,9 @@ examples:
     )
     cache_subparsers = cache_parser.add_subparsers(dest="cache_command")
 
-    cache_subparsers.add_parser("status", help="show cache status")
-    cache_subparsers.add_parser("clear", help="clear all caches")
-    cache_subparsers.add_parser("prune", help="remove stale cache entries")
+    _ = cache_subparsers.add_parser("status", help="show cache status")
+    _ = cache_subparsers.add_parser("clear", help="clear all caches")
+    _ = cache_subparsers.add_parser("prune", help="remove stale cache entries")
 
     return parser
 
@@ -185,25 +185,41 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
     returns: `int`
         exit code (0 = no issues, 1 = issues found, 2 = error)
     """
+    # extract args with getattr to avoid Any propagation from Namespace
+    debug = bool(getattr(args, "debug", False))
+    local = bool(getattr(args, "local", False))
+    strict = bool(getattr(args, "strict", False))
+    full_module_path = bool(getattr(args, "full_module_path", False))
+    include_ignored = bool(getattr(args, "include_ignored", False))
+    no_warn_native = bool(getattr(args, "no_warn_native", False))
+    no_cache = bool(getattr(args, "no_cache", False))
+    paths_raw = getattr(args, "paths", None)
+    paths: list[str] = list(paths_raw) if paths_raw else []  # pyright: ignore[reportAny]
+    verbose = bool(getattr(args, "verbose", False))
+    absolute = bool(getattr(args, "absolute", False))
+    json_output = bool(getattr(args, "json_output", False))
+    output_raw = getattr(args, "output", None)
+    output_file = str(output_raw) if output_raw is not None else None  # pyright: ignore[reportAny]
+
     # enable debug logging if requested
-    if args.debug:
+    if debug:
         logging.basicConfig(
             level=logging.DEBUG,
             format="[%(name)s] %(message)s",
         )
 
     # apply cli overrides
-    if args.local:
+    if local:
         config.analysis.local_only = True
-    if args.strict:
+    if strict:
         config.analysis.strict_mode = True
-    if args.full_module_path:
+    if full_module_path:
         config.analysis.full_module_path = True
-    if args.include_ignored:
+    if include_ignored:
         config.respect_gitignore = False
-    if args.no_warn_native:
+    if no_warn_native:
         config.analysis.warn_native = False
-    if args.no_cache:
+    if no_cache:
         config.cache.enabled = False
 
     analyzer = ExceptionAnalyser(config)
@@ -211,7 +227,7 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
     files_to_analyse: list[Path] = []
 
     # collect all files to analyse
-    for path_str in args.paths:
+    for path_str in paths:
         path = Path(path_str)
 
         if not path.exists():
@@ -234,7 +250,7 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
             files_to_analyse.extend(found_files)
 
     if not files_to_analyse:
-        if args.verbose:
+        if verbose:
             print("no files to analyse")
         return 0
 
@@ -256,10 +272,10 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
         total_exceptions += result.exceptions_tracked
 
     # determine path formatting: json always uses absolute, text uses relative by default
-    use_absolute = args.absolute or args.json_output
+    use_absolute = absolute or json_output
 
     # output results
-    if args.json_output:
+    if json_output:
         output = {
             "diagnostics": [
                 {
@@ -282,8 +298,8 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
 
         json_str = json.dumps(output, indent=2)
 
-        if args.output:
-            Path(args.output).write_text(json_str)
+        if output_file:
+            _ = Path(output_file).write_text(json_str)
         else:
             print(json_str)
     else:
@@ -298,13 +314,13 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
         issue_word = "issue" if issue_count == 1 else "issues"
         print(f"{issue_count} {issue_word} found")
 
-        if args.verbose:
+        if verbose:
             print("\ndetailed summary:")
             print(f"  files analysed: {len(set(files_analysed))}")
             print(f"  functions found: {total_functions}")
             print(f"  exceptions tracked: {total_exceptions}")
 
-        if args.output:
+        if output_file:
             # also write text output to file
             lines: list[str] = []
             for diag in combined_diagnostics:
@@ -316,14 +332,14 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
             # always include summary line
             lines.append(f"{issue_count} {issue_word} found")
 
-            if args.verbose:
+            if verbose:
                 lines.append("")
                 lines.append("detailed summary:")
                 lines.append(f"  files analysed: {len(set(files_analysed))}")
                 lines.append(f"  functions found: {total_functions}")
                 lines.append(f"  exceptions tracked: {total_exceptions}")
 
-            Path(args.output).write_text("\n".join(lines))
+            _ = Path(output_file).write_text("\n".join(lines))
 
     # return exit code
     if combined_diagnostics:
@@ -331,13 +347,13 @@ def handle_check(args: argparse.Namespace, config: Config) -> int:
     return 0
 
 
-def handle_lsp(args: argparse.Namespace, config: Config) -> int:
+def handle_lsp(_args: argparse.Namespace, config: Config) -> int:
     """
     handle the lsp command.
 
     arguments:
-        `args: argparse.Namespace`
-            parsed arguments
+        `_args: argparse.Namespace`
+            parsed arguments (unused)
         `config: Config`
             configuration
 
@@ -367,14 +383,17 @@ def handle_cache(args: argparse.Namespace, config: Config) -> int:
     returns: `int`
         exit code
     """
-    if not args.cache_command:
+    cache_cmd_raw = getattr(args, "cache_command", None)
+    cache_command = str(cache_cmd_raw) if cache_cmd_raw is not None else None  # pyright: ignore[reportAny]
+
+    if not cache_command:
         print("error: no cache command specified", file=sys.stderr)
         print("use 'raiseattention cache --help' for usage", file=sys.stderr)
         return 2
 
     file_cache = FileCache(config.cache)
 
-    if args.cache_command == "status":
+    if cache_command == "status":
         stats = file_cache.get_stats()
         print("cache status:")
         print(f"  memory entries: {stats['memory_entries']}")
@@ -382,11 +401,11 @@ def handle_cache(args: argparse.Namespace, config: Config) -> int:
         print(f"  total entries: {stats['total_entries']}")
         print(f"  cache directory: {file_cache.cache_dir}")
 
-    elif args.cache_command == "clear":
+    elif cache_command == "clear":
         file_cache.clear()
         print("cache cleared successfully")
 
-    elif args.cache_command == "prune":
+    elif cache_command == "prune":
         pruned = file_cache.prune()
         print(f"pruned {pruned} stale entries")
 
@@ -407,7 +426,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = create_parser()
     args = parser.parse_args(argv)
 
-    if not args.command:
+    cmd_raw = getattr(args, "command", None)
+    command = str(cmd_raw) if cmd_raw is not None else None  # pyright: ignore[reportAny]
+
+    if not command:
         parser.print_help()
         return 2
 
@@ -415,11 +437,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     config = Config.load()
 
     # dispatch to handler
-    if args.command == "check":
+    if command == "check":
         return handle_check(args, config)
-    elif args.command == "lsp":
+    elif command == "lsp":
         return handle_lsp(args, config)
-    elif args.command == "cache":
+    elif command == "cache":
         return handle_cache(args, config)
     else:
         parser.print_help()

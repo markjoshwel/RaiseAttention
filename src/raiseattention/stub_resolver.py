@@ -12,12 +12,59 @@ import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import NamedTuple
 
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 logger = logging.getLogger(__name__)
+
+
+def _get_nested_dict(parent: dict[str, object], key: str) -> dict[str, object] | None:
+    """
+    get a nested dict with proper type narrowing.
+
+    pyright cannot infer nested dict types after isinstance checks on
+    values from `dict[str, object].get()`, so this helper handles the
+    type coercion explicitly.
+    """
+    value = parent.get(key)
+    if isinstance(value, dict):
+        result: dict[str, object] = {}
+        for k, v in value.items():  # pyright: ignore[reportUnknownVariableType]
+            result[str(k)] = v  # pyright: ignore[reportUnknownArgumentType]
+        return result
+    return None
+
+
+def _to_str_list(value: object) -> list[str] | None:
+    """
+    convert a value to a list of strings with proper type narrowing.
+
+    pyright cannot infer list element types after isinstance checks on
+    values from `dict[str, object].get()`, so this helper handles the
+    type coercion explicitly.
+    """
+    if isinstance(value, list):
+        result: list[str] = []
+        for item in value:  # pyright: ignore[reportUnknownVariableType]
+            result.append(str(item))  # pyright: ignore[reportUnknownArgumentType]
+        return result
+    return None
+
+
+def _to_str_dict(value: object) -> dict[str, str] | None:
+    """
+    convert a value to a dict of strings with proper type narrowing.
+
+    used for exception confidence mappings like {"TypeError": "exact"}.
+    """
+    if isinstance(value, dict):
+        result: dict[str, str] = {}
+        for k, v in value.items():  # pyright: ignore[reportUnknownVariableType]
+            result[str(k)] = str(v)  # pyright: ignore[reportUnknownArgumentType]
+        return result
+    return None
 
 
 # confidence levels (v2.0: default is "likely")
@@ -30,10 +77,10 @@ class Confidence:
     - per-exception confidence in nested structure
     """
 
-    EXACT = "exact"
-    LIKELY = "likely"
-    CONSERVATIVE = "conservative"
-    MANUAL = "manual"
+    EXACT: str = "exact"
+    LIKELY: str = "likely"
+    CONSERVATIVE: str = "conservative"
+    MANUAL: str = "manual"
 
 
 class StubLookupResult(NamedTuple):
@@ -92,14 +139,14 @@ class CachedStubFile:
     attributes:
         `path: Path`
             path to the .pyras file
-        `data: dict[str, Any]`
+        `data: dict[str, object]`
             raw json data with metadata and module stubs
         `format_version: str`
             pyras format version ("2.0")
     """
 
     path: Path
-    data: dict[str, Any] = field(default_factory=dict)
+    data: dict[str, object] = field(default_factory=dict)
     format_version: str = "2.0"
 
 
@@ -183,9 +230,17 @@ class StubResolver:
                 # check version compatibility
                 try:
                     with open(stub_file, "rb") as f:
-                        data = json.load(f)
+                        data_raw: object = json.load(f)  # pyright: ignore[reportAny]
 
-                    metadata = data.get("metadata", {})
+                    if not isinstance(data_raw, dict):
+                        continue
+                    # use helper for nested dict access
+                    data_typed: dict[str, object] = {}
+                    for dk, dv in data_raw.items():  # pyright: ignore[reportUnknownVariableType]
+                        data_typed[str(dk)] = dv  # pyright: ignore[reportUnknownArgumentType]
+                    metadata = _get_nested_dict(data_typed, "metadata")
+                    if metadata is None:
+                        continue
                     version_spec = metadata.get("version", "*")
                     specifier = SpecifierSet(str(version_spec))
 
@@ -320,7 +375,7 @@ class StubResolver:
         # function not found in stub file
         return None
 
-    def _is_exception_dict(self, data: dict[str, Any]) -> bool:
+    def _is_exception_dict(self, data: dict[str, object]) -> bool:
         """
         check if dict is exception -> confidence mapping vs class -> methods mapping.
 
@@ -328,7 +383,7 @@ class StubResolver:
         class dicts have nested dicts or lists as values (methods with their exceptions).
 
         arguments:
-            `data: dict[str, Any]`
+            `data: dict[str, object]`
                 dict to check
 
         returns: `bool`
@@ -371,35 +426,51 @@ class StubResolver:
             return None
 
         # get module data (try both with and without underscore prefix)
-        module_data = cached.data.get(module) or cached.data.get(f"_{module}")
-        if not module_data or not isinstance(module_data, dict):
+        module_data = _get_nested_dict(cached.data, module) or _get_nested_dict(
+            cached.data, f"_{module}"
+        )
+        if module_data is None:
             return None
 
         # try to navigate the nested structure
         if len(parts) == 2:
             # module.function - check for module-level function
             func_name = parts[1]
-            if "" in module_data and func_name in module_data[""]:
-                exc_data: Any = module_data[""][func_name]  # pyright: ignore[reportUnknownVariableType]
-                if isinstance(exc_data, (list, dict)):
-                    return self._build_result(cached.path, exc_data)  # pyright: ignore[reportUnknownArgumentType]
+            empty_section = _get_nested_dict(module_data, "")
+            if empty_section is not None and func_name in empty_section:
+                exc_data = empty_section.get(func_name)
+                exc_list = _to_str_list(exc_data)
+                if exc_list is not None:
+                    return self._build_result(cached.path, exc_list)
+                exc_dict = _to_str_dict(exc_data)
+                if exc_dict is not None:
+                    return self._build_result(cached.path, exc_dict)
             # check for module-level function stored directly (not under "")
             if func_name in module_data:
-                val: Any = module_data[func_name]  # pyright: ignore[reportUnknownVariableType]
+                val = module_data.get(func_name)
                 # accept if it's a list or an exception dict (not a class dict)
-                if isinstance(val, list):
-                    return self._build_result(cached.path, val)  # pyright: ignore[reportUnknownArgumentType]
-                if isinstance(val, dict) and self._is_exception_dict(val):  # pyright: ignore[reportUnknownArgumentType]
-                    return self._build_result(cached.path, val)  # pyright: ignore[reportUnknownArgumentType]
+                val_list = _to_str_list(val)
+                if val_list is not None:
+                    return self._build_result(cached.path, val_list)
+                typed_val = _get_nested_dict(module_data, func_name)
+                if typed_val is not None and self._is_exception_dict(typed_val):
+                    val_dict = _to_str_dict(val)
+                    if val_dict is not None:
+                        return self._build_result(cached.path, val_dict)
         elif len(parts) >= 3:
             # module.class.method
             class_name = parts[1]
             method_name = ".".join(parts[2:])  # handle nested methods
 
-            if class_name in module_data and isinstance(module_data[class_name], dict):
-                class_data: Any = module_data[class_name]  # pyright: ignore[reportUnknownVariableType]
-                if method_name in class_data:
-                    return self._build_result(cached.path, class_data[method_name])  # pyright: ignore[reportUnknownArgumentType]
+            class_data = _get_nested_dict(module_data, class_name)
+            if class_data is not None and method_name in class_data:
+                method_data = class_data.get(method_name)
+                method_list = _to_str_list(method_data)
+                if method_list is not None:
+                    return self._build_result(cached.path, method_list)
+                method_dict = _to_str_dict(method_data)
+                if method_dict is not None:
+                    return self._build_result(cached.path, method_dict)
 
         return None
 
@@ -420,13 +491,18 @@ class StubResolver:
         method_name = ".".join(method_parts)
 
         # get module data (try both with and without underscore prefix)
-        module_data = cached.data.get(module) or cached.data.get(f"_{module}")
-        if not module_data or not isinstance(module_data, dict):
+        module_data = _get_nested_dict(cached.data, module) or _get_nested_dict(
+            cached.data, f"_{module}"
+        )
+        if module_data is None:
             return None
 
         # scan all classes in the module for the method
-        for class_name, class_data in module_data.items():  # pyright: ignore[reportUnknownVariableType]
-            if class_name == "metadata" or not isinstance(class_data, dict):
+        for class_name in module_data:
+            if class_name == "metadata":
+                continue
+            class_data = _get_nested_dict(module_data, class_name)
+            if class_data is None:
                 continue
 
             if method_name in class_data:
@@ -434,13 +510,16 @@ class StubResolver:
                     "fuzzy match: %s -> %s.%s.%s",
                     qualname,
                     module,
-                    str(class_name),  # pyright: ignore[reportUnknownArgumentType]
+                    class_name,
                     method_name,
                 )
-                return self._build_result(
-                    cached.path,
-                    class_data[method_name],  # pyright: ignore[reportUnknownArgumentType]
-                )
+                method_exc_data = class_data.get(method_name)
+                method_list = _to_str_list(method_exc_data)
+                if method_list is not None:
+                    return self._build_result(cached.path, method_list)
+                method_dict = _to_str_dict(method_exc_data)
+                if method_dict is not None:
+                    return self._build_result(cached.path, method_dict)
 
         return None
 
@@ -508,14 +587,28 @@ class StubResolver:
 
         try:
             with open(path, encoding="utf-8") as f:
-                data = json.load(f)
+                data_raw: object = json.load(f)  # pyright: ignore[reportAny]
 
-            metadata = data.get("metadata", {})
-            format_version = str(metadata.get("format_version", "2.0"))
+            if not isinstance(data_raw, dict):
+                self._file_cache[cache_key] = None
+                return None
+
+            # convert to properly typed dict
+            data_typed: dict[str, object] = {}
+            for dk, dv in data_raw.items():  # pyright: ignore[reportUnknownVariableType]
+                data_typed[str(dk)] = dv  # pyright: ignore[reportUnknownArgumentType]
+
+            # extract metadata for format version
+            metadata = _get_nested_dict(data_typed, "metadata")
+            format_version = "2.0"
+            if metadata is not None:
+                fmt_raw = metadata.get("format_version")
+                if isinstance(fmt_raw, str):
+                    format_version = fmt_raw
 
             cached = CachedStubFile(
                 path=path,
-                data=data,
+                data=data_typed,
                 format_version=format_version,
             )
             self._file_cache[cache_key] = cached
