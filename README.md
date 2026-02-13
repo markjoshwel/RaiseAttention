@@ -114,30 +114,55 @@ when it comes to whether any functions you use may raise exceptions you didn't e
 
 ## features
 
-- **transitive exception tracking** — follows exceptions through call chains
-- **try-except detection** — understands which exceptions are handled at call sites
-- **external module analysis** — analyses stdlib and third-party packages
-- **higher-order function traversal** — tracks exceptions through `map`, `filter`,
-  `sorted`, and other HOFs when you pass callable arguments
-- **native code detection** — reports `PossibleNativeException` for C extensions that
-  can't be statically analysed (suppress with `--no-warn-native`)
-- **c extension stubs** — pre-computed exception signatures for stdlib C modules (6531
-  stubs for python 3.12)
-- **type constructor analysis** — detects exceptions from `int()`, `float()`, `str()`,
-  etc. (e.g., `int("not a number")` raises `ValueError`)
-- **smart builtin filtering** — only flags builtins with interesting exceptions, skips
-  noisy ones like `len()`, `abs()`, `print()`
-- **docstring heuristics** — checks `__doc__` for "raises" keywords when static analysis
-  isn't possible
-- **exception instance re-raise detection** — `raise error` from `except Exception as error:`
-  is treated as re-raise, not a new exception
-- **inline ignore comments** — `# raiseattention: ignore[ExceptionType]` for line-specific
-  suppression (pyright-style)
-- **ra shorthand** — `# ra: ignore[Exception]` works too (all case-insensitive)
-- **docstring-based suppression** — exceptions documented in parent docstrings are
-  automatically suppressed
-- **lsp server** — real-time feedback in your editor
-- **debug logging** — see exactly what the analyser is doing with `--debug`
+- **transitive exception tracking**  
+  follows exceptions through call chains
+
+- **try-except detection**  
+  understands which exceptions are handled at call sites
+
+- **external module analysis**  
+  analyses stdlib and third-party packages
+
+- **higher-order function traversal**  
+  tracks exceptions through `map`, `filter`, `sorted`, and other HOFs when you pass
+  callable arguments
+
+- **native code detection**  
+  reports `PossibleNativeException` for C extensions that can't be statically analysed
+  (suppress with `--no-warn-native`)
+
+- **c extension stubs**  
+  pre-computed exception signatures for stdlib C modules (6531 stubs for python 3.12)
+
+- **type constructor analysis**  
+  detects exceptions from `int()`, `float()`, `str()`, etc. (e.g.,
+  `int("not a number")` raises `ValueError`)
+
+- **smart builtin filtering**  
+  only flags builtins with interesting exceptions, skips noisy ones like `len()`,
+  `abs()`, `print()`
+
+- **docstring heuristics**  
+  checks `__doc__` for "raises" keywords when static analysis isn't possible
+
+- **exception instance re-raise detection**  
+  `raise error` from `except Exception as error:` is treated as re-raise, not a new
+  exception
+
+- **inline ignore comments**  
+  `# raiseattention: ignore[ExceptionType]` for line-specific suppression (pyright-style)
+
+- **ra shorthand**  
+  `# ra: ignore[Exception]` works too (all case-insensitive)
+
+- **docstring-based suppression**  
+  exceptions documented in parent docstrings are automatically suppressed
+
+- **lsp server**  
+  real-time feedback in your editor
+
+- **debug logging**  
+  see exactly what the analyser is doing with `--debug`
 
 ## configuration
 
@@ -206,23 +231,45 @@ def parse_config(path: str) -> dict:
 
 ### cli flags
 
-- `--version` — show version (2026.2.14)
-- `--local` — analyse only first-party code (skip external modules)
-- `--strict` — enable strict mode (flags undocumented exceptions)
-- `--debug` — enable debug logging
-- `--no-warn-native` — suppress `PossibleNativeException` warnings
-- `--json` — output diagnostics as json
-- `--absolute` — use absolute paths in output
-- `--full-module-path` — show full module path for exceptions
+- `--version`  
+  show version (2026.2.14)
+
+- `--local`  
+  analyse only first-party code (skip external modules)
+
+- `--strict`  
+  enable strict mode (flags undocumented exceptions)
+
+- `--debug`  
+  enable debug logging
+
+- `--no-warn-native`  
+  suppress `PossibleNativeException` warnings
+
+- `--json`  
+  output diagnostics as json
+
+- `--absolute`  
+  use absolute paths in output
+
+- `--full-module-path`  
+  show full module path for exceptions
 
 ## workspace packages
 
 this repository contains several packages:
 
-- **raiseattention** (2026.2.14) — main exception analyser
-- **libsoulsearching** (0.1.0) — virtual environment detection library
-- **libsightseeing** (0.1.0) — file finding with gitignore support
-- **standardstubber** (2026.2.14, private) — cpython stub generator
+- **raiseattention** (2026.2.14)  
+  main exception analyser
+
+- **libsoulsearching** (0.1.0)  
+  virtual environment detection library
+
+- **libsightseeing** (0.1.0)  
+  file finding with gitignore support
+
+- **standardstubber** (2026.2.14, private)  
+  cpython stub generator
 
 ## licence
 
