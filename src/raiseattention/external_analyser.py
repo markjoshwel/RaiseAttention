@@ -174,6 +174,8 @@ class ExternalAnalyser:
         "_analysis_cache",
         "_stdlib_path",
         "_stub_resolver",
+        "_ignore_include",
+        "_ignore_exclude",
     )
 
     def __init__(
@@ -185,6 +187,8 @@ class ExternalAnalyser:
         stub_resolver: StubResolver | None = None,
         project_root: Path | None = None,
         python_version: str = "3.12",
+        ignore_include: list[str] | None = None,
+        ignore_exclude: list[str] | None = None,
     ) -> None:
         """
         initialise the external analyser.
@@ -202,9 +206,15 @@ class ExternalAnalyser:
                 project root for local stub overrides
             `python_version: str`
                 python version for stub resolution
+            `ignore_include: list[str] | None`
+                list of builtin functions to always ignore (e.g., ['str', 'print'])
+            `ignore_exclude: list[str] | None`
+                list of builtin functions to never ignore (override ignore_include)
         """
         self.venv_info: VenvInfo | None = venv_info
         self.warn_native: bool = warn_native
+        self._ignore_include: set[str] = set(ignore_include or [])
+        self._ignore_exclude: set[str] = set(ignore_exclude or [])
         self._cache: DependencyCache = DependencyCache(cache_config or CacheConfig())
         self._analysis_cache: dict[str, ModuleAnalysis] = {}
         self._stub_resolver: StubResolver = stub_resolver or create_stub_resolver(
@@ -430,11 +440,7 @@ class ExternalAnalyser:
             logger.debug("disk cache hit for: %s", module_name)
             # convert back to frozensets - cached_sigs is dict[str, list[str]]
             sigs: dict[str, frozenset[str]] = {
-                str(k): frozenset(
-                    str(item)
-                    for item in v  # pyright: ignore[reportAny]
-                )
-                for k, v in cached_sigs.items()  # pyright: ignore[reportAny]
+                str(k): frozenset(str(item) for item in v) for k, v in cached_sigs.items()
             }
             analysis = ModuleAnalysis(location=location, exception_signatures=sigs)
             self._analysis_cache[module_name] = analysis
@@ -713,16 +719,20 @@ class ExternalAnalyser:
             obj: object = module
             # handle dotted function names (e.g., "JSONDecoder.decode")
             for part in function_name.split("."):
-                obj = getattr(obj, part, None)  # pyright: ignore[reportAny]
+                obj = getattr(obj, part, None)
                 if obj is None:
                     return False
 
-            if obj is not None and hasattr(obj, "__doc__") and obj.__doc__:
-                doc_lower: str = obj.__doc__.lower()  # pyright: ignore[reportAny]
-                has_raises = "raise" in doc_lower or "raises" in doc_lower
-                if has_raises:
-                    logger.debug("docstring mentions raises for: %s.%s", module_name, function_name)
-                return has_raises
+            if obj is not None and hasattr(obj, "__doc__"):
+                doc = getattr(obj, "__doc__", None)
+                if isinstance(doc, str):
+                    doc_lower = doc.lower()
+                    has_raises = "raise" in doc_lower or "raises" in doc_lower
+                    if has_raises:
+                        logger.debug(
+                            "docstring mentions raises for: %s.%s", module_name, function_name
+                        )
+                    return has_raises
         except (ImportError, AttributeError, TypeError):
             pass
         return False
@@ -744,12 +754,13 @@ class ExternalAnalyser:
         """
         import builtins
 
-        func = getattr(builtins, func_name, None)
-        if func is not None:
-            canonical = getattr(func, "__module__", None)
-            if canonical is not None and isinstance(canonical, str):
-                logger.debug("resolved builtin %s to canonical module: %s", func_name, canonical)
-                return str(canonical)  # explicit str() for type safety
+        if not hasattr(builtins, func_name):
+            return "builtins"
+        func: object = getattr(builtins, func_name)  # pyright: ignore[reportAny]
+        module_attr = getattr(func, "__module__", None)
+        if isinstance(module_attr, str):
+            logger.debug("resolved builtin %s to canonical module: %s", func_name, module_attr)
+            return module_attr
         # fallback to builtins
         return "builtins"
 
@@ -801,6 +812,15 @@ class ExternalAnalyser:
 
         # handle bare names (builtins like 'open', 'int', 'len')
         if "." not in import_name:
+            # check ignore_exclude first - these are always processed
+            if import_name in self._ignore_exclude:
+                canonical_module = self._get_builtin_canonical_module(import_name)
+                return canonical_module, import_name
+
+            # check ignore_include - these are always ignored
+            if import_name in self._ignore_include:
+                return None
+
             # dynamically check if this builtin has interesting exceptions
             # (i.e., can raise something other than just TypeError/Exception)
             # this avoids flagging every len(), abs(), print() etc.
