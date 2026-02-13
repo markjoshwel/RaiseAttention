@@ -13,13 +13,38 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Final
 
-from clang.cindex import (
-    Cursor,
-    CursorKind,
-    Index,
-    TranslationUnit,
-    TypeKind,
-)
+try:
+    from clang.cindex import (
+        Cursor,
+        CursorKind,
+        Index,
+        TranslationUnit,
+        TypeKind,
+    )
+except ImportError as e:
+    import sys
+
+    error_msg = """
+error: libclang not found.
+
+standardstubber requires libclang to parse cpython c source code.
+
+on windows:
+1. download llvm from https://github.com/llvm/llvm-project/releases
+2. install it (e.g., to c:\\program files\\llvm)
+3. add the bin directory to your path, or
+4. set the libclang_path environment variable:
+   $env:libclang_path = "c:\\program files\\llvm\\bin\\libclang.dll"
+
+on linux/macos:
+   sudo apt install libclang-dev  # debian/ubuntu
+   sudo dnf install clang-devel   # fedora
+   brew install llvm              # macos
+
+original error: {}
+""".format(e)
+    print(error_msg, file=sys.stderr)
+    sys.exit(1)
 
 from .models import Confidence, FunctionStub, FunctionSummary, ModuleGraph
 from .patterns import (
