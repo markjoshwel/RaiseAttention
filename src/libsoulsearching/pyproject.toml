@@ -41,6 +41,16 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["libsoulsearching"]
+exclude = [
+    "**/tests/**",
+    "**/test_*.py",
+    "**/*.pyc",
+    "**/__pycache__/**",
+    "**/.git/**",
+    "**/.venv/**",
+    "**/.mypy_cache/**",
+    "**/.ruff_cache/**",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

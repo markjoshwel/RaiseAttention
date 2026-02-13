@@ -43,6 +43,18 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["standardstubber"]
+exclude = [
+    "**/tests/**",
+    "**/test_*.py",
+    "**/*.pyc",
+    "**/__pycache__/**",
+    "**/.git/**",
+    "**/.venv/**",
+    "**/resources/**",
+    "**/.mypy_cache/**",
+    "**/.ruff_cache/**",
+    "**/typings/**",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
