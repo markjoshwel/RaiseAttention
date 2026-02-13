@@ -11,10 +11,59 @@ import os
 from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     pass
+
+
+def _get_nested_dict(parent: dict[str, object], key: str) -> dict[str, object] | None:
+    """
+    get a nested dict from a parent dict with proper type narrowing.
+
+    this helper exists because pyright cannot infer the type of nested dicts
+    after isinstance checks on values from `dict[str, object].get()`.
+
+    arguments:
+        `parent: dict[str, object]`
+            parent dictionary
+        `key: str`
+            key to look up
+
+    returns: `dict[str, object] | None`
+        the nested dict if it exists and is a dict, otherwise none
+    """
+    value = parent.get(key)
+    if isinstance(value, dict):
+        # pyright cannot infer nested dict types after isinstance check
+        result: dict[str, object] = {}
+        for k, v in value.items():  # pyright: ignore[reportUnknownVariableType]
+            result[str(k)] = v  # pyright: ignore[reportUnknownArgumentType]
+        return result
+    return None
+
+
+def _get_str_list(parent: dict[str, object], key: str) -> list[str] | None:
+    """
+    get a list of strings from a parent dict with proper type narrowing.
+
+    arguments:
+        `parent: dict[str, object]`
+            parent dictionary
+        `key: str`
+            key to look up
+
+    returns: `list[str] | None`
+        the list of strings if it exists and is a list, otherwise none
+    """
+    value = parent.get(key)
+    if isinstance(value, list):
+        # pyright cannot infer list element types after isinstance check
+        result: list[str] = []
+        for item in value:  # pyright: ignore[reportUnknownVariableType]
+            result.append(str(item))  # pyright: ignore[reportUnknownArgumentType]
+        return result
+    return None
 
 
 @dataclass
@@ -74,6 +123,10 @@ class AnalysisConfig:
             'pkg.mod.Exception' instead of 'pkg.Exception')
         `warn_native: bool`
             warn about possible exceptions from native/c extension code
+        `ignore_include: list[str]`
+            list of builtin functions to always ignore (e.g., ['str', 'print'])
+        `ignore_exclude: list[str]`
+            list of builtin functions to never ignore (override ignore_include)
     """
 
     strict_mode: bool = False
@@ -82,6 +135,8 @@ class AnalysisConfig:
     local_only: bool = False
     full_module_path: bool = False
     warn_native: bool = True
+    ignore_include: list[str] = field(default_factory=list)
+    ignore_exclude: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -156,10 +211,15 @@ class Config:
             import tomllib
 
             with open(pyproject, "rb") as f:
-                data = tomllib.load(f)
+                data: dict[str, object] = tomllib.load(f)
 
-            tool_config = data.get("tool", {}).get("raiseattention", {})  # pyright: ignore[reportAny]
-            return cls._from_dict(tool_config, project_path)
+            tool_section = _get_nested_dict(data, "tool")
+            if tool_section is None:
+                return None
+            config_dict = _get_nested_dict(tool_section, "raiseattention")
+            if config_dict is None:
+                return None
+            return cls._from_dict(config_dict, project_path)
         except Exception:
             return None
 
@@ -185,7 +245,7 @@ class Config:
             import tomllib
 
             with open(config_file, "rb") as f:
-                data = tomllib.load(f)
+                data: dict[str, object] = tomllib.load(f)
 
             return cls._from_dict(data, project_path)
         except Exception:
@@ -313,18 +373,24 @@ class Config:
                 local_only=other.analysis.local_only,
                 full_module_path=other.analysis.full_module_path,
                 warn_native=other.analysis.warn_native,
+                ignore_include=other.analysis.ignore_include
+                if other.analysis.ignore_include
+                else self.analysis.ignore_include,
+                ignore_exclude=other.analysis.ignore_exclude
+                if other.analysis.ignore_exclude
+                else self.analysis.ignore_exclude,
             )
             if other.analysis != AnalysisConfig()
             else self.analysis,
         )
 
     @classmethod
-    def _from_dict(cls, data: dict[str, Any], project_root: Path) -> Config:
+    def _from_dict(cls, data: dict[str, object], project_root: Path) -> Config:
         """
         Create configuration from a dictionary.
 
         arguments:
-            `data: dict[str, Any]`
+            `data: dict[str, object]`
                 configuration dictionary
             `project_root: Path`
                 project root path
@@ -334,47 +400,75 @@ class Config:
         """
         config = cls(project_root=project_root)
 
-        # basic settings
-        if "python_path" in data:
-            config.python_path = data["python_path"]
-        if "venv_path" in data:
-            config.venv_path = data["venv_path"]
-        if "include" in data:
-            config.include = data["include"]
-        if "exclude" in data:
-            config.exclude = data["exclude"]
-        if "respect_gitignore" in data:
-            config.respect_gitignore = data["respect_gitignore"]
-        if "ignore_exceptions" in data:
-            config.ignore_exceptions = data["ignore_exceptions"]
-        if "ignore_modules" in data:
-            config.ignore_modules = data["ignore_modules"]
+        # basic settings with type narrowing
+        python_path = data.get("python_path")
+        if isinstance(python_path, str):
+            config.python_path = python_path
+        venv_path = data.get("venv_path")
+        if isinstance(venv_path, str):
+            config.venv_path = venv_path
+        include = _get_str_list(data, "include")
+        if include is not None:
+            config.include = include
+        exclude = _get_str_list(data, "exclude")
+        if exclude is not None:
+            config.exclude = exclude
+        respect_gitignore = data.get("respect_gitignore")
+        if isinstance(respect_gitignore, bool):
+            config.respect_gitignore = respect_gitignore
+        ignore_exceptions = _get_str_list(data, "ignore_exceptions")
+        if ignore_exceptions is not None:
+            config.ignore_exceptions = ignore_exceptions
+        ignore_modules = _get_str_list(data, "ignore_modules")
+        if ignore_modules is not None:
+            config.ignore_modules = ignore_modules
 
         # cache settings
-        if cache_data := data.get("cache", {}):  # pyright: ignore[reportAny]
+        cache_data = _get_nested_dict(data, "cache")
+        if cache_data is not None:
+            enabled = cache_data.get("enabled")
+            max_file = cache_data.get("max_file_entries")
+            max_mem = cache_data.get("max_memory_mb")
+            ttl = cache_data.get("ttl_hours")
             config.cache = CacheConfig(
-                enabled=cache_data.get("enabled", True),  # pyright: ignore[reportAny]
-                max_file_entries=cache_data.get("max_file_entries", 10000),  # pyright: ignore[reportAny]
-                max_memory_mb=cache_data.get("max_memory_mb", 500),  # pyright: ignore[reportAny]
-                ttl_hours=cache_data.get("ttl_hours", 24),  # pyright: ignore[reportAny]
+                enabled=bool(enabled) if isinstance(enabled, bool) else True,
+                max_file_entries=int(max_file) if isinstance(max_file, int) else 10000,
+                max_memory_mb=int(max_mem) if isinstance(max_mem, int) else 500,
+                ttl_hours=int(ttl) if isinstance(ttl, int) else 24,
             )
 
         # lsp settings
-        if lsp_data := data.get("lsp", {}):  # pyright: ignore[reportAny]
+        lsp_data = _get_nested_dict(data, "lsp")
+        if lsp_data is not None:
+            debounce = lsp_data.get("debounce_ms")
+            max_diag = lsp_data.get("max_diagnostics_per_file")
             config.lsp = LspConfig(
-                debounce_ms=lsp_data.get("debounce_ms", 500),  # pyright: ignore[reportAny]
-                max_diagnostics_per_file=lsp_data.get("max_diagnostics_per_file", 100),  # pyright: ignore[reportAny]
+                debounce_ms=int(debounce) if isinstance(debounce, int) else 500,
+                max_diagnostics_per_file=int(max_diag) if isinstance(max_diag, int) else 100,
             )
 
         # analysis settings
-        if analysis_data := data.get("analysis", {}):  # pyright: ignore[reportAny]
+        analysis_data = _get_nested_dict(data, "analysis")
+        if analysis_data is not None:
+            strict_mode = analysis_data.get("strict_mode")
+            allow_bare = analysis_data.get("allow_bare_except")
+            require_reraise = analysis_data.get("require_reraise_after_log")
+            local_only = analysis_data.get("local_only")
+            full_module = analysis_data.get("full_module_path")
+            warn_native = analysis_data.get("warn_native")
+            ignore_include = _get_str_list(analysis_data, "ignore_include")
+            ignore_exclude = _get_str_list(analysis_data, "ignore_exclude")
             config.analysis = AnalysisConfig(
-                strict_mode=analysis_data.get("strict_mode", False),  # pyright: ignore[reportAny]
-                allow_bare_except=analysis_data.get("allow_bare_except", False),  # pyright: ignore[reportAny]
-                require_reraise_after_log=analysis_data.get("require_reraise_after_log", True),  # pyright: ignore[reportAny]
-                local_only=analysis_data.get("local_only", False),  # pyright: ignore[reportAny]
-                full_module_path=analysis_data.get("full_module_path", False),  # pyright: ignore[reportAny]
-                warn_native=analysis_data.get("warn_native", True),  # pyright: ignore[reportAny]
+                strict_mode=bool(strict_mode) if isinstance(strict_mode, bool) else False,
+                allow_bare_except=bool(allow_bare) if isinstance(allow_bare, bool) else False,
+                require_reraise_after_log=bool(require_reraise)
+                if isinstance(require_reraise, bool)
+                else True,
+                local_only=bool(local_only) if isinstance(local_only, bool) else False,
+                full_module_path=bool(full_module) if isinstance(full_module, bool) else False,
+                warn_native=bool(warn_native) if isinstance(warn_native, bool) else True,
+                ignore_include=ignore_include if ignore_include is not None else [],
+                ignore_exclude=ignore_exclude if ignore_exclude is not None else [],
             )
 
         return config
