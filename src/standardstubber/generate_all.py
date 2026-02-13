@@ -61,15 +61,15 @@ def extract_tarball_cached(tarball: Path) -> Path:
 
 def _init_libclang():
     """initialise libclang path for multiprocessing workers on windows."""
-    import os
     import sys
 
     if sys.platform == "win32":
+        from clang.cindex import Config
         import clang.native
 
         libclang_path = Path(clang.native.__file__).parent / "libclang.dll"
         if libclang_path.exists():
-            os.environ.setdefault("LIBCLANG_PATH", str(libclang_path))
+            Config.set_library_file(str(libclang_path))
 
 
 def analyse_single_module(

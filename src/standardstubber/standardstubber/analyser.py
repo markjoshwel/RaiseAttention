@@ -18,11 +18,12 @@ from typing import Final
 # configure libclang path before importing clang
 # on windows, libclang.dll is bundled with the python package
 if sys.platform == "win32":
+    from clang.cindex import Config
     import clang.native
 
     libclang_path = Path(clang.native.__file__).parent / "libclang.dll"
     if libclang_path.exists():
-        os.environ.setdefault("LIBCLANG_PATH", str(libclang_path))
+        Config.set_library_file(str(libclang_path))
 
 try:
     from clang.cindex import (
