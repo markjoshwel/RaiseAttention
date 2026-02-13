@@ -224,7 +224,7 @@ class TestParseSource:
         source = "def broken("
 
         with pytest.raises(SyntaxError):
-            parse_source(source)
+            _ = parse_source(source)
 
 
 class TestTryExceptInfo:

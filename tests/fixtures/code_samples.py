@@ -46,7 +46,7 @@ def caller_of_another():
     return result
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path
 
 
@@ -108,7 +108,7 @@ def nested_try_except():
         print("outer catch")
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path
 
 
@@ -178,7 +178,7 @@ def loop_caller():
     loop_with_exception()  # should flag
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path
 
 
@@ -226,7 +226,7 @@ def caller_handling_both():
         print("caught both")
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path
 
 
@@ -289,7 +289,7 @@ def caller_handling_specific():
         print(f"caught: {e} (code: {e.code})")
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path
 
 
@@ -317,7 +317,7 @@ def create_synthetic_codebase(base_path: Path) -> dict[str, Path]:
     }
 
     # create an __init__.py to make it a package
-    (base_path / "__init__.py").write_text("")
+    _ = (base_path / "__init__.py").write_text("")
 
     return files
 
@@ -376,7 +376,7 @@ def another_bad_caller():
     print(x)
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path
 
 
@@ -427,7 +427,7 @@ def safe_operation() -> str:
     return "success"
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path
 
 
@@ -475,7 +475,7 @@ async def caller_of_result():
     return result
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path
 
 
@@ -549,7 +549,7 @@ class MyClass:
         raise AttributeError("property error")
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path
 
 
@@ -635,7 +635,7 @@ class Processor:
         return list(map(self.process_item, items))
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path
 
 
@@ -711,7 +711,7 @@ def setup_risky_handler():
     handler.trigger()
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path
 
 
@@ -763,5 +763,5 @@ def caller_of_regex():
     return result
 '''
 
-    file_path.write_text(code)
+    _ = file_path.write_text(code)
     return file_path

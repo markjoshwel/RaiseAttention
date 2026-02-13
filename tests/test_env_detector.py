@@ -125,7 +125,7 @@ class TestDetectEnvironment:
         assert result_detect == result_find
 
 
-class TestIntegrationWithLibvenvfinder:
+class TestIntegrationWithLibsoulsearching:
     """integration tests to verify libsoulsearching re-exports work correctly."""
 
     def test_poetry_project_detection(self, tmp_path: Path) -> None:

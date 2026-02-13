@@ -311,7 +311,7 @@ class TestSyntheticCodebase:
         analyzer = ExceptionAnalyser(config)
 
         codebase_path = tmp_path / "test_codebase"
-        create_synthetic_codebase(codebase_path)
+        _ = create_synthetic_codebase(codebase_path)
 
         result = analyzer.analyse_project(codebase_path)
 
@@ -352,7 +352,7 @@ class TestConfigurationImpact:
 
         # create file with bare except
         test_file = tmp_path / "bare_except.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def risky():
     raise ValueError("error")
 
@@ -375,7 +375,7 @@ def handler():
         analyzer = ExceptionAnalyser(config)
 
         test_file = tmp_path / "ignored.py"
-        test_file.write_text("""
+        _ = test_file.write_text("""
 def risky():
     raise ValueError("ignored")
 
