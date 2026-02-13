@@ -28,7 +28,7 @@ if sys.platform == "win32":
         Config.set_compatibility_check(False)
 
 # generator identifier
-GENERATOR = "standardstubber@0.1.0"
+GENERATOR = "standardstubber@2026.2.14"
 
 
 def get_cache_dir() -> Path:

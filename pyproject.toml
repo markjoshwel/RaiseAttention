@@ -1,6 +1,6 @@
 [project]
 name = "raiseattention"
-version = "0.1.0"
+version = "2026.2.14"
 description = "a static exception flow analyser for python with lsp integration"
 readme = "README.md"
 license = {text = "MIT"}

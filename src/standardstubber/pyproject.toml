@@ -1,6 +1,6 @@
 [project]
 name = "standardstubber"
-version = "0.1.0"
+version = "2026.2.14"
 description = "cpython standard library exception stub generator for raiseattention"
 readme = "README.md"
 license = {text = "MIT"}
