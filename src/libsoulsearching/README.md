@@ -1,15 +1,13 @@
 # libsoulsearching
 
-universal python virtual environment finder. i built this because i got tired of
-guessing where different tools put their virtual environments.
+universal python virtual environment finder. i got tired of guessing where
+different tools put their virtual environments, so i made this.
 
 ## installation
 
 ```text
 pip install libsoulsearching
 ```
-
-**nix users, rejoice:** available via the RaiseAttention workspace
 
 ## quickstart
 
@@ -30,18 +28,31 @@ for venv in all_venvs:
 poetry_venv = find_venv("/path/to/project", tool=ToolType.POETRY)
 ```
 
-et voilà! — no more guessing where your venvs are hiding.
-
 ## supported tools
 
-- **poetry** — `poetry.lock`, `pyproject.toml` with poetry config
-- **pipenv** — `pipfile.lock`
-- **pdm** — `pdm.lock`, `.pdm.toml`
-- **uv** — `uv.lock`, `.venv`
-- **rye** — `rye.lock`, `.python-version`
-- **hatch** — `pyproject.toml` with `[tool.hatch.envs]`
-- **venv** — `.venv/pyvenv.cfg`
-- **pyenv** — `.python-version`
+- **poetry**  
+  `poetry.lock`, `pyproject.toml` with poetry config
+
+- **pipenv**  
+  `pipfile.lock`
+
+- **pdm**  
+  `pdm.lock`, `.pdm.toml`
+
+- **uv**  
+  `uv.lock`, `.venv`
+
+- **rye**  
+  `rye.lock`, `.python-version`
+
+- **hatch**  
+  `pyproject.toml` with `[tool.hatch.envs]`
+
+- **venv**  
+  `.venv/pyvenv.cfg`
+
+- **pyenv**  
+  `.python-version`
 
 ## cli usage
 
@@ -61,10 +72,17 @@ venvfinder /path/to/project --json
 
 ## api reference
 
-- `libsoulsearching.find_venv()` — find a virtual environment in the given project directory
-- `libsoulsearching.find_all_venvs()` — find all virtual environments in the given project directory
-- `libsoulsearching.ToolType` — enumeration of supported python environment management tools
-- `libsoulsearching.VenvInfo` — information about a detected python virtual environment
+- `libsoulsearching.find_venv()`  
+  find a virtual environment in the given project directory
+
+- `libsoulsearching.find_all_venvs()`  
+  find all virtual environments in the given project directory
+
+- `libsoulsearching.ToolType`  
+  enumeration of supported python environment management tools
+
+- `libsoulsearching.VenvInfo`  
+  information about a detected python virtual environment
 
 ### def libsoulsearching.find_venv()
 
@@ -151,8 +169,9 @@ information about a detected python virtual environment
 
 ## licence
 
-libsoulsearching is free and unencumbered software released into the public domain.
-for more information, please refer to <https://unlicense.org/> or go ham with the
-zero-clause bsd licence — your choice.
+libsoulsearching is unencumbered, free-as-in-freedom, and is dual-licenced under
+The Unlicense or the BSD Zero Clause License. (SPDX: `Unlicense OR 0BSD`)
 
-see [LICENCING](../../LICENCING) for details.
+you are free to use the software as you wish, without any restrictions or
+obligations, subject only to the warranty disclaimers in the licence text
+of your choosing.

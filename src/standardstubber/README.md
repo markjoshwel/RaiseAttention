@@ -49,8 +49,6 @@ generate all stdlib stubs for multiple python versions:
 python generate_all.py --jobs 16 --verbose
 ```
 
-et voilà! — stubs for all supported python versions.
-
 ## the .pyras file format (v2.0)
 
 `.pyras` (python raiseattention stub) files are **JSON-based** exception metadata stubs for
@@ -59,11 +57,20 @@ per-exception confidence levels and efficient parsing.
 
 ### design goals
 
-- **fast parsing:** JSON format (parsed with stdlib `json` module)
-- **nested structure:** module → class → method → exception → confidence
-- **version-aware:** PEP 440 specifiers for matching python/package versions
-- **per-exception confidence:** each exception can have its own trust level
-- **fuzzy matching:** resolver handles class name mismatches
+- **fast parsing**  
+  JSON format (parsed with stdlib `json` module)
+
+- **nested structure**  
+  module → class → method → exception → confidence
+
+- **version-aware**  
+  PEP 440 specifiers for matching python/package versions
+
+- **per-exception confidence**  
+  each exception can have its own trust level
+
+- **fuzzy matching**  
+  resolver handles class name mismatches
 
 see the detailed format documentation in the [architecture section](#architecture).
 
@@ -71,11 +78,20 @@ see the detailed format documentation in the [architecture section](#architectur
 
 ### key components
 
-1. **analyser.py** — c source analysis using libclang
-2. **patterns.py** — error propagation pattern detection
-3. **models.py** — data models for .pyras files
-4. **resolver.py** — stub resolution at check-time
-5. **writer_json.py** — JSON v2.0 file writer
+1. **analyser.py**  
+   c source analysis using libclang
+
+2. **patterns.py**  
+   error propagation pattern detection
+
+3. **models.py**  
+   data models for .pyras files
+
+4. **resolver.py**  
+   stub resolution at check-time
+
+5. **writer_json.py**  
+   JSON v2.0 file writer
 
 ### exception extraction patterns
 
@@ -87,6 +103,7 @@ if (error_condition) {
     return NULL;
 }
 ```
+
 → records `ValueError` with confidence "exact"
 
 **pattern 2: pyerr_format**
@@ -95,6 +112,7 @@ if (error_condition) {
 PyErr_Format(PyExc_TypeError, "expected %.100s", expected);
 return NULL;
 ```
+
 → records `TypeError` with confidence "exact"
 
 **pattern 3: argument parsing**
@@ -104,6 +122,7 @@ if (!PyArg_ParseTuple(args, "s#:method", &buffer, &length)) {
     return NULL;
 }
 ```
+
 → records `TypeError` with confidence "likely"
 
 ### call graph propagation
@@ -125,8 +144,6 @@ or with development dependencies:
 ```text
 uv pip install -e "src/standardstubber[dev]"
 ```
-
-**nix users, rejoice:** this package is part of the RaiseAttention workspace.
 
 ## cli reference
 
@@ -156,17 +173,27 @@ options:
 
 ## dependencies
 
-- `libclang>=18.1.1` — c parser for analysing cpython source
-- `packaging>=24.0` — pep 440 version specifier handling
-- `typing-extensions>=4.6.0` — type hints backport
+- `libclang>=18.1.1`  
+  c parser for analysing cpython source
+
+- `packaging>=24.0`  
+  pep 440 version specifier handling
+
+- `typing-extensions>=4.6.0`  
+  type hints backport
 
 ## docstring format
 
 all python code uses the meadow docstring format (mdf):
 
-- **lowercase** all docstrings and comments
-- **british english** spelling (analyse, behaviour, colour)
-- plaintext-first with backtick-quoted type annotations
+- **lowercase**  
+  all docstrings and comments
+
+- **british english**  
+  spelling (analyse, behaviour, colour)
+
+- **plaintext-first**  
+  with backtick-quoted type annotations
 
 see `resources/MDF.md` in the RaiseAttention workspace for the full specification.
 
@@ -181,8 +208,9 @@ see `resources/MDF.md` in the RaiseAttention workspace for the full specificatio
 
 ## licence
 
-standardstubber is free and unencumbered software released into the public domain.
-for more information, please refer to <https://unlicense.org/> or go ham with the
-zero-clause bsd licence — your choice.
+standardstubber is unencumbered, free-as-in-freedom, and is dual-licenced under
+The Unlicense or the BSD Zero Clause License. (SPDX: `Unlicense OR 0BSD`)
 
-see [LICENCING](../../LICENCING) for details.
+you are free to use the software as you wish, without any restrictions or
+obligations, subject only to the warranty disclaimers in the licence text
+of your choosing.

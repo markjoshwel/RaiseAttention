@@ -1,16 +1,14 @@
 # libsightseeing
 
 a shared library for file finding and source resolution with gitignore support.
-i built this because i needed a simple way to find files while respecting
-.gitignore without pulling in heavy dependencies.
+i needed a simple way to find files while respecting .gitignore without pulling
+in heavy dependencies.
 
 ## installation
 
 ```text
 pip install libsightseeing
 ```
-
-**nix users, rejoice:** available via the RaiseAttention workspace
 
 ## usage
 
@@ -29,8 +27,6 @@ files = find_files("src", exclude=["tests"])
 files = find_files(".", include=["*.py"], respect_gitignore=False)
 ```
 
-et voilà! — file finding without the fuss.
-
 ### advanced api
 
 ```python
@@ -47,16 +43,26 @@ files = resolver.resolve()
 
 ## features
 
-- **respects .gitignore** — automatically excludes gitignored files
-- **glob patterns** — supports include/exclude patterns
-- **simple one-liner** — `find_files()` for quick usage
-- **configurable resolver** — `SourceResolver` for advanced cases
-- **lightweight** — only depends on pathspec
+- **respects .gitignore**  
+  automatically excludes gitignored files
+
+- **glob patterns**  
+  supports include/exclude patterns
+
+- **simple one-liner**  
+  `find_files()` for quick usage
+
+- **configurable resolver**  
+  `SourceResolver` for advanced cases
+
+- **lightweight**  
+  only depends on pathspec
 
 ## licence
 
-libsightseeing is free and unencumbered software released into the public domain.
-for more information, please refer to <https://unlicense.org/> or go ham with the
-zero-clause bsd licence — your choice.
+libsightseeing is unencumbered, free-as-in-freedom, and is dual-licenced under
+The Unlicense or the BSD Zero Clause License. (SPDX: `Unlicense OR 0BSD`)
 
-see [LICENCING](../../LICENCING) for details.
+you are free to use the software as you wish, without any restrictions or
+obligations, subject only to the warranty disclaimers in the licence text
+of your choosing.
