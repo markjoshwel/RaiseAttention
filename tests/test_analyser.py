@@ -726,3 +726,237 @@ def caller():
         # the call to main() inside try-except should not be flagged
         call_diagnostics = [d for d in result.diagnostics if d.line == 9]
         assert len(call_diagnostics) == 0
+
+
+class TestContextlibSuppress:
+    """tests for contextlib.suppress exception suppression."""
+
+    def test_suppress_single_exception(self, tmp_path: Path) -> None:
+        """test that contextlib.suppress suppresses a single exception type."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text('''
+from contextlib import suppress
+
+def risky():
+    raise ValueError("error")
+
+def caller():
+    with suppress(ValueError):
+        risky()
+''')
+
+        config = Config()
+        config.analysis.warn_native = False
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should not report ValueError because it's suppressed
+        value_error_diagnostics = [
+            d for d in result.diagnostics
+            if "ValueError" in str(d.exception_types)
+        ]
+        assert len(value_error_diagnostics) == 0
+
+    def test_suppress_with_contextlib_module_import(self, tmp_path: Path) -> None:
+        """test that contextlib.suppress works with full module import."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text('''
+import contextlib
+
+def risky():
+    raise ValueError("error")
+
+def caller():
+    with contextlib.suppress(ValueError):
+        risky()
+''')
+
+        config = Config()
+        config.analysis.warn_native = False
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should not report ValueError because it's suppressed
+        value_error_diagnostics = [
+            d for d in result.diagnostics
+            if "ValueError" in str(d.exception_types)
+        ]
+        assert len(value_error_diagnostics) == 0
+
+    def test_suppress_multiple_exceptions(self, tmp_path: Path) -> None:
+        """test that suppress works with multiple exception types."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text('''
+from contextlib import suppress
+
+def risky_value():
+    raise ValueError("value error")
+
+def risky_type():
+    raise TypeError("type error")
+
+def caller():
+    with suppress(ValueError, TypeError):
+        risky_value()
+        risky_type()
+''')
+
+        config = Config()
+        config.analysis.warn_native = False
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should not report either exception because both are suppressed
+        value_error_diagnostics = [
+            d for d in result.diagnostics
+            if "ValueError" in str(d.exception_types)
+        ]
+        type_error_diagnostics = [
+            d for d in result.diagnostics
+            if "TypeError" in str(d.exception_types)
+        ]
+        assert len(value_error_diagnostics) == 0
+        assert len(type_error_diagnostics) == 0
+
+    def test_suppress_with_parent_exception_class(self, tmp_path: Path) -> None:
+        """test that suppress(Exception) catches child exception types."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text('''
+from contextlib import suppress
+
+def risky():
+    raise ValueError("error")
+
+def caller():
+    with suppress(Exception):
+        risky()
+''')
+
+        config = Config()
+        config.analysis.warn_native = False
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # ValueError should be suppressed because it's a subclass of Exception
+        value_error_diagnostics = [
+            d for d in result.diagnostics
+            if "ValueError" in str(d.exception_types)
+        ]
+        assert len(value_error_diagnostics) == 0
+
+    def test_unsuppressed_exception_still_reported(self, tmp_path: Path) -> None:
+        """test that exceptions not in suppress list are still reported."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text('''
+from contextlib import suppress
+
+def risky():
+    raise ValueError("error")
+
+def caller():
+    with suppress(TypeError):  # only suppressing TypeError
+        risky()
+''')
+
+        config = Config()
+        config.analysis.warn_native = False
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should report ValueError because it's not suppressed
+        value_error_diagnostics = [
+            d for d in result.diagnostics
+            if "ValueError" in str(d.exception_types)
+        ]
+        assert len(value_error_diagnostics) == 1
+
+    def test_call_outside_suppress_still_reported(self, tmp_path: Path) -> None:
+        """test that calls outside suppress are still flagged."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text('''
+from contextlib import suppress
+
+def risky():
+    raise ValueError("error")
+
+def caller():
+    risky()  # outside suppress - should be flagged
+    with suppress(ValueError):
+        risky()  # inside suppress - should not be flagged
+''')
+
+        config = Config()
+        config.analysis.warn_native = False
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should have exactly one diagnostic for the call outside suppress
+        value_error_diagnostics = [
+            d for d in result.diagnostics
+            if "ValueError" in str(d.exception_types)
+        ]
+        assert len(value_error_diagnostics) == 1
+
+    def test_nested_suppress_contexts(self, tmp_path: Path) -> None:
+        """test that nested suppress contexts work correctly."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text('''
+from contextlib import suppress
+
+def risky():
+    raise ValueError("error")
+
+def caller():
+    with suppress(ValueError):
+        with suppress(TypeError):
+            risky()  # inside both suppress contexts
+''')
+
+        config = Config()
+        config.analysis.warn_native = False
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should not report ValueError (suppressed by outer context)
+        value_error_diagnostics = [
+            d for d in result.diagnostics
+            if "ValueError" in str(d.exception_types)
+        ]
+        assert len(value_error_diagnostics) == 0
+
+    def test_suppress_does_not_affect_other_calls(self, tmp_path: Path) -> None:
+        """test that suppress only affects calls inside its block."""
+        test_file = tmp_path / "test.py"
+        _ = test_file.write_text('''
+from contextlib import suppress
+
+def risky1():
+    raise ValueError("error1")
+
+def risky2():
+    raise ValueError("error2")
+
+def caller():
+    risky1()  # outside suppress - should be flagged
+    with suppress(ValueError):
+        risky2()  # inside suppress - should not be flagged
+''')
+
+        config = Config()
+        config.analysis.warn_native = False
+        analyzer = ExceptionAnalyser(config)
+        result = analyzer.analyse_file(test_file)
+
+        # should have exactly one diagnostic for risky1 (outside suppress)
+        risky1_diagnostics = [
+            d for d in result.diagnostics
+            if "risky1" in d.message
+        ]
+        assert len(risky1_diagnostics) == 1
+
+        # should not have diagnostic for risky2 (inside suppress)
+        risky2_diagnostics = [
+            d for d in result.diagnostics
+            if "risky2" in d.message
+        ]
+        assert len(risky2_diagnostics) == 0

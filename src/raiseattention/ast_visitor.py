@@ -77,6 +77,25 @@ class TryExceptInfo:
 
 
 @dataclass
+class SuppressInfo:
+    """
+    information about a contextlib.suppress context manager.
+
+    attributes:
+        `location: tuple[int, int]`
+            line and column of the with statement
+        `end_location: tuple[int, int]`
+            line and column where the with block ends
+        `suppressed_types: list[str]`
+            exception types being suppressed
+    """
+
+    location: tuple[int, int]
+    end_location: tuple[int, int] = field(default_factory=lambda: (0, 0))
+    suppressed_types: list[str] = field(default_factory=list)
+
+
+@dataclass
 class CallInfo:
     """
     information about a function call with exception tracking context.
@@ -92,6 +111,8 @@ class CallInfo:
             whether this is an await expression
         `containing_try_blocks: list[int]`
             indices into try_except_blocks that contain this call
+        `containing_suppress_blocks: list[int]`
+            indices into suppress_blocks that contain this call
         `callable_args: list[str]`
             names of callables passed as arguments (for HOF tracking)
     """
@@ -101,6 +122,7 @@ class CallInfo:
     end_location: tuple[int, int]
     is_async: bool = False
     containing_try_blocks: list[int] = field(default_factory=list)
+    containing_suppress_blocks: list[int] = field(default_factory=list)
     callable_args: list[str] = field(default_factory=list)
 
 
@@ -146,7 +168,8 @@ class ExceptionVisitor(ast.NodeVisitor):
     - raise statements
     - function definitions and their exception signatures
     - try-except blocks with line ranges
-    - function calls with their try-except context
+    - contextlib.suppress contexts
+    - function calls with their exception handling context
 
     attributes:
         `functions: dict[str, FunctionInfo]`
@@ -155,19 +178,25 @@ class ExceptionVisitor(ast.NodeVisitor):
             currently visiting function
         `try_except_blocks: list[TryExceptInfo]`
             all try-except blocks found
+        `suppress_blocks: list[SuppressInfo]`
+            all contextlib.suppress blocks found
         `imports: dict[str, str]`
             mapping of imported names to their full paths
         `active_try_blocks: list[int]`
             indices of try-except blocks currently in scope
+        `active_suppress_blocks: list[int]`
+            indices of suppress blocks currently in scope
     """
 
     module_name: str
     functions: dict[str, FunctionInfo]
     current_function: FunctionInfo | None
     try_except_blocks: list[TryExceptInfo]
+    suppress_blocks: list[SuppressInfo]
     imports: dict[str, str]
     _class_stack: list[str]
     active_try_blocks: list[int]
+    active_suppress_blocks: list[int]
     _module_level_func: FunctionInfo
     _exception_instances: set[str]
 
@@ -183,9 +212,11 @@ class ExceptionVisitor(ast.NodeVisitor):
         self.functions = {}
         self.current_function = None
         self.try_except_blocks = []
+        self.suppress_blocks = []
         self.imports = {}
         self._class_stack = []
         self.active_try_blocks = []
+        self.active_suppress_blocks = []
         self._exception_instances = set()
 
         # create synthetic function to track module-level code
@@ -439,6 +470,92 @@ class ExceptionVisitor(ast.NodeVisitor):
             self._exception_instances.discard(node.name)
 
     @override
+    def visit_With(self, node: ast.With) -> None:
+        """
+        visit with statements to detect contextlib.suppress usage.
+
+        arguments:
+            `node: ast.With`
+                the with statement node
+        """
+        suppress_block_indices: list[int] = []
+
+        # check each context manager in the with statement
+        for item in node.items:
+            suppressed_types = self._get_suppressed_exceptions(item.context_expr)
+            if suppressed_types:
+                # this is a contextlib.suppress context
+                suppress_info = SuppressInfo(
+                    location=(node.lineno, node.col_offset),
+                )
+
+                # find the end of the with block
+                if node.body:
+                    last_stmt = node.body[-1]
+                    suppress_info.end_location = (
+                        getattr(last_stmt, "end_lineno", last_stmt.lineno),
+                        getattr(last_stmt, "end_col_offset", 0),
+                    )
+
+                suppress_info.suppressed_types = suppressed_types
+
+                # add to list and get its index
+                block_index = len(self.suppress_blocks)
+                self.suppress_blocks.append(suppress_info)
+                suppress_block_indices.append(block_index)
+
+                logger.debug(
+                    "found contextlib.suppress at line %d for types: %s",
+                    node.lineno,
+                    suppressed_types,
+                )
+
+        # add suppress blocks to active blocks before visiting body
+        for block_index in suppress_block_indices:
+            self.active_suppress_blocks.append(block_index)
+
+        # visit with body
+        for stmt in node.body:
+            self.visit(stmt)
+
+        # remove suppress blocks from active after body
+        for _ in suppress_block_indices:
+            _ = self.active_suppress_blocks.pop()
+
+    def _get_suppressed_exceptions(self, node: ast.expr) -> list[str]:
+        """
+        check if a with context manager is contextlib.suppress and extract types.
+
+        arguments:
+            `node: ast.expr`
+                the context expression node (e.g., the part after 'with')
+
+        returns: `list[str]`
+            list of suppressed exception types, empty if not a suppress context
+        """
+        if isinstance(node, ast.Call):
+            # check for contextlib.suppress(...) or suppress(...)
+            func_name = self._get_call_name(node.func)
+            if func_name in ("contextlib.suppress", "suppress"):
+                # resolve full name if imported
+                if func_name == "suppress" and "suppress" in self.imports:
+                    full_name = self.imports["suppress"]
+                    if not full_name.endswith("suppress"):
+                        # not from contextlib
+                        return []
+
+                # extract exception types from arguments
+                suppressed_types: list[str] = []
+                for arg in node.args:
+                    exc_type = self._get_exception_type(arg)
+                    if exc_type:
+                        suppressed_types.append(exc_type)
+
+                return suppressed_types
+
+        return []
+
+    @override
     def visit_Call(self, node: ast.Call) -> None:
         """
         visit function calls to track what functions are called.
@@ -461,6 +578,7 @@ class ExceptionVisitor(ast.NodeVisitor):
                 ),
                 is_async=False,
                 containing_try_blocks=list(self.active_try_blocks),
+                containing_suppress_blocks=list(self.active_suppress_blocks),
                 callable_args=callable_args,
             )
             target_func.calls.append(call_info)
@@ -496,6 +614,7 @@ class ExceptionVisitor(ast.NodeVisitor):
                     ),
                     is_async=True,
                     containing_try_blocks=list(self.active_try_blocks),
+                    containing_suppress_blocks=list(self.active_suppress_blocks),
                     callable_args=callable_args,
                 )
                 target_func.calls.append(call_info)
@@ -504,7 +623,14 @@ class ExceptionVisitor(ast.NodeVisitor):
                 if callable_args:
                     logger.debug("call has callable args: %s", callable_args)
 
-        self.generic_visit(node)
+            # visit the call node's children (args, keywords) without calling visit_Call again
+            for arg in call_node.args:
+                self.visit(arg)
+            for kw in call_node.keywords:
+                self.visit(kw)
+        else:
+            # not a call, just visit children normally
+            self.generic_visit(node)
 
     def _get_exception_type(self, node: ast.expr) -> str:
         """

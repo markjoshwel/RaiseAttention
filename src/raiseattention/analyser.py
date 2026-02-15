@@ -20,6 +20,7 @@ from .cache import (
     FileAnalysis,
     FileCache,
     FunctionDict,
+    SuppressDict,
     TryExceptDict,
 )
 from .config import Config
@@ -252,6 +253,7 @@ class ExceptionAnalyser:
                             "end_location": call.end_location,
                             "is_async": call.is_async,
                             "containing_try_blocks": call.containing_try_blocks,
+                            "containing_suppress_blocks": call.containing_suppress_blocks,
                             "callable_args": call.callable_args,
                         }
                         for call in func.calls
@@ -274,6 +276,14 @@ class ExceptionAnalyser:
                     "reraises": try_info.reraises,
                 }
                 for try_info in visitor.try_except_blocks
+            ],
+            suppress_blocks=[
+                {
+                    "location": suppress_info.location,
+                    "end_location": suppress_info.end_location,
+                    "suppressed_types": suppress_info.suppressed_types,
+                }
+                for suppress_info in visitor.suppress_blocks
             ],
         )
 
@@ -371,6 +381,7 @@ class ExceptionAnalyser:
                             "end_location": call.end_location,
                             "is_async": call.is_async,
                             "containing_try_blocks": call.containing_try_blocks,
+                            "containing_suppress_blocks": call.containing_suppress_blocks,
                             "callable_args": call.callable_args,
                         }
                         for call in func.calls
@@ -392,6 +403,14 @@ class ExceptionAnalyser:
                     "reraises": try_info.reraises,
                 }
                 for try_info in visitor.try_except_blocks
+            ],
+            suppress_blocks=[
+                {
+                    "location": suppress_info.location,
+                    "end_location": suppress_info.end_location,
+                    "suppressed_types": suppress_info.suppressed_types,
+                }
+                for suppress_info in visitor.suppress_blocks
             ],
         )
 
@@ -730,6 +749,7 @@ class ExceptionAnalyser:
 
         # get try-except blocks from analysis
         try_blocks = analysis.try_except_blocks
+        suppress_blocks = analysis.suppress_blocks
 
         # first pass: compute function signatures and find unhandled exceptions at call sites
         # track which functions have unhandled exceptions escaping them
@@ -758,6 +778,7 @@ class ExceptionAnalyser:
                 called_func_name = call["func_name"]
                 call_location = call["location"]
                 containing_tries = call["containing_try_blocks"]
+                containing_suppress = call.get("containing_suppress_blocks", [])
                 # note: is_async is available but not used currently
                 # _ = call["is_async"]
 
@@ -777,7 +798,11 @@ class ExceptionAnalyser:
 
                 # check which exceptions are handled at this call site
                 unhandled_exceptions = self._get_unhandled_exceptions(
-                    called_exceptions, containing_tries, try_blocks
+                    called_exceptions,
+                    containing_tries,
+                    try_blocks,
+                    containing_suppress,
+                    suppress_blocks,
                 )
 
                 if unhandled_exceptions:
@@ -894,24 +919,32 @@ class ExceptionAnalyser:
         exception_types: list[str],
         containing_try_blocks: list[int],
         try_blocks: list[TryExceptDict],
+        containing_suppress_blocks: list[int] | None = None,
+        suppress_blocks: list[SuppressDict] | None = None,
     ) -> list[str]:
         """
-                Determine which exceptions are not handled by the given try-except blocks.
+        determine which exceptions are not handled by the given try-except blocks
+        or contextlib.suppress contexts.
 
-                this method checks if each exception type would be caught by any of the
-        try-except blocks in scope. it considers exception hierarchies where
-        catching 'Exception' will catch 'ValueError', etc.
+        this method checks if each exception type would be caught by any of the
+        try-except blocks in scope, or suppressed by any contextlib.suppress
+        context managers. it considers exception hierarchies where catching
+        'Exception' will catch 'ValueError', etc.
 
         arguments:
-                    `exception_types: list[str]`
-                        list of exception types to check
-                    `containing_try_blocks: list[int]`
-                        indices of try-except blocks containing the call
-                    `try_blocks: list[TryExceptDict]`
-                        all try-except blocks in the file
+            `exception_types: list[str]`
+                list of exception types to check
+            `containing_try_blocks: list[int]`
+                indices of try-except blocks containing the call
+            `try_blocks: list[TryExceptDict]`
+                all try-except blocks in the file
+            `containing_suppress_blocks: list[int] | None`
+                indices of suppress blocks containing the call
+            `suppress_blocks: list[SuppressDict] | None`
+                all suppress blocks in the file
 
-                returns: `list[str]`
-                    list of exception types that are NOT handled
+        returns: `list[str]`
+            list of exception types that are NOT handled
         """
         unhandled: list[str] = []
 
@@ -941,6 +974,24 @@ class ExceptionAnalyser:
 
                 if is_handled:
                     break
+
+            # if not handled by try-except, check contextlib.suppress
+            if not is_handled and containing_suppress_blocks and suppress_blocks:
+                for suppress_index in containing_suppress_blocks:
+                    if suppress_index >= len(suppress_blocks):
+                        continue
+
+                    suppress_block = suppress_blocks[suppress_index]
+                    suppressed_types = suppress_block["suppressed_types"]
+
+                    # check if this exception type is suppressed
+                    for suppressed_type in suppressed_types:
+                        if self._exception_is_caught(exc_type, suppressed_type):
+                            is_handled = True
+                            break
+
+                    if is_handled:
+                        break
 
             if not is_handled:
                 unhandled.append(exc_type)

@@ -43,6 +43,7 @@ class CallDict(TypedDict):
     end_location: tuple[int, int]
     is_async: bool
     containing_try_blocks: list[int]
+    containing_suppress_blocks: list[int]
     callable_args: list[str]
 
 
@@ -68,6 +69,14 @@ class TryExceptDict(TypedDict):
     has_bare_except: bool
     has_except_exception: bool
     reraises: bool
+
+
+class SuppressDict(TypedDict):
+    """typed dict for contextlib.suppress block info in analysis results."""
+
+    location: tuple[int, int]
+    end_location: tuple[int, int]
+    suppressed_types: list[str]
 
 
 @dataclass
@@ -111,6 +120,8 @@ class FileAnalysis:
             when analysis was performed
         `try_except_blocks: list[TryExceptDict]`
             try-except block information
+        `suppress_blocks: list[SuppressDict]`
+            contextlib.suppress block information
     """
 
     file_path: Path
@@ -118,6 +129,7 @@ class FileAnalysis:
     imports: dict[str, str]
     timestamp: float
     try_except_blocks: list[TryExceptDict] = field(default_factory=list)
+    suppress_blocks: list[SuppressDict] = field(default_factory=list)
 
 
 @final
