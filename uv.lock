@@ -446,7 +446,7 @@ wheels = [
 
 [[package]]
 name = "raiseattention"
-version = "2026.2.16"
+version = "2026.2.161"
 source = { editable = "." }
 dependencies = [
     { name = "libclang" },
