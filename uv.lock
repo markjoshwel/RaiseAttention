@@ -236,7 +236,7 @@ wheels = [
 
 [[package]]
 name = "libsightseeing"
-version = "0.1.1"
+version = "0.2.0"
 source = { editable = "src/libsightseeing" }
 dependencies = [
     { name = "pathspec" },
@@ -446,7 +446,7 @@ wheels = [
 
 [[package]]
 name = "raiseattention"
-version = "2026.2.14+1"
+version = "2026.2.16"
 source = { editable = "." }
 dependencies = [
     { name = "libclang" },
