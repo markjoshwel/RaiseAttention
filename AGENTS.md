@@ -13,6 +13,8 @@ unhandled exceptions in python codebases. it provides:
 - virtual environment auto-detection (via libsoulsearching)
 - **robust exception flow tracking** through transitive call chains
 - **intelligent try-except detection** at call sites
+- **contextlib.suppress support**  
+  recognises `with contextlib.suppress(Exception):` as valid exception handling
 - **external module analysis** for stdlib and third-party packages
 - **higher-order function traversal** for map/filter/sorted and callable args
 - **native code detection** with `PossibleNativeException` warnings
@@ -237,7 +239,7 @@ use british spelling throughout:
 - ci passing (14 jobs)
 
 **raiseattention:** ✅ production ready
-- **178 tests, all passing, 82% coverage**
+- **207 tests, all passing, 82% coverage**
 - **exception analyser completely rewritten** with proper flow tracking:
   - transitive exception tracking through call chains
   - try-except context detection at call sites
@@ -256,6 +258,8 @@ use british spelling throughout:
   - **exception instance re-raise detection** — `raise error` from `except Exception as error:` is treated as re-raise
   - **inline ignore comments** — `# raiseattention: ignore[ExceptionType]` for line-specific suppression
   - **docstring-based suppression** — exceptions documented in parent docstrings are suppressed
+  - **contextlib.suppress support**  
+    recognises `with contextlib.suppress(ValueError):` as valid exception handling
   - **configurable builtin filtering** — `ignore_include`/`ignore_exclude` for noisy builtins
 - **comprehensive test coverage**:
   - 35 synthetic analyser tests (unhandled/caught/edge cases)
@@ -313,7 +317,9 @@ the exception analyser has been redesigned for robust flow tracking:
 1. **ast_visitor.py** - enhanced ast traversal:
    - `CallInfo` dataclass tracks function calls with location and try-except context
    - `TryExceptInfo` tracks exception handling blocks with line ranges
+   - `SuppressInfo` tracks contextlib.suppress blocks
    - tracks which calls are inside which try-except blocks
+   - tracks which calls are inside contextlib.suppress contexts
    - handles async/await expressions
 
 2. **analyser.py** - core analysis engine:
@@ -355,6 +361,13 @@ def safe_caller():
         risky()  # no diagnostic - handled by except ValueError
     except ValueError:
         pass
+
+# contextlib.suppress also suppresses diagnostics
+from contextlib import suppress
+
+def suppressed_caller():
+    with suppress(ValueError):
+        risky()  # no diagnostic - ValueError is suppressed
 
 # example detection - external/stdlib code
 import json
